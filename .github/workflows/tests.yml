@@ -1,0 +1,130 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} · L${{ matrix.laravel }} · ${{ matrix.dependency-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+        laravel: ['11', '12', '13']
+        dependency-version: [prefer-stable]
+        include:
+          # testbench majors track Laravel majors and cap the usable PHPUnit,
+          # so both have to be pinned together -- constraining the framework
+          # alone leaves testbench free to drag in the newest Laravel.
+          - laravel: '11'
+            testbench: '9'
+          - laravel: '12'
+            testbench: '10'
+          - laravel: '13'
+            testbench: '11'
+          # One lowest-dependency run to catch over-optimistic constraints.
+          - php: '8.2'
+            laravel: '11'
+            testbench: '9'
+            dependency-version: prefer-lowest
+        exclude:
+          # Laravel 11 supports PHP 8.2-8.4; Laravel 13 requires 8.3+.
+          - php: '8.5'
+            laravel: '11'
+          - php: '8.2'
+            laravel: '13'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, sqlite3, pdo_sqlite, gd
+          coverage: none
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependency-version }}-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependency-version }}-
+            composer-${{ runner.os }}-php${{ matrix.php }}-L${{ matrix.laravel }}-
+
+      - name: Install dependencies
+        run: |
+          composer require --dev \
+            "laravel/framework:^${{ matrix.laravel }}.0" \
+            "orchestra/testbench:^${{ matrix.testbench }}.0" \
+            --no-interaction --no-update
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        run: vendor/bin/paratest --colors=always
+
+  lint:
+    name: rector & pint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-lint-${{ runner.os }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-lint-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      # Both tools write into build/, and both are keyed on their own config
+      # plus the lockfile so a tooling upgrade invalidates the cache. The
+      # run_id in the key means every run saves a fresh entry while
+      # restore-keys still inherits the previous one.
+      - name: Cache rector
+        uses: actions/cache@v4
+        with:
+          path: build/rector
+          key: rector-${{ runner.os }}-${{ hashFiles('rector.php', 'composer.json') }}-${{ github.run_id }}
+          restore-keys: |
+            rector-${{ runner.os }}-${{ hashFiles('rector.php', 'composer.json') }}-
+            rector-${{ runner.os }}-
+
+      - name: Cache pint
+        uses: actions/cache@v4
+        with:
+          path: build/pint
+          key: pint-${{ runner.os }}-${{ hashFiles('pint.json', 'composer.json') }}-${{ github.run_id }}
+          restore-keys: |
+            pint-${{ runner.os }}-${{ hashFiles('pint.json', 'composer.json') }}-
+            pint-${{ runner.os }}-
+
+      - run: mkdir -p build/rector build/pint
+
+      - name: Rector
+        run: composer rector:check
+
+      - name: Pint
+        run: composer pint:check

@@ -1,0 +1,25 @@
+providers:
+  - Ebbbang\TestMail\TestMailServiceProvider
+
+env:
+  - APP_ENV="local"
+  - APP_KEY="base64:Vq1p0kGZFPYJnKlBWXK6H0gCkFSlLuF5oNPYPBLBQpM="
+  # A file rather than :memory: so captured mail survives between requests
+  # when the workbench app is served.
+  - DB_CONNECTION="sqlite"
+  - MAIL_MAILER="database"
+  - TEST_MAIL_ENABLED=true
+
+migrations: true
+
+workbench:
+  start: '/test-mail'
+  install: true
+  discovers:
+    config: false
+    factories: false
+    web: true
+    api: false
+    commands: false
+    components: false
+    views: true

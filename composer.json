@@ -1,0 +1,89 @@
+{
+    "name": "ebbbang/laravel-test-mail",
+    "description": "A Laravel mail driver that stores outgoing mail in your database, with an auth-gated mailbox UI, attachment support, and .eml/.html export.",
+    "keywords": ["laravel", "mail", "mailer", "transport", "testing", "development", "mailbox", "eml"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ebbbang",
+            "email": "ebb.bang@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/database": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/filesystem": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/http": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/mail": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "symfony/mailer": "^7.0 || ^8.0",
+        "symfony/mime": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "brianium/paratest": "^7.4",
+        "driftingly/rector-laravel": "^2.5",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "phpunit/phpunit": "^10.5 || ^11.0 || ^12.0 || ^13.0",
+        "rector/rector": "^2.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ebbbang\\TestMail\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ebbbang\\TestMail\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "serve": [
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "rector": "@php vendor/bin/rector process --ansi",
+        "rector:check": "@php vendor/bin/rector process --dry-run --ansi",
+        "pint": "@php vendor/bin/pint --parallel --cache-file=build/pint/.pint.cache --ansi",
+        "pint:check": "@php vendor/bin/pint --test --parallel --cache-file=build/pint/.pint.cache --ansi",
+        "lint": [
+            "@rector",
+            "@pint"
+        ],
+        "lint:check": [
+            "@rector:check",
+            "@pint:check"
+        ],
+        "test": "@php vendor/bin/paratest --colors=always",
+        "test:serial": "@php vendor/bin/phpunit --colors=always"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ebbbang\\TestMail\\TestMailServiceProvider"
+            ],
+            "aliases": {
+                "TestMail": "Ebbbang\\TestMail\\TestMail"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
