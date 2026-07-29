@@ -139,6 +139,32 @@ If blobs do go missing, the mailbox says so explicitly rather than quietly hidin
 
 The same applies to any ephemeral or multi-replica setup: containers without a shared volume, autoscaling groups, `/tmp`-backed disks.
 
+### Laravel Octane
+
+Supported, and tested against a sandbox modelled on Octane's own
+`CurrentApplication::set()`.
+
+The transport is built from whichever container resolved the mail manager, not
+from the one the service provider booted with. Under Octane those differ:
+providers boot against the base application while each request runs in a
+sandbox clone, and `mail.manager` is not one of Octane's warmed services, so it
+is rebuilt per request. Following it into the sandbox is what keeps
+`MessageStored` firing on the same dispatcher as Laravel's own `MessageSent`.
+
+Nothing in the package holds per-request state between requests. The one piece
+of state that deliberately outlives a request is the `TestMail::auth()`
+callback, which is set once from a service provider — the same lifetime a
+provider has under Octane. Two things follow:
+
+- Do not capture a request, a user, or `$this` inside that closure. It receives
+  the current request as its argument; use that.
+- `TestMail::flushState()` clears it, if a worker ever needs resetting.
+
+Attachment bytes are read into memory to be written to the disk, which is a
+transient spike but a spike nonetheless on long-lived workers. If your
+application mails large files, set `storage.max_attachment_size` so oversized
+parts are recorded without their payloads.
+
 ### Capture and still deliver
 
 Set `forward` to another configured mailer and messages are stored *and* sent on — useful on staging:

@@ -9,6 +9,7 @@ use Ebbbang\TestMail\Recording\MessageRecorder;
 use Ebbbang\TestMail\Storage\RawMessageStore;
 use Ebbbang\TestMail\Transport\TransportFactory;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -42,11 +43,21 @@ class TestMailServiceProvider extends ServiceProvider
      * Deferred via callAfterResolving so merely booting this provider does not
      * force the mail manager into existence for applications that never send
      * mail on a given request.
+     *
+     * The transport is built from $container -- the container that resolved
+     * the mail manager -- rather than from $this->app. Under Octane those are
+     * not the same object: providers boot against the base application, while
+     * each request runs in a sandbox clone. "mail.manager" is not among
+     * Octane's warmed services, so it is built inside the sandbox, and the
+     * transport has to follow it there. Capturing $this->app instead would
+     * dispatch MessageStored on the base application's event dispatcher while
+     * Laravel's own MessageSent fired on the sandbox's, so a listener
+     * registered during a request would see one and not the other.
      */
     protected function registerTransport(): void
     {
-        $this->callAfterResolving('mail.manager', function (MailManager $manager): void {
-            $manager->extend('database', fn (array $config) => $this->app
+        $this->callAfterResolving('mail.manager', function (MailManager $manager, Container $container): void {
+            $manager->extend('database', fn (array $config) => $container
                 ->make(TransportFactory::class)
                 ->make($config));
         });
