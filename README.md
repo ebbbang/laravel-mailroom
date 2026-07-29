@@ -17,7 +17,11 @@ Then set `MAIL_MAILER=database` and send something.
 | | |
 |---|---|
 | PHP | 8.2+ |
-| Laravel | 11, 12, 13 |
+| Laravel | 12, 13 (11 best-effort) |
+
+The test matrix covers PHP 8.2–8.5 against Laravel 11, 12 and 13.
+
+**On Laravel 11:** the code works, but the branch reached end of life on 12 March 2026 and every stable `11.x` release is now flagged by unpatched security advisories. Composer blocks those by default, so an install there resolves to the `11.x-dev` branch rather than a tagged release. It is tested and supported on a best-effort basis; Laravel 12 or 13 is the real recommendation.
 
 ## What it captures
 

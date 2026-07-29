@@ -35,9 +35,12 @@ jobs:
           - laravel: '13'
             testbench: '11'
           # One lowest-dependency run to catch over-optimistic constraints.
+          # Pinned to Laravel 12 rather than 11: every stable 11.x release is
+          # blocked by unpatched security advisories now that the branch is
+          # EOL, so --prefer-lowest cannot resolve there at all.
           - php: '8.2'
-            laravel: '11'
-            testbench: '9'
+            laravel: '12'
+            testbench: '10'
             dependency-version: prefer-lowest
         exclude:
           # Laravel 11 supports PHP 8.2-8.4; Laravel 13 requires 8.3+.
@@ -73,8 +76,17 @@ jobs:
             --no-interaction --no-update
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
 
+      # paratest minors pin narrow PHPUnit ranges, so --prefer-lowest can land
+      # on a paratest/PHPUnit pair that cannot drive each other. That says
+      # nothing about this package, so the lowest-dependency run uses PHPUnit
+      # directly; every other combination runs in parallel.
       - name: Run tests
-        run: vendor/bin/paratest --colors=always
+        run: |
+          if [ "${{ matrix.dependency-version }}" = "prefer-lowest" ]; then
+            vendor/bin/phpunit --colors=always
+          else
+            vendor/bin/paratest --colors=always
+          fi
 
   lint:
     name: rector & pint
