@@ -157,6 +157,31 @@ class TestMailMessage extends Model
         return $this->raw_path !== null && resolve(RawMessageStore::class)->exists($this->raw_path);
     }
 
+    /**
+     * The raw MIME was stored, but the file is no longer on the disk.
+     *
+     * Usually a non-persistent disk: on Laravel Cloud, and anywhere else
+     * running ephemeral or per-replica storage, the database row outlives
+     * the blob it points at. Worth saying out loud rather than quietly
+     * hiding the download button.
+     */
+    public function rawIsMissing(): bool
+    {
+        return $this->raw_path !== null && ! resolve(RawMessageStore::class)->exists($this->raw_path);
+    }
+
+    /**
+     * Whether any blob belonging to this message has gone missing.
+     */
+    public function hasMissingFiles(): bool
+    {
+        if ($this->rawIsMissing()) {
+            return true;
+        }
+
+        return $this->attachments->contains->isMissing();
+    }
+
     public function raw(): ?string
     {
         return $this->raw_path === null ? null : resolve(RawMessageStore::class)->get($this->raw_path);

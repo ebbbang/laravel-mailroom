@@ -87,6 +87,23 @@
     </div>
 </div>
 
+@if ($message->hasMissingFiles())
+    <div class="tm-notice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+        </svg>
+        <span>
+            <strong>Stored files are missing.</strong>
+            Everything above was read from the database and is intact, but the
+            {{ $message->rawIsMissing() ? 'raw message' : 'attachment data' }}
+            is no longer on the <code>{{ config('test-mail.storage.disk') }}</code> disk, so
+            {{ $message->rawIsMissing() ? '.eml export' : 'downloads' }} cannot work.
+            This is what an ephemeral or per-replica disk looks like — on Laravel Cloud
+            and similar platforms, point <code>TEST_MAIL_DISK</code> at persistent object storage.
+        </span>
+    </div>
+@endif
+
 @if ($message->envelopeDivergesFromHeaders())
     <div class="tm-notice">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

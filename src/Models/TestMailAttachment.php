@@ -52,12 +52,31 @@ class TestMailAttachment extends Model
     }
 
     /**
-     * Whether the bytes for this part were actually persisted. They are
-     * skipped when the part exceeds storage.max_attachment_size.
+     * Whether the bytes for this part are available to read.
      */
     public function hasContents(): bool
     {
         return $this->path !== null && $this->store()->exists($this->path);
+    }
+
+    /**
+     * The bytes were never written, because the part exceeded
+     * storage.max_attachment_size.
+     */
+    public function wasSkipped(): bool
+    {
+        return $this->path === null;
+    }
+
+    /**
+     * The bytes were written but have since disappeared -- the hallmark of a
+     * non-persistent disk. Distinct from wasSkipped(), because telling
+     * someone their file was too large when it actually evaporated would
+     * send them looking in entirely the wrong place.
+     */
+    public function isMissing(): bool
+    {
+        return $this->path !== null && ! $this->store()->exists($this->path);
     }
 
     public function contents(): ?string

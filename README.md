@@ -115,6 +115,26 @@ php artisan vendor:publish --tag=test-mail-config
 
 Message metadata lives in the database so the list stays fast; raw MIME and attachment bytes go to a disk, so the table stays small even with large attachments.
 
+### Laravel Cloud and other ephemeral platforms
+
+The package works on Laravel Cloud, but **you must set `TEST_MAIL_DISK`** — the default `local` disk is the wrong choice there. Laravel Cloud's docs are explicit that environment filesystems are
+
+> ephemeral […] each replica of your compute cluster has its own filesystem. Thus, you should treat the filesystem as temporary, unshared disk space that is only consistent during a single request or job.
+
+Message metadata and bodies live in the database, so those survive fine. The raw `.eml` and attachment bytes do not: they vanish on redeploy, and a message captured on one replica is unreadable from another. The mailbox stays usable, but `.eml` export, attachment downloads and embedded images break — intermittently, which is worse than breaking outright.
+
+Point the disk at persistent object storage and set the master switch, since Cloud environments carry `APP_ENV=production` even when they are really staging:
+
+```dotenv
+MAIL_MAILER=database
+TEST_MAIL_DISK=<your object storage disk>
+TEST_MAIL_ENABLED=true
+```
+
+If blobs do go missing, the mailbox says so explicitly rather than quietly hiding the download button — and it distinguishes a file that vanished from one deliberately skipped by `storage.max_attachment_size`.
+
+The same applies to any ephemeral or multi-replica setup: containers without a shared volume, autoscaling groups, `/tmp`-backed disks.
+
 ### Capture and still deliver
 
 Set `forward` to another configured mailer and messages are stored *and* sent on — useful on staging:

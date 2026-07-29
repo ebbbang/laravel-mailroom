@@ -21,7 +21,10 @@
                 </span>
                 <span class="tm-file-name">{{ $file->displayName() }}</span>
                 <span class="tm-file-meta">
-                    {{ $file->humanSize() }} · not stored, over storage.max_attachment_size
+                    {{ $file->humanSize() }} ·
+                    {{ $file->wasSkipped()
+                        ? 'not stored, over storage.max_attachment_size'
+                        : 'file missing from the '.config('test-mail.storage.disk').' disk' }}
                 </span>
             </div>
         @endif
