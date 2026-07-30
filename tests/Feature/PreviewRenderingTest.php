@@ -261,6 +261,24 @@ class PreviewRenderingTest extends TestCase
     }
 
     #[Test]
+    public function the_lightbox_keeps_the_class_names_backdrop_dismissal_relies_on(): void
+    {
+        // Closing on an outside click is client side, but it decides what
+        // counts as "outside" from these three class names. Renaming any of
+        // them would silently stop the preview closing.
+        $attachment = $this->attach('hello', 'notes.txt', 'text/plain');
+
+        $response = $this->pageFor($attachment)->assertOk();
+
+        foreach (['tm-lightbox', 'tm-lightbox-body', 'tm-lightbox-stage'] as $marker) {
+            $response->assertSeeHtml('class="'.$marker.'"');
+        }
+
+        // And the bar, which must stay outside the dismissable set.
+        $response->assertSeeHtml('class="tm-lightbox-bar"');
+    }
+
+    #[Test]
     public function embedded_images_alone_still_get_an_attachments_tab(): void
     {
         // The inline count lives inside the Attachments pane, so gating that

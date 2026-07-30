@@ -150,11 +150,49 @@
             next.addEventListener('click', function () { step(1); });
             close.addEventListener('click', dismiss);
 
-            // Clicking the backdrop closes, but clicking the content does not.
+            /*
+             * Clicking anywhere that is not the preview itself closes it.
+             *
+             * "Not the preview" is decided by the target *being* one of the
+             * chrome elements. Every kind puts a real element in the stage --
+             * img.tm-shot, object.tm-doc, audio, video, div.tm-sheet -- so a
+             * click on content always targets that element or a descendant and
+             * never the chrome. New kinds therefore need no changes here.
+             *
+             * The bar is excluded on purpose: it holds the prev/next/download/
+             * close controls, and closing on a stray click among them would be
+             * annoying. PDFs need nothing special either, since <object> hosts
+             * its own document and those clicks never reach this listener.
+             */
+            function isBackdrop(element) {
+                return element instanceof Element && (
+                    element.classList.contains('tm-lightbox') ||
+                    element.classList.contains('tm-lightbox-body') ||
+                    element.classList.contains('tm-lightbox-stage')
+                );
+            }
+
+            /*
+             * Press and release both have to land on the backdrop.
+             *
+             * Reacting to mousedown alone broke selecting text in the CSV and
+             * text sheets: press inside the sheet, drag out, release on the
+             * stage, and the resulting click targets the stage -- the nearest
+             * common ancestor of the two -- so the preview would close and
+             * throw the selection away.
+             */
+            var pressedOutside = false;
+
             box.addEventListener('mousedown', function (event) {
-                if (event.target === box || event.target.classList.contains('tm-lightbox-body')) {
+                pressedOutside = event.button === 0 && isBackdrop(event.target);
+            });
+
+            box.addEventListener('click', function (event) {
+                if (pressedOutside && event.button === 0 && isBackdrop(event.target)) {
                     dismiss();
                 }
+
+                pressedOutside = false;
             });
 
             document.addEventListener('keydown', function (event) {

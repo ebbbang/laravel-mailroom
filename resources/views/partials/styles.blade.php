@@ -816,6 +816,17 @@
         overflow: auto;
     }
 
+    /* The empty space closes the preview, so let the pointer say so. */
+    .tm-lightbox,
+    .tm-lightbox-body,
+    .tm-lightbox-stage { cursor: zoom-out; }
+
+    .tm-lightbox-bar,
+    .tm-lightbox-stage > * { cursor: default; }
+
+    .tm-lightbox-bar button,
+    .tm-lightbox-bar a { cursor: pointer; }
+
     /* Media and documents inside the stage */
 
     .tm-lightbox-stage img.tm-shot {
