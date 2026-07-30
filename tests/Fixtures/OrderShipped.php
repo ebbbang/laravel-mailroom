@@ -1,6 +1,6 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Fixtures;
+namespace Ebbbang\Mailroom\Tests\Fixtures;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -23,7 +23,7 @@ class OrderShipped extends Mailable
     public function content(): Content
     {
         return new Content(
-            text: 'test-mail-tests::order-shipped-text',
+            text: 'mailroom-tests::order-shipped-text',
             with: ['orderNumber' => $this->orderNumber],
             htmlString: '<h1>On its way</h1><p>Order '.$this->orderNumber.' has shipped.</p>',
         );

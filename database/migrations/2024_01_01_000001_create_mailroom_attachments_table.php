@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::connection($this->getConnection())->create($this->table(), function (Blueprint $table): void {
             $table->id();
 
-            $table->foreignId('test_mail_message_id')
+            $table->foreignId('mailroom_message_id')
                 ->constrained($this->messagesTable())
                 ->cascadeOnDelete();
 
@@ -38,16 +38,16 @@ return new class extends Migration
 
     public function getConnection(): ?string
     {
-        return config('test-mail.database.connection');
+        return config('mailroom.database.connection');
     }
 
     protected function table(): string
     {
-        return config('test-mail.database.attachments_table', 'test_mail_attachments');
+        return config('mailroom.database.attachments_table', 'mailroom_attachments');
     }
 
     protected function messagesTable(): string
     {
-        return config('test-mail.database.messages_table', 'test_mail_messages');
+        return config('mailroom.database.messages_table', 'mailroom_messages');
     }
 };

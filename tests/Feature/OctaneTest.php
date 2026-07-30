@@ -1,12 +1,12 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Events\MessageStored;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\TestMail;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Events\MessageStored;
+use Ebbbang\Mailroom\Mailroom;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Events\Dispatcher as EventDispatcher;
@@ -92,7 +92,7 @@ class OctaneTest extends TestCase
         );
 
         $sandbox->make(MailManager::class)
-            ->mailer('database')
+            ->mailer('mailroom')
             ->to('rachel@example.test')
             ->send(new OrderShipped('SANDBOX'));
 
@@ -110,12 +110,12 @@ class OctaneTest extends TestCase
             $sandbox = $this->sandbox();
 
             $sandbox->make(MailManager::class)
-                ->mailer('database')
+                ->mailer('mailroom')
                 ->to('rachel@example.test')
                 ->send(new OrderShipped($subject));
         }
 
-        $captured = TestMailMessage::query()->orderBy('id')->pluck('subject')->all();
+        $captured = MailroomMessage::query()->orderBy('id')->pluck('subject')->all();
 
         $this->assertSame(
             ['Order first shipped', 'Order second shipped', 'Order third shipped'],
@@ -124,7 +124,7 @@ class OctaneTest extends TestCase
 
         // Distinct storage per message: a transport reused across requests
         // must never reuse a message's uuid or overwrite its blobs.
-        $uuids = TestMailMessage::query()->pluck('uuid')->all();
+        $uuids = MailroomMessage::query()->pluck('uuid')->all();
         $this->assertCount(3, array_unique($uuids));
     }
 
@@ -137,7 +137,7 @@ class OctaneTest extends TestCase
             Mail::to(sprintf('user%d@example.test', $i))->send(new OrderShipped('A-'.$i));
         }
 
-        $messages = TestMailMessage::query()->orderBy('id')->get();
+        $messages = MailroomMessage::query()->orderBy('id')->get();
 
         $this->assertCount(5, $messages);
 
@@ -161,12 +161,12 @@ class OctaneTest extends TestCase
         // provider, which under Octane boots once per worker rather than per
         // request. flushState() exists so a worker can be reset if a consumer
         // ever needs to.
-        TestMail::auth(fn ($request): bool => true);
+        Mailroom::auth(fn ($request): bool => true);
 
-        $this->assertInstanceOf(\Closure::class, TestMail::$authUsing);
+        $this->assertInstanceOf(\Closure::class, Mailroom::$authUsing);
 
-        TestMail::flushState();
+        Mailroom::flushState();
 
-        $this->assertNull(TestMail::$authUsing);
+        $this->assertNull(Mailroom::$authUsing);
     }
 }

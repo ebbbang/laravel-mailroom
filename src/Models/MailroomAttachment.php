@@ -1,16 +1,16 @@
 <?php
 
-namespace Ebbbang\TestMail\Models;
+namespace Ebbbang\Mailroom\Models;
 
-use Ebbbang\TestMail\Storage\RawMessageStore;
-use Ebbbang\TestMail\Support\AttachmentPreview;
-use Ebbbang\TestMail\Support\PreviewKind;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Support\AttachmentPreview;
+use Ebbbang\Mailroom\Support\PreviewKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
- * @property int $test_mail_message_id
+ * @property int $mailroom_message_id
  * @property string|null $filename
  * @property string|null $mime_type
  * @property int $size
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $content_id
  * @property string|null $path
  */
-class TestMailAttachment extends Model
+class MailroomAttachment extends Model
 {
     protected $guarded = [];
 
@@ -30,12 +30,12 @@ class TestMailAttachment extends Model
 
     public function getTable(): string
     {
-        return config('test-mail.database.attachments_table', 'test_mail_attachments');
+        return config('mailroom.database.attachments_table', 'mailroom_attachments');
     }
 
     public function getConnectionName(): ?string
     {
-        return config('test-mail.database.connection');
+        return config('mailroom.database.connection');
     }
 
     protected function casts(): array
@@ -47,7 +47,7 @@ class TestMailAttachment extends Model
 
     public function message(): BelongsTo
     {
-        return $this->belongsTo(TestMailMessage::class, 'test_mail_message_id');
+        return $this->belongsTo(MailroomMessage::class, 'mailroom_message_id');
     }
 
     /**
@@ -123,7 +123,7 @@ class TestMailAttachment extends Model
      */
     public function isPreviewable(): bool
     {
-        return config('test-mail.preview.enabled', true)
+        return config('mailroom.preview.enabled', true)
             && $this->previewKind()->isPreviewable()
             && $this->hasContents();
     }
@@ -158,7 +158,7 @@ class TestMailAttachment extends Model
 
     public function humanSize(): string
     {
-        return TestMailMessage::formatBytes($this->size);
+        return MailroomMessage::formatBytes($this->size);
     }
 
     protected function store(): RawMessageStore

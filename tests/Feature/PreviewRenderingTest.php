@@ -1,13 +1,13 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\PreviewKind;
-use Ebbbang\TestMail\Support\TextPreview;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\PreviewKind;
+use Ebbbang\Mailroom\Support\TextPreview;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -20,16 +20,16 @@ class PreviewRenderingTest extends TestCase
     {
         parent::setUp();
 
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
     }
 
-    protected function attach(string $contents, string $name, string $mime): TestMailAttachment
+    protected function attach(string $contents, string $name, string $mime): MailroomAttachment
     {
         Mail::to('rachel@example.test')->send(
             (new OrderShipped)->attachData($contents, $name, ['mime' => $mime])
         );
 
-        return TestMailMessage::query()->latest('id')->first()->attachments()->sole();
+        return MailroomMessage::query()->latest('id')->first()->attachments()->sole();
     }
 
     /**
@@ -40,9 +40,9 @@ class PreviewRenderingTest extends TestCase
         return resolve(TextPreview::class)->render($this->attach($contents, $name, $mime));
     }
 
-    protected function pageFor(TestMailAttachment $attachment): TestResponse
+    protected function pageFor(MailroomAttachment $attachment): TestResponse
     {
-        return $this->get('/test-mail/'.$attachment->test_mail_message_id);
+        return $this->get('/mailroom/'.$attachment->mailroom_message_id);
     }
 
     /*
@@ -93,7 +93,7 @@ class PreviewRenderingTest extends TestCase
     #[Test]
     public function it_caps_csv_rows_and_says_so(): void
     {
-        config()->set('test-mail.preview.max_csv_rows', 5);
+        config()->set('mailroom.preview.max_csv_rows', 5);
 
         $lines = ['name'];
         for ($i = 1; $i <= 20; $i++) {
@@ -163,7 +163,7 @@ class PreviewRenderingTest extends TestCase
     #[Test]
     public function oversized_text_is_refused_rather_than_truncated(): void
     {
-        config()->set('test-mail.preview.max_inline_bytes', 64);
+        config()->set('mailroom.preview.max_inline_bytes', 64);
 
         $rendered = $this->render(str_repeat('a', 500), 'big.txt', 'text/plain');
 
@@ -207,9 +207,9 @@ class PreviewRenderingTest extends TestCase
 
         $this->pageFor($attachment)
             ->assertOk()
-            ->assertSeeHtml('data-tm-preview="0"')
-            ->assertSeeHtml('data-tm-preview-content="0"')
-            ->assertSeeHtml('id="tm-lightbox"');
+            ->assertSeeHtml('data-mr-preview="0"')
+            ->assertSeeHtml('data-mr-preview-content="0"')
+            ->assertSeeHtml('id="mr-lightbox"');
     }
 
     #[Test]
@@ -225,7 +225,7 @@ class PreviewRenderingTest extends TestCase
         $this->assertFalse($attachment->isPreviewable());
 
         $this->pageFor($attachment)
-            ->assertOk()->assertSee('no preview for .docx')->assertDontSeeHtml('data-tm-preview="0"');
+            ->assertOk()->assertSee('no preview for .docx')->assertDontSeeHtml('data-mr-preview="0"');
     }
 
     #[Test]
@@ -235,7 +235,7 @@ class PreviewRenderingTest extends TestCase
 
         $attachment = $this->attach($png, 'pixel.png', 'image/png');
 
-        $this->pageFor($attachment)->assertOk()->assertSeeHtml('class="tm-thumb"')->assertSeeHtml('loading="lazy"');
+        $this->pageFor($attachment)->assertOk()->assertSeeHtml('class="mr-thumb"')->assertSeeHtml('loading="lazy"');
     }
 
     #[Test]
@@ -250,13 +250,13 @@ class PreviewRenderingTest extends TestCase
                 ->attachData('three', 'c.txt', ['mime' => 'text/plain'])
         );
 
-        $message = TestMailMessage::query()->latest('id')->first();
+        $message = MailroomMessage::query()->latest('id')->first();
 
-        $response = $this->get('/test-mail/'.$message->id)->assertOk();
+        $response = $this->get('/mailroom/'.$message->id)->assertOk();
 
-        $response->assertSeeHtml('data-tm-preview="0"');
-        $response->assertSeeHtml('data-tm-preview="1"');
-        $response->assertDontSeeHtml('data-tm-preview="2"');
+        $response->assertSeeHtml('data-mr-preview="0"');
+        $response->assertSeeHtml('data-mr-preview="1"');
+        $response->assertDontSeeHtml('data-mr-preview="2"');
         $response->assertSee('no preview for .zip');
     }
 
@@ -270,12 +270,12 @@ class PreviewRenderingTest extends TestCase
 
         $response = $this->pageFor($attachment)->assertOk();
 
-        foreach (['tm-lightbox', 'tm-lightbox-body', 'tm-lightbox-stage'] as $marker) {
+        foreach (['mr-lightbox', 'mr-lightbox-body', 'mr-lightbox-stage'] as $marker) {
             $response->assertSeeHtml('class="'.$marker.'"');
         }
 
         // And the bar, which must stay outside the dismissable set.
-        $response->assertSeeHtml('class="tm-lightbox-bar"');
+        $response->assertSeeHtml('class="mr-lightbox-bar"');
     }
 
     #[Test]
@@ -294,14 +294,14 @@ class PreviewRenderingTest extends TestCase
                 ->html('<p><img src="'.$cid.'"></p>');
         });
 
-        $target = TestMailMessage::query()->latest('id')->first();
+        $target = MailroomMessage::query()->latest('id')->first();
 
         $this->assertCount(0, $target->load('attachments')->fileAttachments());
         $this->assertCount(1, $target->inlineAttachments());
 
-        $this->get('/test-mail/'.$target->id)
+        $this->get('/mailroom/'.$target->id)
             ->assertOk()
-            ->assertSeeHtml('data-tm-tab="files"')
+            ->assertSeeHtml('data-mr-tab="files"')
             ->assertSee('inline image')
             ->assertSee('no files are attached');
     }
@@ -309,19 +309,19 @@ class PreviewRenderingTest extends TestCase
     #[Test]
     public function opening_a_message_keeps_your_place_in_the_list(): void
     {
-        config()->set('test-mail.ui.per_page', 2);
+        config()->set('mailroom.ui.per_page', 2);
 
         foreach (range(1, 6) as $n) {
             Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
         }
 
         // Third page, with a filter applied, so all three parameters matter.
-        $response = $this->get('/test-mail?page=3&search=Order&mailer=database')->assertOk();
+        $response = $this->get('/mailroom?page=3&search=Order&mailer=mailroom')->assertOk();
 
-        $onThisPage = TestMailMessage::query()->latest('id')->skip(4)->take(2)->pluck('id');
+        $onThisPage = MailroomMessage::query()->latest('id')->skip(4)->take(2)->pluck('id');
 
         foreach ($onThisPage as $id) {
-            $response->assertSeeHtml('/test-mail/'.$id.'?search=Order&amp;mailer=database&amp;page=3');
+            $response->assertSeeHtml('/mailroom/'.$id.'?search=Order&amp;mailer=mailroom&amp;page=3');
         }
     }
 
@@ -331,35 +331,35 @@ class PreviewRenderingTest extends TestCase
         // The scroll restore itself is client side, but it hangs off this
         // attribute -- if the marker ever stopped being rendered the list
         // would silently start reloading at the top again.
-        config()->set('test-mail.ui.per_page', 3);
+        config()->set('mailroom.ui.per_page', 3);
 
         foreach (range(1, 6) as $n) {
             Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
         }
 
-        $selected = TestMailMessage::query()->latest('id')->skip(1)->first();
+        $selected = MailroomMessage::query()->latest('id')->skip(1)->first();
 
-        $this->get('/test-mail/'.$selected->id)
+        $this->get('/mailroom/'.$selected->id)
             ->assertOk()
             ->assertSeeHtml('aria-current="true"')
-            ->assertSeeHtml('.tm-item[aria-current="true"]');
+            ->assertSeeHtml('.mr-item[aria-current="true"]');
     }
 
     #[Test]
     public function paging_while_a_message_is_open_keeps_it_open(): void
     {
-        config()->set('test-mail.ui.per_page', 2);
+        config()->set('mailroom.ui.per_page', 2);
 
         foreach (range(1, 6) as $n) {
             Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
         }
 
-        $selected = TestMailMessage::query()->latest('id')->first();
+        $selected = MailroomMessage::query()->latest('id')->first();
 
-        $this->get('/test-mail/'.$selected->id.'?page=2')
+        $this->get('/mailroom/'.$selected->id.'?page=2')
             ->assertOk()
-            ->assertSeeHtml('/test-mail/'.$selected->id.'?page=1')
-            ->assertSeeHtml('/test-mail/'.$selected->id.'?page=3');
+            ->assertSeeHtml('/mailroom/'.$selected->id.'?page=1')
+            ->assertSeeHtml('/mailroom/'.$selected->id.'?page=3');
     }
 
     #[Test]
@@ -370,7 +370,7 @@ class PreviewRenderingTest extends TestCase
             fn ($message) => $message->to('rachel@example.test')->subject('Snippet')
         );
 
-        $snippet = TestMailMessage::query()->latest('id')->first()->preview();
+        $snippet = MailroomMessage::query()->latest('id')->first()->preview();
 
         $this->assertSame('Order shipped It left the warehouse today.', $snippet);
         $this->assertStringNotContainsString('shippedIt', $snippet);
@@ -381,15 +381,15 @@ class PreviewRenderingTest extends TestCase
     {
         // Otherwise opening page two, or filtering out the newest message,
         // immediately claims new mail has arrived.
-        config()->set('test-mail.ui.per_page', 2);
+        config()->set('mailroom.ui.per_page', 2);
 
         foreach (range(1, 5) as $n) {
             Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
         }
 
-        $newest = (int) TestMailMessage::query()->max('id');
+        $newest = (int) MailroomMessage::query()->max('id');
 
-        $this->get('/test-mail?page=2')
+        $this->get('/mailroom?page=2')
             ->assertOk()
             ->assertSeeHtml('var known = '.$newest.';');
     }
@@ -399,8 +399,8 @@ class PreviewRenderingTest extends TestCase
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
-        $message = TestMailMessage::query()->latest('id')->first();
+        $message = MailroomMessage::query()->latest('id')->first();
 
-        $this->get('/test-mail/'.$message->id)->assertOk()->assertDontSeeHtml('id="tm-lightbox"');
+        $this->get('/mailroom/'.$message->id)->assertOk()->assertDontSeeHtml('id="mr-lightbox"');
     }
 }

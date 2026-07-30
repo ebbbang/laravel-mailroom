@@ -1,9 +1,9 @@
 {
-    "name": "ebbbang/laravel-test-mail",
+    "name": "ebbbang/laravel-mailroom",
     "description": "A Laravel mail driver that stores outgoing mail in your database, with an auth-gated mailbox UI, attachment support, and .eml/.html export.",
     "keywords": ["laravel", "mail", "mailer", "transport", "testing", "development", "mailbox", "eml", "mailtrap", "mailpit"],
     "license": "MIT",
-    "homepage": "https://github.com/ebbbang/laravel-test-mail",
+    "homepage": "https://github.com/ebbbang/laravel-mailroom",
     "authors": [
         {
             "name": "Ebrahim Bangdiwala",
@@ -12,8 +12,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/ebbbang/laravel-test-mail/issues",
-        "source": "https://github.com/ebbbang/laravel-test-mail"
+        "issues": "https://github.com/ebbbang/laravel-mailroom/issues",
+        "source": "https://github.com/ebbbang/laravel-mailroom"
     },
     "require": {
         "php": "^8.2",
@@ -37,12 +37,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Ebbbang\\TestMail\\": "src/"
+            "Ebbbang\\Mailroom\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Ebbbang\\TestMail\\Tests\\": "tests/",
+            "Ebbbang\\Mailroom\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -80,10 +80,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Ebbbang\\TestMail\\TestMailServiceProvider"
+                "Ebbbang\\Mailroom\\MailroomServiceProvider"
             ],
             "aliases": {
-                "TestMail": "Ebbbang\\TestMail\\TestMail"
+                "Mailroom": "Ebbbang\\Mailroom\\Mailroom"
             }
         }
     },

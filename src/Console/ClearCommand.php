@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Console;
+namespace Ebbbang\Mailroom\Console;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 
@@ -12,7 +12,7 @@ class ClearCommand extends Command
 {
     use ConfirmableTrait;
 
-    protected $signature = 'test-mail:clear {--force : Run the command without confirmation}';
+    protected $signature = 'mailroom:clear {--force : Run the command without confirmation}';
 
     protected $description = 'Delete every captured message and its stored files';
 
@@ -22,7 +22,7 @@ class ClearCommand extends Command
             return self::FAILURE;
         }
 
-        $count = TestMailMessage::query()->count();
+        $count = MailroomMessage::query()->count();
 
         /*
          * A mass delete skips model events, so nothing here can rely on the
@@ -30,8 +30,8 @@ class ClearCommand extends Command
          * case the consumer published the migration and dropped the foreign
          * key) and the storage directory is wiped in a single call.
          */
-        TestMailAttachment::query()->delete();
-        TestMailMessage::query()->delete();
+        MailroomAttachment::query()->delete();
+        MailroomMessage::query()->delete();
         $store->flush();
 
         $this->components->info(sprintf('Cleared %d captured message(s).', $count));

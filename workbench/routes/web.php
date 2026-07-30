@@ -19,7 +19,7 @@ use Workbench\App\Support\Fixtures;
 |
 */
 
-Route::get('/', fn (): Redirector|RedirectResponse => redirect('/test-mail'));
+Route::get('/', fn (): Redirector|RedirectResponse => redirect('/mailroom'));
 
 Route::get('/send', function (): Redirector|RedirectResponse {
     $invoice = "INVOICE\n=======\n\nOrder A-1001\nTotal: 49.00\n";
@@ -34,7 +34,7 @@ Route::get('/send', function (): Redirector|RedirectResponse {
                 ->attachData($terms, 'terms.txt', ['mime' => 'text/plain'])
         );
 
-    return redirect('/test-mail');
+    return redirect('/mailroom');
 });
 
 /*
@@ -63,7 +63,7 @@ Route::get('/send-attachments', function (): Redirector|RedirectResponse {
 
     Mail::to('rachel@example.test')->cc('accounts@example.test')->send($mailable);
 
-    return redirect('/test-mail');
+    return redirect('/mailroom');
 });
 
 Route::get('/send-plain', function (): Redirector|RedirectResponse {
@@ -71,5 +71,5 @@ Route::get('/send-plain', function (): Redirector|RedirectResponse {
         $message->to('rachel@example.test')->subject('Plain text only');
     });
 
-    return redirect('/test-mail');
+    return redirect('/mailroom');
 });

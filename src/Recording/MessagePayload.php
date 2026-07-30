@@ -1,6 +1,6 @@
 <?php
 
-namespace Ebbbang\TestMail\Recording;
+namespace Ebbbang\Mailroom\Recording;
 
 use DateTimeInterface;
 

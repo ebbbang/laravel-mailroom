@@ -1,6 +1,6 @@
 <?php
 
-namespace Ebbbang\TestMail\Support;
+namespace Ebbbang\Mailroom\Support;
 
 /**
  * How a given attachment can be shown in the mailbox.

@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Http\Controllers;
+namespace Ebbbang\Mailroom\Http\Controllers;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\CidInliner;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\CidInliner;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ContentController
 {
-    public function __invoke(TestMailMessage $message, string $format, CidInliner $inliner): Response|StreamedResponse
+    public function __invoke(MailroomMessage $message, string $format, CidInliner $inliner): Response|StreamedResponse
     {
         return match ($format) {
             'html' => $this->html($message, $inliner),
@@ -29,7 +29,7 @@ class ContentController
         };
     }
 
-    protected function html(TestMailMessage $message, CidInliner $inliner): Response
+    protected function html(MailroomMessage $message, CidInliner $inliner): Response
     {
         $html = $inliner->inline($message, $message->html_body);
 
@@ -48,7 +48,7 @@ class ContentController
         ]);
     }
 
-    protected function text(TestMailMessage $message): Response
+    protected function text(MailroomMessage $message): Response
     {
         return response((string) ($message->text_body ?? ''), 200, [
             'Content-Type' => 'text/plain; charset=utf-8',
@@ -56,7 +56,7 @@ class ContentController
         ]);
     }
 
-    protected function raw(TestMailMessage $message): StreamedResponse
+    protected function raw(MailroomMessage $message): StreamedResponse
     {
         abort_unless($message->hasRaw(), 404);
 

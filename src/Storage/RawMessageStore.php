@@ -1,6 +1,6 @@
 <?php
 
-namespace Ebbbang\TestMail\Storage;
+namespace Ebbbang\Mailroom\Storage;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemManager;
@@ -117,12 +117,12 @@ class RawMessageStore
 
     public function diskName(): string
     {
-        return (string) config('test-mail.storage.disk', 'local');
+        return (string) config('mailroom.storage.disk', 'local');
     }
 
     protected function root(): string
     {
-        return trim((string) config('test-mail.storage.path', 'test-mail'), '/');
+        return trim((string) config('mailroom.storage.path', 'mailroom'), '/');
     }
 
     protected function disk(): Filesystem

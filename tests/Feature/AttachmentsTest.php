@@ -1,11 +1,11 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\CidInliner;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\CidInliner;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +30,7 @@ class AttachmentsTest extends TestCase
             (new OrderShipped)->attachData($bytes, 'pixel.png', ['mime' => 'image/png'])
         );
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
         $attachment = $captured->attachments()->sole();
 
         $this->assertSame(1, $captured->attachment_count);
@@ -55,7 +55,7 @@ class AttachmentsTest extends TestCase
             @unlink($path);
         }
 
-        $attachment = TestMailMessage::sole()->attachments()->sole();
+        $attachment = MailroomMessage::sole()->attachments()->sole();
 
         $this->assertSame('invoice.txt', $attachment->filename);
         $this->assertSame('invoice contents', $attachment->contents());
@@ -72,7 +72,7 @@ class AttachmentsTest extends TestCase
             )
         );
 
-        $attachment = TestMailMessage::sole()->attachments()->sole();
+        $attachment = MailroomMessage::sole()->attachments()->sole();
 
         $this->assertSame('summary.txt', $attachment->filename);
         $this->assertSame('quarterly numbers', $attachment->contents());
@@ -91,7 +91,7 @@ class AttachmentsTest extends TestCase
                 ->html('<p>Logo: <img src="'.$cid.'"></p>');
         });
 
-        $captured = TestMailMessage::sole()->load('attachments');
+        $captured = MailroomMessage::sole()->load('attachments');
 
         $this->assertCount(1, $captured->inlineAttachments());
         $this->assertCount(0, $captured->fileAttachments());
@@ -120,7 +120,7 @@ class AttachmentsTest extends TestCase
                 ->html('<p><img src="'.$cid.'"></p>');
         });
 
-        $captured = TestMailMessage::sole()->load('attachments');
+        $captured = MailroomMessage::sole()->load('attachments');
 
         $exported = resolve(CidInliner::class)->inline($captured, $captured->html_body);
 
@@ -131,13 +131,13 @@ class AttachmentsTest extends TestCase
     #[Test]
     public function it_records_metadata_but_skips_bytes_over_the_configured_limit(): void
     {
-        config()->set('test-mail.storage.max_attachment_size', 8);
+        config()->set('mailroom.storage.max_attachment_size', 8);
 
         Mail::to('rachel@example.test')->send(
             (new OrderShipped)->attachData(str_repeat('x', 64), 'big.txt', ['mime' => 'text/plain'])
         );
 
-        $attachment = TestMailMessage::sole()->attachments()->sole();
+        $attachment = MailroomMessage::sole()->attachments()->sole();
 
         $this->assertSame(64, $attachment->size);
         $this->assertNull($attachment->path);
@@ -151,10 +151,10 @@ class AttachmentsTest extends TestCase
             (new OrderShipped)->attachData('secret', '../../../evil.txt', ['mime' => 'text/plain'])
         );
 
-        $attachment = TestMailMessage::sole()->attachments()->sole();
+        $attachment = MailroomMessage::sole()->attachments()->sole();
 
         $this->assertStringNotContainsString('..', (string) $attachment->path);
-        $this->assertStringStartsWith('test-mail/', (string) $attachment->path);
+        $this->assertStringStartsWith('mailroom/', (string) $attachment->path);
         $this->assertSame('secret', $attachment->contents());
     }
 }

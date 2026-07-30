@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\TestMail;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Mailroom;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,7 +15,7 @@ class RouteAccessTest extends TestCase
     {
         // The suite runs with APP_ENV=testing, so the local-only fallback
         // must refuse rather than fall open.
-        $this->get('/test-mail')->assertForbidden();
+        $this->get('/mailroom')->assertForbidden();
     }
 
     #[Test]
@@ -23,39 +23,39 @@ class RouteAccessTest extends TestCase
     {
         $this->app['env'] = 'local';
 
-        $this->get('/test-mail')->assertOk();
+        $this->get('/mailroom')->assertOk();
     }
 
     #[Test]
     public function a_defined_gate_takes_over_from_the_environment_fallback(): void
     {
-        Gate::define('viewTestMail', fn (?User $user): bool => $user?->email === 'allowed@example.test');
+        Gate::define('viewMailroom', fn (?User $user): bool => $user?->email === 'allowed@example.test');
 
         $this->actingAs(tap(new User)->forceFill(['email' => 'denied@example.test']))
-            ->get('/test-mail')
+            ->get('/mailroom')
             ->assertForbidden();
 
         $this->actingAs(tap(new User)->forceFill(['email' => 'allowed@example.test']))
-            ->get('/test-mail')
+            ->get('/mailroom')
             ->assertOk();
     }
 
     #[Test]
     public function a_gate_can_admit_guests_which_is_what_lets_this_work_without_auth_middleware(): void
     {
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
 
-        $this->get('/test-mail')->assertOk();
+        $this->get('/mailroom')->assertOk();
     }
 
     #[Test]
     public function the_auth_callback_overrides_both_the_gate_and_the_environment(): void
     {
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
 
-        TestMail::auth(fn ($request): bool => $request->query('key') === 'let-me-in');
+        Mailroom::auth(fn ($request): bool => $request->query('key') === 'let-me-in');
 
-        $this->get('/test-mail')->assertForbidden();
-        $this->get('/test-mail?key=let-me-in')->assertOk();
+        $this->get('/mailroom')->assertForbidden();
+        $this->get('/mailroom?key=let-me-in')->assertOk();
     }
 }

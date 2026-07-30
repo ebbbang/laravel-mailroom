@@ -1,6 +1,6 @@
 <?php
 
-use Ebbbang\TestMail\Http\Middleware\Authorize;
+use Ebbbang\Mailroom\Http\Middleware\Authorize;
 
 return [
 
@@ -9,15 +9,15 @@ return [
     | Test Mail Master Switch
     |--------------------------------------------------------------------------
     |
-    | When disabled, the "database" mail transport refuses to be constructed
-    | and the /test-mail routes are never registered. This defaults to off in
+    | When disabled, the "mailroom" mail transport refuses to be constructed
+    | and the /mailroom routes are never registered. This defaults to off in
     | production so captured mail can never silently replace real delivery.
     |
-    | If you genuinely want this in production, set TEST_MAIL_ENABLED=true.
+    | If you genuinely want this in production, set MAILROOM_ENABLED=true.
     |
     */
 
-    'enabled' => env('TEST_MAIL_ENABLED', env('APP_ENV') !== 'production'),
+    'enabled' => env('MAILROOM_ENABLED', env('APP_ENV') !== 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,9 +30,9 @@ return [
     |
     */
 
-    'path' => env('TEST_MAIL_PATH', 'test-mail'),
+    'path' => env('MAILROOM_PATH', 'mailroom'),
 
-    'domain' => env('TEST_MAIL_DOMAIN'),
+    'domain' => env('MAILROOM_DOMAIN'),
 
     'middleware' => ['web', Authorize::class],
 
@@ -51,8 +51,8 @@ return [
     */
 
     'storage' => [
-        'disk' => env('TEST_MAIL_DISK', 'local'),
-        'path' => env('TEST_MAIL_STORAGE_PATH', 'test-mail'),
+        'disk' => env('MAILROOM_DISK', 'local'),
+        'path' => env('MAILROOM_STORAGE_PATH', 'mailroom'),
         'max_attachment_size' => null,
     ],
 
@@ -68,9 +68,9 @@ return [
     */
 
     'database' => [
-        'connection' => env('TEST_MAIL_DB_CONNECTION'),
-        'messages_table' => 'test_mail_messages',
-        'attachments_table' => 'test_mail_attachments',
+        'connection' => env('MAILROOM_DB_CONNECTION'),
+        'messages_table' => 'mailroom_messages',
+        'attachments_table' => 'mailroom_attachments',
     ],
 
     /*
@@ -84,14 +84,14 @@ return [
     |
     */
 
-    'forward' => env('TEST_MAIL_FORWARD'),
+    'forward' => env('MAILROOM_FORWARD'),
 
     /*
     |--------------------------------------------------------------------------
     | Pruning
     |--------------------------------------------------------------------------
     |
-    | "retention_days" is the default age cutoff for `test-mail:prune`. Set
+    | "retention_days" is the default age cutoff for `mailroom:prune`. Set
     | "schedule" to a cron expression (or a frequency method name such as
     | "daily") to have the package register the prune command on the scheduler
     | for you. Null leaves scheduling entirely up to you.
@@ -99,8 +99,8 @@ return [
     */
 
     'prune' => [
-        'retention_days' => env('TEST_MAIL_RETENTION_DAYS', 7),
-        'schedule' => env('TEST_MAIL_PRUNE_SCHEDULE'),
+        'retention_days' => env('MAILROOM_RETENTION_DAYS', 7),
+        'schedule' => env('MAILROOM_PRUNE_SCHEDULE'),
     ],
 
     /*
@@ -138,7 +138,7 @@ return [
     */
 
     'preview' => [
-        'enabled' => env('TEST_MAIL_PREVIEW', true),
+        'enabled' => env('MAILROOM_PREVIEW', true),
 
         // Text-shaped previews are rendered into the page itself, so this also
         // bounds how large the mailbox HTML can get. 512 KB is far more text

@@ -1,38 +1,38 @@
 <div
-    class="tm-lightbox"
-    id="tm-lightbox"
+    class="mr-lightbox"
+    id="mr-lightbox"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="tm-lightbox-title"
+    aria-labelledby="mr-lightbox-title"
     hidden
 >
-    <div class="tm-lightbox-bar">
-        <span class="tm-lightbox-title" id="tm-lightbox-title"></span>
-        <span class="tm-lightbox-sub" id="tm-lightbox-meta"></span>
+    <div class="mr-lightbox-bar">
+        <span class="mr-lightbox-title" id="mr-lightbox-title"></span>
+        <span class="mr-lightbox-sub" id="mr-lightbox-meta"></span>
 
-        <span class="tm-lightbox-tools">
-            <span class="tm-lightbox-sub" id="tm-lightbox-count"></span>
+        <span class="mr-lightbox-tools">
+            <span class="mr-lightbox-sub" id="mr-lightbox-count"></span>
 
-            <button type="button" class="tm-lightbox-btn" id="tm-lightbox-prev" aria-label="Previous attachment" title="Previous (←)">
+            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-prev" aria-label="Previous attachment" title="Previous (←)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m15 18-6-6 6-6"/>
                 </svg>
             </button>
 
-            <button type="button" class="tm-lightbox-btn" id="tm-lightbox-next" aria-label="Next attachment" title="Next (→)">
+            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-next" aria-label="Next attachment" title="Next (→)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m9 18 6-6-6-6"/>
                 </svg>
             </button>
 
             {{-- Points at the hardened download route, never the preview route. --}}
-            <a class="tm-lightbox-btn" id="tm-lightbox-download" href="#" aria-label="Download this attachment" title="Download">
+            <a class="mr-lightbox-btn" id="mr-lightbox-download" href="#" aria-label="Download this attachment" title="Download">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
                 </svg>
             </a>
 
-            <button type="button" class="tm-lightbox-btn" id="tm-lightbox-close" aria-label="Close preview" title="Close (Esc)">
+            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-close" aria-label="Close preview" title="Close (Esc)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M18 6 6 18M6 6l12 12"/>
                 </svg>
@@ -40,30 +40,30 @@
         </span>
     </div>
 
-    <div class="tm-lightbox-body">
-        <div class="tm-lightbox-stage" id="tm-lightbox-stage"></div>
+    <div class="mr-lightbox-body">
+        <div class="mr-lightbox-stage" id="mr-lightbox-stage"></div>
     </div>
 </div>
 
 @push('scripts')
     <script>
         (function () {
-            var box = document.getElementById('tm-lightbox');
+            var box = document.getElementById('mr-lightbox');
 
             if (!box) {
                 return;
             }
 
-            var stage = document.getElementById('tm-lightbox-stage');
-            var title = document.getElementById('tm-lightbox-title');
-            var meta = document.getElementById('tm-lightbox-meta');
-            var count = document.getElementById('tm-lightbox-count');
-            var download = document.getElementById('tm-lightbox-download');
-            var prev = document.getElementById('tm-lightbox-prev');
-            var next = document.getElementById('tm-lightbox-next');
-            var close = document.getElementById('tm-lightbox-close');
+            var stage = document.getElementById('mr-lightbox-stage');
+            var title = document.getElementById('mr-lightbox-title');
+            var meta = document.getElementById('mr-lightbox-meta');
+            var count = document.getElementById('mr-lightbox-count');
+            var download = document.getElementById('mr-lightbox-download');
+            var prev = document.getElementById('mr-lightbox-prev');
+            var next = document.getElementById('mr-lightbox-next');
+            var close = document.getElementById('mr-lightbox-close');
 
-            var triggers = Array.prototype.slice.call(document.querySelectorAll('[data-tm-preview]'));
+            var triggers = Array.prototype.slice.call(document.querySelectorAll('[data-mr-preview]'));
 
             if (!triggers.length) {
                 return;
@@ -79,7 +79,7 @@
                     return;
                 }
 
-                var template = document.querySelector('[data-tm-preview-content="' + index + '"]');
+                var template = document.querySelector('[data-mr-preview-content="' + index + '"]');
 
                 current = index;
 
@@ -92,9 +92,9 @@
                     stage.appendChild(template.content.cloneNode(true));
                 }
 
-                title.textContent = trigger.getAttribute('data-tm-name') || '';
-                meta.textContent = trigger.getAttribute('data-tm-meta') || '';
-                download.setAttribute('href', trigger.getAttribute('data-tm-download') || '#');
+                title.textContent = trigger.getAttribute('data-mr-name') || '';
+                meta.textContent = trigger.getAttribute('data-mr-meta') || '';
+                download.setAttribute('href', trigger.getAttribute('data-mr-download') || '#');
 
                 count.textContent = triggers.length > 1
                     ? (index + 1) + ' of ' + triggers.length
@@ -155,7 +155,7 @@
              *
              * "Not the preview" is decided by the target *being* one of the
              * chrome elements. Every kind puts a real element in the stage --
-             * img.tm-shot, object.tm-doc, audio, video, div.tm-sheet -- so a
+             * img.mr-shot, object.mr-doc, audio, video, div.mr-sheet -- so a
              * click on content always targets that element or a descendant and
              * never the chrome. New kinds therefore need no changes here.
              *
@@ -166,9 +166,9 @@
              */
             function isBackdrop(element) {
                 return element instanceof Element && (
-                    element.classList.contains('tm-lightbox') ||
-                    element.classList.contains('tm-lightbox-body') ||
-                    element.classList.contains('tm-lightbox-stage')
+                    element.classList.contains('mr-lightbox') ||
+                    element.classList.contains('mr-lightbox-body') ||
+                    element.classList.contains('mr-lightbox-stage')
                 );
             }
 

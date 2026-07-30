@@ -1,21 +1,21 @@
 # Laravel Test Mail
 
-[![Latest version](https://img.shields.io/packagist/v/ebbbang/laravel-test-mail.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-test-mail)
-[![Tests](https://img.shields.io/github/actions/workflow/status/ebbbang/laravel-test-mail/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/ebbbang/laravel-test-mail/actions/workflows/tests.yml)
-[![Downloads](https://img.shields.io/packagist/dt/ebbbang/laravel-test-mail.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-test-mail)
-[![License](https://img.shields.io/packagist/l/ebbbang/laravel-test-mail.svg?style=flat-square)](LICENSE)
+[![Latest version](https://img.shields.io/packagist/v/ebbbang/laravel-mailroom.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-mailroom)
+[![Tests](https://img.shields.io/github/actions/workflow/status/ebbbang/laravel-mailroom/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/ebbbang/laravel-mailroom/actions/workflows/tests.yml)
+[![Downloads](https://img.shields.io/packagist/dt/ebbbang/laravel-mailroom.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-mailroom)
+[![License](https://img.shields.io/packagist/l/ebbbang/laravel-mailroom.svg?style=flat-square)](LICENSE)
 
-A mail driver that stores outgoing mail in your database, plus a mailbox at `/test-mail` to read it.
+A mail driver that stores outgoing mail in your database, plus a mailbox at `/mailroom` to read it.
 
 `MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. This keeps the whole thing — the full MIME, attachments, embedded images, tags, metadata and custom headers — and gives you somewhere to look at it.
 
 ```bash
-composer require --dev ebbbang/laravel-test-mail
-php artisan test-mail:install
+composer require --dev ebbbang/laravel-mailroom
+php artisan mailroom:install
 php artisan migrate
 ```
 
-Then set `MAIL_MAILER=database` and send something.
+Then set `MAIL_MAILER=mailroom` and send something.
 
 > **Pin with `^0.1` while this is 0.x.** Composer treats `^0.1` as `0.1.*`
 > only, so moving to a 0.2 release will need a deliberate bump. Breaking
@@ -52,7 +52,7 @@ Everything Laravel's mail layer can produce, because it hooks in as a Symfony tr
 
 ## The mailbox
 
-`/test-mail` gives you a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw tabs. Light, dark and system themes. No build step, no npm, no published assets — the styles are inlined, so it works offline and behind a strict CSP.
+`/mailroom` gives you a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw tabs. Light, dark and system themes. No build step, no npm, no published assets — the styles are inlined, so it works offline and behind a strict CSP.
 
 Every message can be exported as **`.eml`** (opens in Mail.app, Thunderbird, Outlook) or as a standalone **`.html`** file with embedded images rewritten to `data:` URIs so it renders anywhere.
 
@@ -94,10 +94,10 @@ Set `preview.enabled` to `false` to switch all of this off and go back to plain 
 The package ships **no login page**. Access is decided in three escalating steps:
 
 1. **Nothing configured** — the mailbox is reachable in the `local` environment only.
-2. **A gate** — define `viewTestMail` and it takes over completely:
+2. **A gate** — define `viewMailroom` and it takes over completely:
 
    ```php
-   Gate::define('viewTestMail', fn (?User $user) => $user?->isAdmin());
+   Gate::define('viewMailroom', fn (?User $user) => $user?->isAdmin());
    ```
 
    Type the parameter as nullable and guests are evaluated too, which is what lets this work without auth middleware.
@@ -105,7 +105,7 @@ The package ships **no login page**. Access is decided in three escalating steps
 3. **A callback** — for anything the gate can't express:
 
    ```php
-   TestMail::auth(fn (Request $request) => $request->ip() === '10.0.0.1');
+   Mailroom::auth(fn (Request $request) => $request->ip() === '10.0.0.1');
    ```
 
 To put the mailbox behind your app's existing login, add `auth` to the middleware stack and your own login flow handles the redirect:
@@ -122,40 +122,40 @@ Attachments are always sent as `application/octet-stream` with `Content-Disposit
 
 ## Production
 
-Disabled in production by default. The `database` transport refuses to be constructed and the routes are never registered, so `/test-mail` 404s rather than 403s.
+Disabled in production by default. The `database` transport refuses to be constructed and the routes are never registered, so `/mailroom` 404s rather than 403s.
 
 If you select the mailer anyway, it **throws** rather than silently accepting the message — quietly swallowing production mail while looking like successful delivery is the worst possible failure here.
 
 To use it in production regardless, opt in explicitly:
 
 ```dotenv
-TEST_MAIL_ENABLED=true
+MAILROOM_ENABLED=true
 ```
 
 ## Pruning
 
 ```bash
-php artisan test-mail:prune              # uses test-mail.prune.retention_days (default 7)
-php artisan test-mail:prune --days=30
-php artisan test-mail:prune --hours=6
-php artisan test-mail:prune --pretend
-php artisan test-mail:clear              # everything, including stored files
+php artisan mailroom:prune              # uses mailroom.prune.retention_days (default 7)
+php artisan mailroom:prune --days=30
+php artisan mailroom:prune --hours=6
+php artisan mailroom:prune --pretend
+php artisan mailroom:clear              # everything, including stored files
 ```
 
-Deletes go through model events so the raw `.eml` and attachment blobs are removed with the row — a mass delete would orphan every file on disk. The model is `Prunable`, so `php artisan model:prune --model="Ebbbang\TestMail\Models\TestMailMessage"` works too.
+Deletes go through model events so the raw `.eml` and attachment blobs are removed with the row — a mass delete would orphan every file on disk. The model is `Prunable`, so `php artisan model:prune --model="Ebbbang\Mailroom\Models\MailroomMessage"` works too.
 
-Schedule it yourself, or set `test-mail.prune.schedule` to a cron expression or frequency name (`daily`, `hourly`) and the package registers it for you.
+Schedule it yourself, or set `mailroom.prune.schedule` to a cron expression or frequency name (`daily`, `hourly`) and the package registers it for you.
 
 ## Configuration
 
 ```bash
-php artisan vendor:publish --tag=test-mail-config
+php artisan vendor:publish --tag=mailroom-config
 ```
 
 | Key | Default | |
 |---|---|---|
-| `enabled` | not production | Master switch, `TEST_MAIL_ENABLED` |
-| `path` | `test-mail` | Mailbox URL |
+| `enabled` | not production | Master switch, `MAILROOM_ENABLED` |
+| `path` | `mailroom` | Mailbox URL |
 | `domain` | `null` | Serve the mailbox on its own domain |
 | `middleware` | `['web', Authorize::class]` | Add `auth` to require login |
 | `storage.disk` | `local` | Where `.eml` and attachments go |
@@ -164,7 +164,7 @@ php artisan vendor:publish --tag=test-mail-config
 | `forward` | `null` | Also deliver via another mailer after capturing |
 | `prune.retention_days` | `7` | |
 | `ui.per_page` / `ui.poll_interval` | `25` / `5` | |
-| `preview.enabled` | `true` | Attachment previews, `TEST_MAIL_PREVIEW` |
+| `preview.enabled` | `true` | Attachment previews, `MAILROOM_PREVIEW` |
 | `preview.max_inline_bytes` | `512 KB` | Cap on text-shaped previews |
 | `preview.max_csv_rows` | `200` | Rows shown before truncating a table |
 
@@ -172,7 +172,7 @@ Message metadata lives in the database so the list stays fast; raw MIME and atta
 
 ### Laravel Cloud and other ephemeral platforms
 
-The package works on Laravel Cloud, but **you must set `TEST_MAIL_DISK`** — the default `local` disk is the wrong choice there. Laravel Cloud's docs are explicit that environment filesystems are
+The package works on Laravel Cloud, but **you must set `MAILROOM_DISK`** — the default `local` disk is the wrong choice there. Laravel Cloud's docs are explicit that environment filesystems are
 
 > ephemeral […] each replica of your compute cluster has its own filesystem. Thus, you should treat the filesystem as temporary, unshared disk space that is only consistent during a single request or job.
 
@@ -181,9 +181,9 @@ Message metadata and bodies live in the database, so those survive fine. The raw
 Point the disk at persistent object storage and set the master switch, since Cloud environments carry `APP_ENV=production` even when they are really staging:
 
 ```dotenv
-MAIL_MAILER=database
-TEST_MAIL_DISK=<your object storage disk>
-TEST_MAIL_ENABLED=true
+MAIL_MAILER=mailroom
+MAILROOM_DISK=<your object storage disk>
+MAILROOM_ENABLED=true
 ```
 
 If blobs do go missing, the mailbox says so explicitly rather than quietly hiding the download button — and it distinguishes a file that vanished from one deliberately skipped by `storage.max_attachment_size`.
@@ -203,13 +203,13 @@ is rebuilt per request. Following it into the sandbox is what keeps
 `MessageStored` firing on the same dispatcher as Laravel's own `MessageSent`.
 
 Nothing in the package holds per-request state between requests. The one piece
-of state that deliberately outlives a request is the `TestMail::auth()`
+of state that deliberately outlives a request is the `Mailroom::auth()`
 callback, which is set once from a service provider — the same lifetime a
 provider has under Octane. Two things follow:
 
 - Do not capture a request, a user, or `$this` inside that closure. It receives
   the current request as its argument; use that.
-- `TestMail::flushState()` clears it, if a worker ever needs resetting.
+- `Mailroom::flushState()` clears it, if a worker ever needs resetting.
 
 Attachment bytes are read into memory to be written to the disk, which is a
 transient spike but a spike nonetheless on long-lived workers. If your
@@ -221,17 +221,17 @@ parts are recorded without their payloads.
 Set `forward` to another configured mailer and messages are stored *and* sent on — useful on staging:
 
 ```dotenv
-MAIL_MAILER=database
-TEST_MAIL_FORWARD=smtp
+MAIL_MAILER=mailroom
+MAILROOM_FORWARD=smtp
 ```
 
 ## Events
 
 ```php
-use Ebbbang\TestMail\Events\MessageStored;
+use Ebbbang\Mailroom\Events\MessageStored;
 
 Event::listen(function (MessageStored $event) {
-    $event->message;      // the stored TestMailMessage
+    $event->message;      // the stored MailroomMessage
     $event->sentMessage;  // Symfony's SentMessage
 });
 ```
@@ -259,7 +259,7 @@ composer seed         # reseed the demo mailbox from scratch
 
 `composer serve` creates the database, migrates it, seeds it and starts the
 server, so a clean checkout gets you a populated mailbox at
-<http://127.0.0.1:8000/test-mail> in one step. Re-running it just starts the
+<http://127.0.0.1:8000/mailroom> in one step. Re-running it just starts the
 server, because each step is a no-op once done.
 
 The seeder aims at **one message per branch of the UI**, so everything can be
@@ -288,7 +288,7 @@ with what they demonstrate:
 
 Plus ~55 ordinary messages spread over 45 days, which gives three pages of
 pagination, something for search to match, and a range of ages so
-`test-mail:prune --days=7` and `--days=30` both have work to do.
+`mailroom:prune --days=7` and `--days=30` both have work to do.
 
 ```bash
 php artisan demo:seed              # skips if the mailbox already has mail

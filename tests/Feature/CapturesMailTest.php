@@ -1,11 +1,11 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Events\MessageStored;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Events\MessageStored;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,13 +24,13 @@ class CapturesMailTest extends TestCase
             $message->to('rachel@example.test')->subject('A raw message');
         });
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertSame('A raw message', $captured->subject);
         $this->assertSame('rachel@example.test', $captured->to[0]['address']);
         $this->assertSame('app@example.test', $captured->from[0]['address']);
         $this->assertStringContainsString('Hello from the raw helper.', (string) $captured->text_body);
-        $this->assertSame('database', $captured->mailer);
+        $this->assertSame('mailroom', $captured->mailer);
     }
 
     #[Test]
@@ -38,7 +38,7 @@ class CapturesMailTest extends TestCase
     {
         Mail::to('rachel@example.test')->send(new OrderShipped('A-1001'));
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertSame('Order A-1001 shipped', $captured->subject);
         $this->assertStringContainsString('<h1>On its way</h1>', (string) $captured->html_body);
@@ -53,7 +53,7 @@ class CapturesMailTest extends TestCase
             ->bcc('hidden@example.test')
             ->send((new OrderShipped)->replyTo('support@example.test'));
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertSame('cc@example.test', $captured->cc[0]['address']);
         $this->assertSame('hidden@example.test', $captured->bcc[0]['address']);
@@ -74,7 +74,7 @@ class CapturesMailTest extends TestCase
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertNotNull($captured->message_id);
         $this->assertStringContainsString(
@@ -95,7 +95,7 @@ class CapturesMailTest extends TestCase
             })
         );
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertSame(['shipping'], $captured->tags);
         $this->assertSame(['order_id' => '1001'], $captured->metadata);
@@ -117,7 +117,7 @@ class CapturesMailTest extends TestCase
             Mail::alwaysTo(null);
         }
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         // alwaysTo rewrites the message's own To header and forgets cc/bcc
         // rather than only redirecting the envelope, so the captured message
@@ -145,7 +145,7 @@ class CapturesMailTest extends TestCase
             new Envelope(new Address('app@example.test'), [new Address('elsewhere@example.test')])
         );
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertSame('rachel@example.test', $captured->to[0]['address']);
         $this->assertSame('elsewhere@example.test', $captured->envelope_recipients[0]['address']);
@@ -155,11 +155,11 @@ class CapturesMailTest extends TestCase
     #[Test]
     public function it_records_the_mailer_that_sent_the_message(): void
     {
-        config()->set('mail.mailers.secondary', ['transport' => 'database']);
+        config()->set('mail.mailers.secondary', ['transport' => 'mailroom']);
 
         Mail::mailer('secondary')->to('rachel@example.test')->send(new OrderShipped);
 
-        $this->assertSame('secondary', TestMailMessage::sole()->mailer);
+        $this->assertSame('secondary', MailroomMessage::sole()->mailer);
     }
 
     #[Test]
@@ -167,7 +167,7 @@ class CapturesMailTest extends TestCase
     {
         Mail::to('rachel@example.test')->queue(new OrderShipped);
 
-        $this->assertSame(1, TestMailMessage::query()->count());
+        $this->assertSame(1, MailroomMessage::query()->count());
     }
 
     #[Test]
@@ -185,7 +185,7 @@ class CapturesMailTest extends TestCase
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
-        $captured = TestMailMessage::sole();
+        $captured = MailroomMessage::sole();
 
         $this->assertTrue($captured->hasRaw());
         $this->assertSame(strlen((string) $captured->raw()), $captured->size);

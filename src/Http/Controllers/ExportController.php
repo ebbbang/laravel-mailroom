@@ -1,16 +1,16 @@
 <?php
 
-namespace Ebbbang\TestMail\Http\Controllers;
+namespace Ebbbang\Mailroom\Http\Controllers;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\CidInliner;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\CidInliner;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController
 {
-    public function __invoke(TestMailMessage $message, string $format, CidInliner $inliner): Response|StreamedResponse
+    public function __invoke(MailroomMessage $message, string $format, CidInliner $inliner): Response|StreamedResponse
     {
         return match ($format) {
             'eml' => $this->eml($message),
@@ -27,7 +27,7 @@ class ExportController
      * rendering a message, since it must never travel with it. The mailbox UI
      * shows the recorded BCC recipients separately.
      */
-    protected function eml(TestMailMessage $message): StreamedResponse
+    protected function eml(MailroomMessage $message): StreamedResponse
     {
         abort_unless($message->hasRaw(), 404);
 
@@ -54,7 +54,7 @@ class ExportController
      * Always sent as a download rather than rendered: serving email HTML
      * inline on the application's own origin would be a stored-XSS sink.
      */
-    protected function html(TestMailMessage $message, CidInliner $inliner): Response
+    protected function html(MailroomMessage $message, CidInliner $inliner): Response
     {
         $html = $inliner->inline($message, $message->html_body);
 
@@ -67,7 +67,7 @@ class ExportController
         ]);
     }
 
-    protected function disposition(TestMailMessage $message, string $extension): string
+    protected function disposition(MailroomMessage $message, string $extension): string
     {
         $slug = Str::slug((string) $message->subject) ?: 'message';
 

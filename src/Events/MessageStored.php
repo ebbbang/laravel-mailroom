@@ -1,8 +1,8 @@
 <?php
 
-namespace Ebbbang\TestMail\Events;
+namespace Ebbbang\Mailroom\Events;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
+use Ebbbang\Mailroom\Models\MailroomMessage;
 use Symfony\Component\Mailer\SentMessage;
 
 /**
@@ -13,7 +13,7 @@ use Symfony\Component\Mailer\SentMessage;
 class MessageStored
 {
     public function __construct(
-        public TestMailMessage $message,
+        public MailroomMessage $message,
         public SentMessage $sentMessage,
     ) {}
 }

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `ebbbang/laravel-test-mail` are documented here.
+All notable changes to `ebbbang/laravel-mailroom` are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
@@ -19,7 +19,7 @@ First release.
   text bodies, attachments, inline images, tags, metadata and custom headers.
   It hooks in as a Symfony transport, so it sees the finished message rather
   than reconstructing one.
-- An auth-gated mailbox at `/test-mail` with search, a per-mailer filter,
+- An auth-gated mailbox at `/mailroom` with search, a per-mailer filter,
   pagination, and light, dark and system themes. No build step and no
   published assets — the styles are inlined.
 - Attachment previews in a lightbox: images, SVG, PDF, audio, video, text,
@@ -28,10 +28,10 @@ First release.
   works. Office documents and archives are download-only.
 - Export as `.eml`, or as a standalone `.html` file with embedded images
   rewritten to `data:` URIs.
-- Three levels of access control: local-only by default, a `viewTestMail`
-  gate, or a `TestMail::auth()` callback. The package ships no login page and
+- Three levels of access control: local-only by default, a `viewMailroom`
+  gate, or a `Mailroom::auth()` callback. The package ships no login page and
   defers to the host application's.
-- `test-mail:install`, `test-mail:prune` and `test-mail:clear` commands. The
+- `mailroom:install`, `mailroom:prune` and `mailroom:clear` commands. The
   message model is `Prunable`, so `model:prune` works too.
 - A `MessageStored` event carrying the persisted row, which Laravel's own
   `MessageSent` does not provide.
@@ -49,5 +49,5 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-test-mail/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ebbbang/laravel-test-mail/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ebbbang/laravel-mailroom/releases/tag/v0.1.0

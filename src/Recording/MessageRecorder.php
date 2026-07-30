@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Recording;
+namespace Ebbbang\Mailroom\Recording;
 
 use DateTimeInterface;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Support\Str;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Header\MetadataHeader;
@@ -20,14 +20,14 @@ use Symfony\Component\Mime\Part\TextPart;
 use Symfony\Component\Mime\RawMessage;
 
 /**
- * Turns an outgoing Symfony message into a persisted TestMailMessage plus
+ * Turns an outgoing Symfony message into a persisted MailroomMessage plus
  * its blobs on disk.
  */
 class MessageRecorder
 {
     public function __construct(protected RawMessageStore $store) {}
 
-    public function record(RawMessage $message, Envelope $envelope, string $mailer): TestMailMessage
+    public function record(RawMessage $message, Envelope $envelope, string $mailer): MailroomMessage
     {
         $uuid = (string) Str::uuid();
 
@@ -52,7 +52,7 @@ class MessageRecorder
 
         $payload = $this->payload($message, $envelope, $mailer, $preparedHeaders);
 
-        $model = TestMailMessage::create([
+        $model = MailroomMessage::create([
             'uuid' => $uuid,
             'mailer' => $payload->mailer,
             'subject' => $payload->subject,
@@ -175,9 +175,9 @@ class MessageRecorder
     /**
      * @param  array<int, AttachmentPayload>  $parts
      */
-    protected function storeParts(TestMailMessage $model, string $uuid, array $parts): void
+    protected function storeParts(MailroomMessage $model, string $uuid, array $parts): void
     {
-        $maxSize = config('test-mail.storage.max_attachment_size');
+        $maxSize = config('mailroom.storage.max_attachment_size');
 
         foreach ($parts as $index => $part) {
             $withinLimit = $maxSize === null || $part->size() <= (int) $maxSize;

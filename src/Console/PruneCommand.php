@@ -1,14 +1,14 @@
 <?php
 
-namespace Ebbbang\TestMail\Console;
+namespace Ebbbang\Mailroom\Console;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
+use Ebbbang\Mailroom\Models\MailroomMessage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 class PruneCommand extends Command
 {
-    protected $signature = 'test-mail:prune
+    protected $signature = 'mailroom:prune
                             {--days= : Delete messages captured more than this many days ago}
                             {--hours= : Delete messages captured more than this many hours ago}
                             {--pretend : Report what would be deleted without deleting it}';
@@ -19,7 +19,7 @@ class PruneCommand extends Command
     {
         $cutoff = $this->cutoff();
 
-        $query = TestMailMessage::query()->where('created_at', '<=', $cutoff);
+        $query = MailroomMessage::query()->where('created_at', '<=', $cutoff);
 
         $count = (clone $query)->count();
 
@@ -65,7 +65,7 @@ class PruneCommand extends Command
             return now()->subHours((int) $hours);
         }
 
-        $days = $this->option('days') ?? config('test-mail.prune.retention_days', 7);
+        $days = $this->option('days') ?? config('mailroom.prune.retention_days', 7);
 
         return now()->subDays((int) $days);
     }

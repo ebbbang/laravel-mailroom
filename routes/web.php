@@ -1,10 +1,10 @@
 <?php
 
-use Ebbbang\TestMail\Http\Controllers\AttachmentController;
-use Ebbbang\TestMail\Http\Controllers\AttachmentPreviewController;
-use Ebbbang\TestMail\Http\Controllers\ContentController;
-use Ebbbang\TestMail\Http\Controllers\ExportController;
-use Ebbbang\TestMail\Http\Controllers\MessageController;
+use Ebbbang\Mailroom\Http\Controllers\AttachmentController;
+use Ebbbang\Mailroom\Http\Controllers\AttachmentPreviewController;
+use Ebbbang\Mailroom\Http\Controllers\ContentController;
+use Ebbbang\Mailroom\Http\Controllers\ExportController;
+use Ebbbang\Mailroom\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MessageController::class, 'index'])->name('index');
@@ -34,7 +34,7 @@ Route::middleware([])->whereNumber('message')->group(function (): void {
     // application/octet-stream and must keep doing so. See
     // AttachmentPreviewController for how serving real content types is made
     // safe. Not registered at all when previews are disabled.
-    if (config('test-mail.preview.enabled', true)) {
+    if (config('mailroom.preview.enabled', true)) {
         Route::get('/{message}/attachments/{attachment}/preview', AttachmentPreviewController::class)
             ->whereNumber('attachment')
             ->name('attachment.preview');

@@ -1,8 +1,8 @@
 <?php
 
-namespace Ebbbang\TestMail\Support;
+namespace Ebbbang\Mailroom\Support;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
+use Ebbbang\Mailroom\Models\MailroomMessage;
 
 /**
  * Rewrites cid: references in an HTML body to data: URIs.
@@ -13,7 +13,7 @@ use Ebbbang\TestMail\Models\TestMailMessage;
  */
 class CidInliner
 {
-    public function inline(TestMailMessage $message, ?string $html): ?string
+    public function inline(MailroomMessage $message, ?string $html): ?string
     {
         if (blank($html)) {
             return $html;

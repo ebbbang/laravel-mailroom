@@ -1,12 +1,12 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\PreviewKind;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\PreviewKind;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -19,7 +19,7 @@ class PreviewRouteTest extends TestCase
     {
         parent::setUp();
 
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
     }
 
     /** A genuine 1x1 PNG. */
@@ -30,20 +30,20 @@ class PreviewRouteTest extends TestCase
         );
     }
 
-    protected function attach(string $contents, string $name, string $mime): TestMailAttachment
+    protected function attach(string $contents, string $name, string $mime): MailroomAttachment
     {
         Mail::to('rachel@example.test')->send(
             (new OrderShipped)->attachData($contents, $name, ['mime' => $mime])
         );
 
-        return TestMailMessage::query()->latest('id')->first()->attachments()->sole();
+        return MailroomMessage::query()->latest('id')->first()->attachments()->sole();
     }
 
-    protected function previewUrl(TestMailAttachment $attachment): string
+    protected function previewUrl(MailroomAttachment $attachment): string
     {
         return sprintf(
-            '/test-mail/%d/attachments/%d/preview',
-            $attachment->test_mail_message_id,
+            '/mailroom/%d/attachments/%d/preview',
+            $attachment->mailroom_message_id,
             $attachment->id
         );
     }
@@ -161,8 +161,8 @@ class PreviewRouteTest extends TestCase
         $attachment = $this->attach($this->png(), 'pixel.png', 'image/png');
 
         $response = $this->get(sprintf(
-            '/test-mail/%d/attachments/%d',
-            $attachment->test_mail_message_id,
+            '/mailroom/%d/attachments/%d',
+            $attachment->mailroom_message_id,
             $attachment->id
         ))->assertOk();
 
@@ -261,7 +261,7 @@ class PreviewRouteTest extends TestCase
     #[Test]
     public function a_skipped_blob_is_not_previewable(): void
     {
-        config()->set('test-mail.storage.max_attachment_size', 1);
+        config()->set('mailroom.storage.max_attachment_size', 1);
 
         $attachment = $this->attach($this->png(), 'pixel.png', 'image/png');
 
@@ -275,9 +275,9 @@ class PreviewRouteTest extends TestCase
         $attachment = $this->attach($this->png(), 'pixel.png', 'image/png');
 
         Mail::to('rachel@example.test')->send(new OrderShipped('A-2'));
-        $other = TestMailMessage::query()->latest('id')->first();
+        $other = MailroomMessage::query()->latest('id')->first();
 
-        $this->get(sprintf('/test-mail/%d/attachments/%d/preview', $other->id, $attachment->id))
+        $this->get(sprintf('/mailroom/%d/attachments/%d/preview', $other->id, $attachment->id))
             ->assertNotFound();
     }
 
@@ -286,7 +286,7 @@ class PreviewRouteTest extends TestCase
     {
         $attachment = $this->attach($this->png(), 'pixel.png', 'image/png');
 
-        Gate::define('viewTestMail', fn (?User $user): bool => false);
+        Gate::define('viewMailroom', fn (?User $user): bool => false);
 
         $this->get($this->previewUrl($attachment))->assertForbidden();
     }
@@ -297,7 +297,7 @@ class PreviewRouteTest extends TestCase
         $attachment = $this->attach($this->png(), 'pixel.png', 'image/png');
         $url = $this->previewUrl($attachment);
 
-        config()->set('test-mail.preview.enabled', false);
+        config()->set('mailroom.preview.enabled', false);
 
         $this->assertFalse($attachment->fresh()->isPreviewable());
 

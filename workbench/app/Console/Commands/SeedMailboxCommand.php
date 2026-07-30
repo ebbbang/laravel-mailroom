@@ -2,8 +2,8 @@
 
 namespace Workbench\App\Console\Commands;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Mail;
@@ -52,13 +52,13 @@ class SeedMailboxCommand extends Command
     public function handle(RawMessageStore $store): int
     {
         if ($this->option('fresh')) {
-            $this->callSilently('test-mail:clear', ['--force' => true]);
+            $this->callSilently('mailroom:clear', ['--force' => true]);
             $this->components->info('Cleared the mailbox.');
-        } elseif (TestMailMessage::query()->exists()) {
+        } elseif (MailroomMessage::query()->exists()) {
             // Keeps this safe to chain into `composer serve`.
             $this->components->info(sprintf(
                 'Mailbox already holds %d message(s) — nothing to do. Use --fresh to reseed.',
-                TestMailMessage::query()->count()
+                MailroomMessage::query()->count()
             ));
 
             return self::SUCCESS;
@@ -67,17 +67,17 @@ class SeedMailboxCommand extends Command
         // A second mailer so the list shows the mailer badge and the header
         // grows a filter. Only the recorded name matters afterwards: the
         // filter reads distinct values straight out of the database.
-        config()->set('mail.mailers.secondary', ['transport' => 'database']);
+        config()->set('mail.mailers.secondary', ['transport' => 'mailroom']);
 
         $this->components->task('scenario messages', fn () => $this->scenarios($store));
         $this->components->task('filler messages', fn () => $this->filler((int) $this->option('filler')));
 
         $this->newLine();
-        $this->components->info(sprintf('Seeded %d messages.', TestMailMessage::query()->count()));
+        $this->components->info(sprintf('Seeded %d messages.', MailroomMessage::query()->count()));
         $this->components->bulletList([
-            'Visit /'.config('test-mail.path', 'test-mail').' to browse them.',
+            'Visit /'.config('mailroom.path', 'mailroom').' to browse them.',
             'Subjects are prefixed with the scenario they demonstrate.',
-            'Ages span 45 days, so `test-mail:prune --days=7` and `--days=30` both do something.',
+            'Ages span 45 days, so `mailroom:prune --days=7` and `--days=30` both do something.',
         ]);
 
         return self::SUCCESS;
@@ -256,8 +256,8 @@ class SeedMailboxCommand extends Command
 
         // Bytes skipped for being over the configured ceiling. Restored
         // afterwards so nothing else in the seed is affected.
-        $original = config('test-mail.storage.max_attachment_size');
-        config()->set('test-mail.storage.max_attachment_size', 512);
+        $original = config('mailroom.storage.max_attachment_size');
+        config()->set('mailroom.storage.max_attachment_size', 512);
 
         try {
             $this->aged(fn () => Mail::to('rachel@example.test')->send(
@@ -266,7 +266,7 @@ class SeedMailboxCommand extends Command
                     ->attachData(Fixtures::png(320, 180), 'too-big.png', ['mime' => 'image/png'])
             ), hoursAgo: 23);
         } finally {
-            config()->set('test-mail.storage.max_attachment_size', $original);
+            config()->set('mailroom.storage.max_attachment_size', $original);
         }
     }
 
@@ -286,7 +286,7 @@ class SeedMailboxCommand extends Command
                 ->text('The envelope for this message named a different recipient.')
                 ->html('<p>The envelope for this message named a different recipient.</p>');
 
-            Mail::mailer('database')->getSymfonyTransport()->send(
+            Mail::mailer('mailroom')->getSymfonyTransport()->send(
                 $email,
                 new Envelope(new Address('app@example.test'), [new Address('interceptor@example.test')])
             );
@@ -302,7 +302,7 @@ class SeedMailboxCommand extends Command
                 ->attachData("This text file's bytes were deleted after capture.\n", 'gone.txt', ['mime' => 'text/plain'])
         ), hoursAgo: 27);
 
-        $orphaned = TestMailMessage::query()->latest('id')->first();
+        $orphaned = MailroomMessage::query()->latest('id')->first();
 
         if ($orphaned !== null) {
             $store->deleteMessage($orphaned->uuid);
@@ -377,14 +377,14 @@ class SeedMailboxCommand extends Command
      */
     protected function aged(callable $send, int $hoursAgo): void
     {
-        $before = TestMailMessage::query()->max('id');
+        $before = MailroomMessage::query()->max('id');
 
         $send();
 
-        TestMailMessage::query()
+        MailroomMessage::query()
             ->when($before !== null, fn ($query) => $query->where('id', '>', $before))
             ->get()
-            ->each(function (TestMailMessage $message) use ($hoursAgo): void {
+            ->each(function (MailroomMessage $message) use ($hoursAgo): void {
                 $at = Date::now()->subHours($hoursAgo);
 
                 $message->forceFill(['created_at' => $at, 'updated_at' => $at, 'sent_at' => $at])->saveQuietly();

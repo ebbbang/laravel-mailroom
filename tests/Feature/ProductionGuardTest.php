@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Exceptions\TestMailDisabledException;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Exceptions\MailroomDisabledException;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -15,14 +15,14 @@ class ProductionGuardTest extends TestCase
         parent::defineEnvironment($app);
 
         // Simulate a production deploy that never opted in.
-        $app['config']->set('test-mail.enabled', false);
+        $app['config']->set('mailroom.enabled', false);
     }
 
     #[Test]
     public function it_refuses_to_build_the_transport_when_disabled(): void
     {
-        $this->expectException(TestMailDisabledException::class);
-        $this->expectExceptionMessageMatches('/TEST_MAIL_ENABLED=true/');
+        $this->expectException(MailroomDisabledException::class);
+        $this->expectExceptionMessageMatches('/MAILROOM_ENABLED=true/');
 
         Mail::to('rachel@example.test')->send(new OrderShipped);
     }
@@ -35,14 +35,14 @@ class ProductionGuardTest extends TestCase
         try {
             Mail::to('rachel@example.test')->send(new OrderShipped);
             $this->fail('Sending should have thrown while the package is disabled.');
-        } catch (TestMailDisabledException $testMailDisabledException) {
-            $this->assertStringContainsString('disabled', $testMailDisabledException->getMessage());
+        } catch (MailroomDisabledException $mailroomDisabledException) {
+            $this->assertStringContainsString('disabled', $mailroomDisabledException->getMessage());
         }
     }
 
     #[Test]
     public function it_does_not_register_the_mailbox_routes_when_disabled(): void
     {
-        $this->get('/test-mail')->assertNotFound();
+        $this->get('/mailroom')->assertNotFound();
     }
 }

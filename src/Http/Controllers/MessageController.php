@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Http\Controllers;
+namespace Ebbbang\Mailroom\Http\Controllers;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -11,27 +11,27 @@ use Illuminate\Http\Request;
 
 class MessageController
 {
-    public function index(Request $request, ?TestMailMessage $message = null): Renderable
+    public function index(Request $request, ?MailroomMessage $message = null): Renderable
     {
         $search = $request->query('search');
         $mailer = $request->query('mailer');
 
-        $messages = TestMailMessage::query()
+        $messages = MailroomMessage::query()
             ->search(is_string($search) ? $search : null)
             ->forMailer(is_string($mailer) ? $mailer : null)
             ->latest('id')
-            ->paginate((int) config('test-mail.ui.per_page', 25))
+            ->paginate((int) config('mailroom.ui.per_page', 25))
             ->withQueryString();
 
         $selected = $message?->exists ? $message->load('attachments') : null;
 
-        return view('test-mail::index', [
+        return view('mailroom::index', [
             'messages' => $messages,
             'selected' => $selected,
             'search' => $search,
             'mailer' => $mailer,
             'mailers' => $this->availableMailers(),
-            'pollInterval' => config('test-mail.ui.poll_interval'),
+            'pollInterval' => config('mailroom.ui.poll_interval'),
 
             /*
              * The highest id overall, not the newest on this page. The poll
@@ -52,30 +52,30 @@ class MessageController
     {
         return new JsonResponse([
             'latest_id' => $this->latestId(),
-            'count' => TestMailMessage::query()->count(),
+            'count' => MailroomMessage::query()->count(),
         ]);
     }
 
     protected function latestId(): ?int
     {
-        $latest = TestMailMessage::query()->max('id');
+        $latest = MailroomMessage::query()->max('id');
 
         return $latest === null ? null : (int) $latest;
     }
 
-    public function destroy(TestMailMessage $message): RedirectResponse
+    public function destroy(MailroomMessage $message): RedirectResponse
     {
         $message->delete();
 
-        return to_route('test-mail.index')
-            ->with('test-mail.status', 'Message deleted.');
+        return to_route('mailroom.index')
+            ->with('mailroom.status', 'Message deleted.');
     }
 
     public function clear(RawMessageStore $store): RedirectResponse
     {
         // Routed through model deletes so each message's blobs go with it,
         // then a directory sweep to catch anything left behind.
-        TestMailMessage::query()->orderBy('id')->chunkById(500, function ($messages): void {
+        MailroomMessage::query()->orderBy('id')->chunkById(500, function ($messages): void {
             foreach ($messages as $message) {
                 $message->delete();
             }
@@ -83,8 +83,8 @@ class MessageController
 
         $store->flush();
 
-        return to_route('test-mail.index')
-            ->with('test-mail.status', 'Mailbox cleared.');
+        return to_route('mailroom.index')
+            ->with('mailroom.status', 'Mailbox cleared.');
     }
 
     /**
@@ -92,7 +92,7 @@ class MessageController
      */
     protected function availableMailers(): array
     {
-        return TestMailMessage::query()
+        return MailroomMessage::query()
             ->distinct()
             ->orderBy('mailer')
             ->pluck('mailer')

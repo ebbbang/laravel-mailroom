@@ -1,4 +1,4 @@
-<table class="tm-table">
+<table class="mr-table">
     <tbody>
         @forelse ($message->headers ?? [] as $name => $value)
             <tr>
@@ -7,7 +7,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="2" style="font-family:inherit;color:var(--tm-text-faint)">
+                <td colspan="2" style="font-family:inherit;color:var(--mr-text-faint)">
                     No headers were recorded for this message.
                 </td>
             </tr>
@@ -17,8 +17,8 @@
             <tr>
                 <td>Bcc</td>
                 <td>
-                    {{ \Ebbbang\TestMail\Models\TestMailMessage::formatAddressList($message->bcc) }}
-                    <div style="font-family:inherit;color:var(--tm-text-faint);margin-top:3px">
+                    {{ \Ebbbang\Mailroom\Models\MailroomMessage::formatAddressList($message->bcc) }}
+                    <div style="font-family:inherit;color:var(--mr-text-faint);margin-top:3px">
                         Recorded separately — a Bcc header is stripped before a message is sent,
                         so it will not appear in the .eml export.
                     </div>
@@ -36,7 +36,7 @@
         @if (filled($message->envelope_recipients))
             <tr>
                 <td>Envelope-To</td>
-                <td>{{ \Ebbbang\TestMail\Models\TestMailMessage::formatAddressList($message->envelope_recipients) }}</td>
+                <td>{{ \Ebbbang\Mailroom\Models\MailroomMessage::formatAddressList($message->envelope_recipients) }}</td>
             </tr>
         @endif
     </tbody>

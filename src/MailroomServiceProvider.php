@@ -1,24 +1,24 @@
 <?php
 
-namespace Ebbbang\TestMail;
+namespace Ebbbang\Mailroom;
 
-use Ebbbang\TestMail\Console\ClearCommand;
-use Ebbbang\TestMail\Console\InstallCommand;
-use Ebbbang\TestMail\Console\PruneCommand;
-use Ebbbang\TestMail\Recording\MessageRecorder;
-use Ebbbang\TestMail\Storage\RawMessageStore;
-use Ebbbang\TestMail\Transport\TransportFactory;
+use Ebbbang\Mailroom\Console\ClearCommand;
+use Ebbbang\Mailroom\Console\InstallCommand;
+use Ebbbang\Mailroom\Console\PruneCommand;
+use Ebbbang\Mailroom\Recording\MessageRecorder;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Transport\TransportFactory;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
-class TestMailServiceProvider extends ServiceProvider
+class MailroomServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/test-mail.php', 'test-mail');
+        $this->mergeConfigFrom(__DIR__.'/../config/mailroom.php', 'mailroom');
 
         $this->registerMailerConfig();
 
@@ -38,7 +38,7 @@ class TestMailServiceProvider extends ServiceProvider
     }
 
     /**
-     * Teach the mail manager about the "database" transport.
+     * Teach the mail manager about the "mailroom" transport.
      *
      * Deferred via callAfterResolving so merely booting this provider does not
      * force the mail manager into existence for applications that never send
@@ -57,22 +57,22 @@ class TestMailServiceProvider extends ServiceProvider
     protected function registerTransport(): void
     {
         $this->callAfterResolving('mail.manager', function (MailManager $manager, Container $container): void {
-            $manager->extend('database', fn (array $config) => $container
+            $manager->extend('mailroom', fn (array $config) => $container
                 ->make(TransportFactory::class)
                 ->make($config));
         });
     }
 
     /**
-     * Define a "database" mailer up front so MAIL_MAILER=database works
+     * Define a "mailroom" mailer up front so MAIL_MAILER=mailroom works
      * without the consumer editing config/mail.php at all.
      */
     protected function registerMailerConfig(): void
     {
         $config = $this->app->make('config');
 
-        if ($config->get('mail.mailers.database') === null) {
-            $config->set('mail.mailers.database', ['transport' => 'database']);
+        if ($config->get('mail.mailers.mailroom') === null) {
+            $config->set('mail.mailers.mailroom', ['transport' => 'mailroom']);
         }
     }
 
@@ -82,15 +82,15 @@ class TestMailServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        if (! TestMail::enabled()) {
+        if (! Mailroom::enabled()) {
             return;
         }
 
         Route::group([
-            'domain' => config('test-mail.domain'),
-            'prefix' => config('test-mail.path', 'test-mail'),
-            'middleware' => config('test-mail.middleware', ['web']),
-            'as' => 'test-mail.',
+            'domain' => config('mailroom.domain'),
+            'prefix' => config('mailroom.path', 'mailroom'),
+            'middleware' => config('mailroom.middleware', ['web']),
+            'as' => 'mailroom.',
         ], function (): void {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
@@ -98,11 +98,11 @@ class TestMailServiceProvider extends ServiceProvider
 
     protected function registerResources(): void
     {
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'test-mail');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'mailroom');
 
         // Only create the tables where the package is actually usable, so a
-        // production deploy with TEST_MAIL_ENABLED unset gains no new tables.
-        if (TestMail::enabled()) {
+        // production deploy with MAILROOM_ENABLED unset gains no new tables.
+        if (Mailroom::enabled()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
     }
@@ -114,18 +114,18 @@ class TestMailServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../config/test-mail.php' => config_path('test-mail.php'),
-        ], 'test-mail-config');
+            __DIR__.'/../config/mailroom.php' => config_path('mailroom.php'),
+        ], 'mailroom-config');
 
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'test-mail-migrations');
+        ], 'mailroom-migrations');
 
         // Styles are inlined into the layout rather than published, so there
         // is no build step for consumers and no stale-asset failure mode.
         $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/test-mail'),
-        ], 'test-mail-views');
+            __DIR__.'/../resources/views' => resource_path('views/vendor/mailroom'),
+        ], 'mailroom-views');
     }
 
     protected function registerCommands(): void
@@ -147,9 +147,9 @@ class TestMailServiceProvider extends ServiceProvider
      */
     protected function registerSchedule(): void
     {
-        $expression = config('test-mail.prune.schedule');
+        $expression = config('mailroom.prune.schedule');
 
-        if (blank($expression) || ! TestMail::enabled()) {
+        if (blank($expression) || ! Mailroom::enabled()) {
             return;
         }
 

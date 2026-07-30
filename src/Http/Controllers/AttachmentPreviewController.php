@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Http\Controllers;
+namespace Ebbbang\Mailroom\Http\Controllers;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Support\PreviewKind;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\PreviewKind;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -32,7 +32,7 @@ class AttachmentPreviewController
     /** Bytes per chunk while streaming. */
     protected const CHUNK = 262144;
 
-    public function __invoke(Request $request, TestMailMessage $message, int $attachment): StreamedResponse
+    public function __invoke(Request $request, MailroomMessage $message, int $attachment): StreamedResponse
     {
         // Through the relation, so an attachment id from one message cannot be
         // fetched via another.
@@ -169,7 +169,7 @@ class AttachmentPreviewController
     /**
      * Stream $length bytes starting at $start.
      */
-    protected function emit(TestMailAttachment $part, int $start, int $length): void
+    protected function emit(MailroomAttachment $part, int $start, int $length): void
     {
         $stream = $part->readStream();
 

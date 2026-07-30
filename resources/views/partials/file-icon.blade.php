@@ -1,4 +1,4 @@
-@php use Ebbbang\TestMail\Support\PreviewKind; @endphp
+@php use Ebbbang\Mailroom\Support\PreviewKind; @endphp
 
 @switch ($kind)
     @case (PreviewKind::Pdf)

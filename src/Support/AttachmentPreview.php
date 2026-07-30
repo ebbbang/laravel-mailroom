@@ -1,8 +1,8 @@
 <?php
 
-namespace Ebbbang\TestMail\Support;
+namespace Ebbbang\Mailroom\Support;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
 
 /**
  * Decides how an attachment may be previewed, and -- for the kinds whose
@@ -33,7 +33,7 @@ final readonly class AttachmentPreview
         public ?string $contentType = null,
     ) {}
 
-    public static function for(TestMailAttachment $attachment): self
+    public static function for(MailroomAttachment $attachment): self
     {
         $preview = self::resolve($attachment->mime_type, $attachment->filename);
 
@@ -80,7 +80,7 @@ final readonly class AttachmentPreview
     /**
      * A filename safe to put in a Content-Disposition header.
      */
-    public function dispositionFilename(TestMailAttachment $attachment): string
+    public function dispositionFilename(MailroomAttachment $attachment): string
     {
         return mb_substr(str_replace(['"', "\r", "\n"], '', $attachment->displayName()), 0, 100);
     }
@@ -262,7 +262,7 @@ final readonly class AttachmentPreview
             ], true);
     }
 
-    private static function sniff(TestMailAttachment $attachment): ?string
+    private static function sniff(MailroomAttachment $attachment): ?string
     {
         $stream = $attachment->readStream();
 

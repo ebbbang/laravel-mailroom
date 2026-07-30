@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -25,16 +25,16 @@ class MissingFilesTest extends TestCase
     {
         parent::setUp();
 
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
     }
 
-    protected function captureWithAttachment(): TestMailMessage
+    protected function captureWithAttachment(): MailroomMessage
     {
         Mail::to('rachel@example.test')->send(
             (new OrderShipped)->attachData('payload', 'invoice.txt', ['mime' => 'text/plain'])
         );
 
-        return TestMailMessage::sole()->load('attachments');
+        return MailroomMessage::sole()->load('attachments');
     }
 
     #[Test]
@@ -71,13 +71,13 @@ class MissingFilesTest extends TestCase
         $this->assertTrue($attachment->isMissing());
         $this->assertFalse($attachment->wasSkipped());
 
-        config()->set('test-mail.storage.max_attachment_size', 1);
+        config()->set('mailroom.storage.max_attachment_size', 1);
 
         Mail::to('rachel@example.test')->send(
             (new OrderShipped('A-2'))->attachData('too big', 'big.txt', ['mime' => 'text/plain'])
         );
 
-        $skipped = TestMailMessage::query()->latest('id')->first()->attachments()->sole();
+        $skipped = MailroomMessage::query()->latest('id')->first()->attachments()->sole();
 
         $this->assertTrue($skipped->wasSkipped());
         $this->assertFalse($skipped->isMissing());
@@ -90,10 +90,10 @@ class MissingFilesTest extends TestCase
 
         Storage::disk('local')->delete($message->raw_path);
 
-        $this->get('/test-mail/'.$message->id)
+        $this->get('/mailroom/'.$message->id)
             ->assertOk()
             ->assertSee('Stored files are missing')
-            ->assertSee('TEST_MAIL_DISK');
+            ->assertSee('MAILROOM_DISK');
     }
 
     #[Test]
@@ -101,11 +101,11 @@ class MissingFilesTest extends TestCase
     {
         $message = $this->captureWithAttachment();
 
-        Storage::disk('local')->deleteDirectory('test-mail');
+        Storage::disk('local')->deleteDirectory('mailroom');
 
         // Metadata and bodies live in the database, so the mailbox stays
         // useful even when every blob is gone.
-        $this->get('/test-mail/'.$message->id)
+        $this->get('/mailroom/'.$message->id)
             ->assertOk()
             ->assertSee('Order A-1001 shipped')
             ->assertSee('rachel@example.test');
@@ -117,11 +117,11 @@ class MissingFilesTest extends TestCase
         $message = $this->captureWithAttachment();
         $attachment = $message->attachments()->sole();
 
-        Storage::disk('local')->deleteDirectory('test-mail');
+        Storage::disk('local')->deleteDirectory('mailroom');
 
-        $this->get('/test-mail/'.$message->id.'/download/eml')->assertNotFound();
-        $this->get('/test-mail/'.$message->id.'/content/raw')->assertNotFound();
-        $this->get('/test-mail/'.$message->id.'/attachments/'.$attachment->id)->assertNotFound();
+        $this->get('/mailroom/'.$message->id.'/download/eml')->assertNotFound();
+        $this->get('/mailroom/'.$message->id.'/content/raw')->assertNotFound();
+        $this->get('/mailroom/'.$message->id.'/attachments/'.$attachment->id)->assertNotFound();
     }
 
     #[Test]
@@ -129,10 +129,10 @@ class MissingFilesTest extends TestCase
     {
         $message = $this->captureWithAttachment();
 
-        Storage::disk('local')->deleteDirectory('test-mail');
+        Storage::disk('local')->deleteDirectory('mailroom');
 
         $message->delete();
 
-        $this->assertSame(0, TestMailMessage::query()->count());
+        $this->assertSame(0, MailroomMessage::query()->count());
     }
 }

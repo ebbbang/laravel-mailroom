@@ -1,5 +1,5 @@
 providers:
-  - Ebbbang\TestMail\TestMailServiceProvider
+  - Ebbbang\Mailroom\MailroomServiceProvider
 
 env:
   - APP_ENV="local"
@@ -7,8 +7,8 @@ env:
   # A file rather than :memory: so captured mail survives between requests
   # when the workbench app is served.
   - DB_CONNECTION="sqlite"
-  - MAIL_MAILER="database"
-  - TEST_MAIL_ENABLED=true
+  - MAIL_MAILER="mailroom"
+  - MAILROOM_ENABLED=true
   # Sync, so demo:seed's queued mailable is captured during seeding instead of
   # sitting in the jobs table waiting for a worker nobody is running.
   - QUEUE_CONNECTION="sync"
@@ -16,7 +16,7 @@ env:
 migrations: true
 
 workbench:
-  start: '/test-mail'
+  start: '/mailroom'
   install: true
   discovers:
     config: false

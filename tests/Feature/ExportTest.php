@@ -1,10 +1,10 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Feature;
+namespace Ebbbang\Mailroom\Tests\Feature;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
-use Ebbbang\TestMail\Tests\Fixtures\OrderShipped;
-use Ebbbang\TestMail\Tests\TestCase;
+use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -16,14 +16,14 @@ class ExportTest extends TestCase
     {
         parent::setUp();
 
-        Gate::define('viewTestMail', fn (?User $user): bool => true);
+        Gate::define('viewMailroom', fn (?User $user): bool => true);
     }
 
-    protected function capture(): TestMailMessage
+    protected function capture(): MailroomMessage
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
-        return TestMailMessage::sole();
+        return MailroomMessage::sole();
     }
 
     #[Test]
@@ -31,7 +31,7 @@ class ExportTest extends TestCase
     {
         $message = $this->capture();
 
-        $response = $this->get(sprintf('/test-mail/%d/download/eml', $message->id))->assertOk();
+        $response = $this->get(sprintf('/mailroom/%d/download/eml', $message->id))->assertOk();
 
         $this->assertSame('message/rfc822', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('attachment;', (string) $response->headers->get('Content-Disposition'));
@@ -45,7 +45,7 @@ class ExportTest extends TestCase
     {
         $message = $this->capture();
 
-        $response = $this->get(sprintf('/test-mail/%d/download/html', $message->id))->assertOk();
+        $response = $this->get(sprintf('/mailroom/%d/download/html', $message->id))->assertOk();
 
         // Forced as a download: rendering email HTML inline on the app's own
         // origin would be a stored-XSS sink.
@@ -58,7 +58,7 @@ class ExportTest extends TestCase
     {
         $message = $this->capture();
 
-        $response = $this->get(sprintf('/test-mail/%d/content/html', $message->id))->assertOk();
+        $response = $this->get(sprintf('/mailroom/%d/content/html', $message->id))->assertOk();
 
         $csp = (string) $response->headers->get('Content-Security-Policy');
 
@@ -74,10 +74,10 @@ class ExportTest extends TestCase
             (new OrderShipped)->attachData('<script>alert(1)</script>', 'evil.html', ['mime' => 'text/html'])
         );
 
-        $message = TestMailMessage::sole();
+        $message = MailroomMessage::sole();
         $attachment = $message->attachments()->sole();
 
-        $response = $this->get(sprintf('/test-mail/%s/attachments/%s', $message->id, $attachment->id))->assertOk();
+        $response = $this->get(sprintf('/mailroom/%s/attachments/%s', $message->id, $attachment->id))->assertOk();
 
         // Never the attachment's own MIME type -- an emailed .html or .svg
         // handed back with its declared type would execute on this origin.
@@ -94,10 +94,10 @@ class ExportTest extends TestCase
         );
         Mail::to('rachel@example.test')->send(new OrderShipped('A-2'));
 
-        [$withFile, $without] = TestMailMessage::query()->orderBy('id')->get()->all();
+        [$withFile, $without] = MailroomMessage::query()->orderBy('id')->get()->all();
         $attachment = $withFile->attachments()->sole();
 
-        $this->get(sprintf('/test-mail/%s/attachments/%s', $without->id, $attachment->id))->assertNotFound();
+        $this->get(sprintf('/mailroom/%s/attachments/%s', $without->id, $attachment->id))->assertNotFound();
     }
 
     #[Test]
@@ -105,11 +105,11 @@ class ExportTest extends TestCase
     {
         $message = $this->capture();
 
-        $this->get(sprintf('/test-mail/%d/content/text', $message->id))
+        $this->get(sprintf('/mailroom/%d/content/text', $message->id))
             ->assertOk()
             ->assertSee('has shipped');
 
-        $raw = $this->get(sprintf('/test-mail/%d/content/raw', $message->id))->assertOk();
+        $raw = $this->get(sprintf('/mailroom/%d/content/raw', $message->id))->assertOk();
 
         $this->assertStringContainsString('Subject: Order A-1001 shipped', $raw->streamedContent());
     }
@@ -119,7 +119,7 @@ class ExportTest extends TestCase
     {
         $message = $this->capture();
 
-        $this->get(sprintf('/test-mail/%d/download/pdf', $message->id))->assertNotFound();
-        $this->get(sprintf('/test-mail/%d/content/exe', $message->id))->assertNotFound();
+        $this->get(sprintf('/mailroom/%d/download/pdf', $message->id))->assertNotFound();
+        $this->get(sprintf('/mailroom/%d/content/exe', $message->id))->assertNotFound();
     }
 }

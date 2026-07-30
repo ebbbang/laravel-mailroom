@@ -12,7 +12,7 @@ While the package is below 1.0, only the latest minor receives fixes.
 
 Please **do not open a public issue.** Report privately to
 **ebb.bang@gmail.com**, or use GitHub's
-[private vulnerability reporting](https://github.com/ebbbang/laravel-test-mail/security/advisories/new).
+[private vulnerability reporting](https://github.com/ebbbang/laravel-mailroom/security/advisories/new).
 
 Include the package and Laravel versions, what an attacker can achieve, and
 the smallest reproduction you have. Expect an acknowledgement within a few
@@ -24,7 +24,7 @@ Worth reading before reporting, because two things here look alarming and are
 deliberate.
 
 **The mailbox renders attacker-controlled content.** Anything your application
-mails can end up displayed in `/test-mail`, and a message body or attachment
+mails can end up displayed in `/mailroom`, and a message body or attachment
 may contain hostile HTML, SVG or JavaScript. That is the central risk, and the
 mitigations are:
 
@@ -54,11 +54,11 @@ rather than an oversight.
 ## Two things that are your responsibility
 
 **Access control.** With nothing configured the mailbox is reachable in the
-`local` environment only. Anywhere else you must define a `viewTestMail` gate
-or a `TestMail::auth()` callback, and add `auth` to the middleware stack if you
+`local` environment only. Anywhere else you must define a `viewMailroom` gate
+or a `Mailroom::auth()` callback, and add `auth` to the middleware stack if you
 want it behind a login. A mailbox left open is a mailbox anyone can read.
 
-**Production.** The package is disabled unless `TEST_MAIL_ENABLED=true`. If you
+**Production.** The package is disabled unless `MAILROOM_ENABLED=true`. If you
 opt in on a production system, you are storing the full contents of every
 outgoing email — including password reset links and anything else sensitive —
 in your database and on a disk. Set a short `prune.retention_days` and keep the

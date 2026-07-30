@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Transport;
+namespace Ebbbang\Mailroom\Transport;
 
-use Ebbbang\TestMail\Exceptions\TestMailDisabledException;
-use Ebbbang\TestMail\Recording\MessageRecorder;
+use Ebbbang\Mailroom\Exceptions\MailroomDisabledException;
+use Ebbbang\Mailroom\Recording\MessageRecorder;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Mail\MailManager;
@@ -18,7 +18,7 @@ class TransportFactory
      * @param  array<string, mixed>  $config  The mailer's config, including the
      *                                        'name' key MailManager injects.
      */
-    public function make(array $config): DatabaseTransport
+    public function make(array $config): MailroomTransport
     {
         /*
          * Fail here, at construction, rather than inside send(). The developer
@@ -26,14 +26,14 @@ class TransportFactory
          * pointing at their configuration, instead of a message that silently
          * went nowhere.
          */
-        if (! config('test-mail.enabled')) {
-            throw TestMailDisabledException::forTransport();
+        if (! config('mailroom.enabled')) {
+            throw MailroomDisabledException::forTransport();
         }
 
-        return new DatabaseTransport(
+        return new MailroomTransport(
             $this->container->make(MessageRecorder::class),
             $this->container->make(Dispatcher::class),
-            $config['name'] ?? 'database',
+            $config['name'] ?? 'mailroom',
             $this->forwardTransport($config),
         );
     }
@@ -45,22 +45,22 @@ class TransportFactory
      */
     protected function forwardTransport(array $config): ?TransportInterface
     {
-        $forward = $config['forward'] ?? config('test-mail.forward');
+        $forward = $config['forward'] ?? config('mailroom.forward');
 
         if (blank($forward)) {
             return null;
         }
 
-        $name = $config['name'] ?? 'database';
+        $name = $config['name'] ?? 'mailroom';
 
-        throw_if($forward === $name, InvalidArgumentException::class, sprintf('Mailer [%s] is configured to forward to itself. Point test-mail.forward at a different mailer.', $name));
+        throw_if($forward === $name, InvalidArgumentException::class, sprintf('Mailer [%s] is configured to forward to itself. Point mailroom.forward at a different mailer.', $name));
 
         $forwardConfig = config('mail.mailers.'.$forward);
 
         throw_unless(is_array($forwardConfig), InvalidArgumentException::class, sprintf('Cannot forward captured mail to mailer [%s]: it is not defined in config/mail.php.', $forward));
 
         // Two database mailers pointing at each other would recurse forever.
-        throw_if(($forwardConfig['transport'] ?? null) === 'database', InvalidArgumentException::class, sprintf('Mailer [%s] cannot forward to [%s], which is itself a database mailer.', $name, $forward));
+        throw_if(($forwardConfig['transport'] ?? null) === 'mailroom', InvalidArgumentException::class, sprintf('Mailer [%s] cannot forward to [%s], which is itself a mailroom mailer.', $name, $forward));
 
         return $this->container->make(MailManager::class)->createSymfonyTransport(
             ['name' => $forward, ...$forwardConfig]

@@ -14,54 +14,54 @@
     <script>
         (function () {
             try {
-                var stored = localStorage.getItem('tm-theme');
+                var stored = localStorage.getItem('mr-theme');
                 if (stored === 'light' || stored === 'dark') {
-                    document.documentElement.setAttribute('data-tm-theme', stored);
+                    document.documentElement.setAttribute('data-mr-theme', stored);
                 }
             } catch (e) { /* private mode, storage disabled -- fall back to system */ }
         })();
     </script>
 
-    @include('test-mail::partials.styles')
+    @include('mailroom::partials.styles')
 </head>
-<body class="tm-scope">
-    <div class="tm-shell">
+<body class="mr-scope">
+    <div class="mr-shell">
         @yield('content')
     </div>
 
     <script>
         (function () {
-            var group = document.getElementById('tm-theme');
+            var group = document.getElementById('mr-theme');
 
             if (!group) {
                 return;
             }
 
-            var buttons = group.querySelectorAll('button[data-tm-theme-choice]');
+            var buttons = group.querySelectorAll('button[data-mr-theme-choice]');
 
             function paint(choice) {
                 if (choice === 'system') {
-                    document.documentElement.removeAttribute('data-tm-theme');
+                    document.documentElement.removeAttribute('data-mr-theme');
                 } else {
-                    document.documentElement.setAttribute('data-tm-theme', choice);
+                    document.documentElement.setAttribute('data-mr-theme', choice);
                 }
 
                 buttons.forEach(function (button) {
                     button.setAttribute(
                         'aria-pressed',
-                        String(button.getAttribute('data-tm-theme-choice') === choice)
+                        String(button.getAttribute('data-mr-theme-choice') === choice)
                     );
                 });
             }
 
             buttons.forEach(function (button) {
                 button.addEventListener('click', function () {
-                    var choice = button.getAttribute('data-tm-theme-choice');
+                    var choice = button.getAttribute('data-mr-theme-choice');
 
                     try {
                         choice === 'system'
-                            ? localStorage.removeItem('tm-theme')
-                            : localStorage.setItem('tm-theme', choice);
+                            ? localStorage.removeItem('mr-theme')
+                            : localStorage.setItem('mr-theme', choice);
                     } catch (e) { /* not fatal -- the choice still applies for this page */ }
 
                     paint(choice);
@@ -70,7 +70,7 @@
 
             var current = 'system';
             try {
-                var stored = localStorage.getItem('tm-theme');
+                var stored = localStorage.getItem('mr-theme');
                 if (stored === 'light' || stored === 'dark') {
                     current = stored;
                 }

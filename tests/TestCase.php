@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests;
+namespace Ebbbang\Mailroom\Tests;
 
-use Ebbbang\TestMail\TestMail;
-use Ebbbang\TestMail\TestMailServiceProvider;
+use Ebbbang\Mailroom\Mailroom;
+use Ebbbang\Mailroom\MailroomServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
@@ -17,16 +17,16 @@ abstract class TestCase extends Orchestra
     {
         parent::setUp();
 
-        TestMail::flushState();
+        Mailroom::flushState();
 
         Storage::fake('local');
 
-        View::addNamespace('test-mail-tests', __DIR__.'/Fixtures/views');
+        View::addNamespace('mailroom-tests', __DIR__.'/Fixtures/views');
     }
 
     protected function tearDown(): void
     {
-        TestMail::flushState();
+        Mailroom::flushState();
 
         parent::tearDown();
     }
@@ -36,7 +36,7 @@ abstract class TestCase extends Orchestra
      */
     protected function getPackageProviders($app): array
     {
-        return [TestMailServiceProvider::class];
+        return [MailroomServiceProvider::class];
     }
 
     protected function defineEnvironment($app): void
@@ -55,12 +55,12 @@ abstract class TestCase extends Orchestra
         // that the transport captured the message without running a worker.
         $app['config']->set('queue.default', 'sync');
 
-        $app['config']->set('mail.default', 'database');
+        $app['config']->set('mail.default', 'mailroom');
         $app['config']->set('mail.from', [
             'address' => 'app@example.test',
             'name' => 'Example App',
         ]);
 
-        $app['config']->set('test-mail.enabled', true);
+        $app['config']->set('mailroom.enabled', true);
     }
 }

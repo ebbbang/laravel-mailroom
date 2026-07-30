@@ -1,8 +1,8 @@
 <?php
 
-namespace Ebbbang\TestMail\Models;
+namespace Ebbbang\Mailroom\Models;
 
-use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -33,9 +33,9 @@ use Illuminate\Support\Str;
  * @property int $size
  * @property int $attachment_count
  * @property Carbon|null $sent_at
- * @property \Illuminate\Database\Eloquent\Collection<int, TestMailAttachment> $attachments
+ * @property \Illuminate\Database\Eloquent\Collection<int, MailroomAttachment> $attachments
  */
-class TestMailMessage extends Model
+class MailroomMessage extends Model
 {
     /**
      * Deliberately Prunable rather than MassPrunable: mass pruning bypasses
@@ -49,12 +49,12 @@ class TestMailMessage extends Model
 
     public function getTable(): string
     {
-        return config('test-mail.database.messages_table', 'test_mail_messages');
+        return config('mailroom.database.messages_table', 'mailroom_messages');
     }
 
     public function getConnectionName(): ?string
     {
-        return config('test-mail.database.connection');
+        return config('mailroom.database.connection');
     }
 
     protected function casts(): array
@@ -89,13 +89,13 @@ class TestMailMessage extends Model
 
     public function attachments(): HasMany
     {
-        return $this->hasMany(TestMailAttachment::class, 'test_mail_message_id');
+        return $this->hasMany(MailroomAttachment::class, 'mailroom_message_id');
     }
 
     public function prunable(): Builder
     {
         return static::query()->where(
-            'created_at', '<=', now()->subDays((int) config('test-mail.prune.retention_days', 7))
+            'created_at', '<=', now()->subDays((int) config('mailroom.prune.retention_days', 7))
         );
     }
 
@@ -134,13 +134,13 @@ class TestMailMessage extends Model
     |--------------------------------------------------------------------------
     */
 
-    /** @return Collection<int, TestMailAttachment> */
+    /** @return Collection<int, MailroomAttachment> */
     public function fileAttachments(): Collection
     {
         return $this->attachments->reject->isInline()->values();
     }
 
-    /** @return Collection<int, TestMailAttachment> */
+    /** @return Collection<int, MailroomAttachment> */
     public function inlineAttachments(): Collection
     {
         return $this->attachments->filter->isInline()->values();

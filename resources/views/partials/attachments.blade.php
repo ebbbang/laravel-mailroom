@@ -1,5 +1,5 @@
 @php
-    use Ebbbang\TestMail\Support\PreviewKind;
+    use Ebbbang\Mailroom\Support\PreviewKind;
 
     // Only the previewable rows take part in lightbox navigation, so they need
     // their own contiguous index -- a non-previewable row in the middle must
@@ -7,62 +7,62 @@
     $previewable = $files->filter->isPreviewable()->values();
 @endphp
 
-<div class="tm-files">
+<div class="mr-files">
     @foreach ($files as $file)
         @php $position = $previewable->search(fn ($candidate) => $candidate->is($file)); @endphp
 
         @if ($file->isPreviewable())
             <button
                 type="button"
-                class="tm-file"
-                data-tm-preview="{{ $position }}"
-                data-tm-name="{{ $file->displayName() }}"
-                data-tm-meta="{{ $file->previewKind()->label() }} · {{ $file->humanSize() }}"
-                data-tm-download="{{ route('test-mail.attachment', ['message' => $message, 'attachment' => $file]) }}"
+                class="mr-file"
+                data-mr-preview="{{ $position }}"
+                data-mr-name="{{ $file->displayName() }}"
+                data-mr-meta="{{ $file->previewKind()->label() }} · {{ $file->humanSize() }}"
+                data-mr-download="{{ route('mailroom.attachment', ['message' => $message, 'attachment' => $file]) }}"
             >
                 @if ($file->previewKind() === PreviewKind::Image || $file->previewKind() === PreviewKind::Svg)
                     <img
-                        class="tm-thumb"
+                        class="mr-thumb"
                         loading="lazy"
                         alt=""
-                        src="{{ route('test-mail.attachment.preview', ['message' => $message, 'attachment' => $file]) }}"
+                        src="{{ route('mailroom.attachment.preview', ['message' => $message, 'attachment' => $file]) }}"
                     >
                 @else
-                    <span class="tm-file-icon">
-                        @include('test-mail::partials.file-icon', ['kind' => $file->previewKind()])
+                    <span class="mr-file-icon">
+                        @include('mailroom::partials.file-icon', ['kind' => $file->previewKind()])
                     </span>
                 @endif
 
-                <span class="tm-file-name">{{ $file->displayName() }}</span>
+                <span class="mr-file-name">{{ $file->displayName() }}</span>
 
-                <span class="tm-file-actions">
-                    <span class="tm-file-meta">{{ $file->mime_type }} · {{ $file->humanSize() }}</span>
+                <span class="mr-file-actions">
+                    <span class="mr-file-meta">{{ $file->mime_type }} · {{ $file->humanSize() }}</span>
                 </span>
             </button>
         @else
-            <div class="tm-file">
-                <span class="tm-file-icon">
-                    @include('test-mail::partials.file-icon', ['kind' => PreviewKind::None])
+            <div class="mr-file">
+                <span class="mr-file-icon">
+                    @include('mailroom::partials.file-icon', ['kind' => PreviewKind::None])
                 </span>
 
-                <span class="tm-file-name">{{ $file->displayName() }}</span>
+                <span class="mr-file-name">{{ $file->displayName() }}</span>
 
-                <span class="tm-file-actions">
+                <span class="mr-file-actions">
                     @if ($file->wasSkipped())
-                        <span class="tm-noprev">not stored, over storage.max_attachment_size</span>
+                        <span class="mr-noprev">not stored, over storage.max_attachment_size</span>
                     @elseif ($file->isMissing())
-                        <span class="tm-noprev">file missing from the {{ config('test-mail.storage.disk') }} disk</span>
+                        <span class="mr-noprev">file missing from the {{ config('mailroom.storage.disk') }} disk</span>
                     @else
-                        <span class="tm-file-meta">{{ $file->humanSize() }}</span>
-                        <span class="tm-noprev">no preview for {{ $file->extensionLabel() }}</span>
+                        <span class="mr-file-meta">{{ $file->humanSize() }}</span>
+                        <span class="mr-noprev">no preview for {{ $file->extensionLabel() }}</span>
                     @endif
 
                     @if ($file->hasContents())
                         <a
-                            class="tm-download"
+                            class="mr-download"
                             title="Download {{ $file->displayName() }}"
                             aria-label="Download {{ $file->displayName() }}"
-                            href="{{ route('test-mail.attachment', ['message' => $message, 'attachment' => $file]) }}"
+                            href="{{ route('mailroom.attachment', ['message' => $message, 'attachment' => $file]) }}"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
@@ -75,7 +75,7 @@
     @endforeach
 
     @if ($inline->isNotEmpty())
-        <p class="tm-file-meta" style="margin:{{ $files->isEmpty() ? '0' : '6px 0 0' }}">
+        <p class="mr-file-meta" style="margin:{{ $files->isEmpty() ? '0' : '6px 0 0' }}">
             {{ $files->isEmpty() ? '' : 'Plus ' }}{{ $inline->count() }}
             inline {{ Str::plural('image', $inline->count()) }}
             embedded in the HTML body{{ $files->isEmpty() ? '; no files are attached' : '' }}.
@@ -90,7 +90,7 @@
     requests -- only the row thumbnails above load up front.
 --}}
 @foreach ($previewable as $index => $file)
-    <template data-tm-preview-content="{{ $index }}">
-        @include('test-mail::partials.preview-content', ['message' => $message, 'file' => $file])
+    <template data-mr-preview-content="{{ $index }}">
+        @include('mailroom::partials.preview-content', ['message' => $message, 'file' => $file])
     </template>
 @endforeach

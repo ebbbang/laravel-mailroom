@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Support;
+namespace Ebbbang\Mailroom\Support;
 
-use Ebbbang\TestMail\Models\TestMailAttachment;
-use Ebbbang\TestMail\Models\TestMailMessage;
+use Ebbbang\Mailroom\Models\MailroomAttachment;
+use Ebbbang\Mailroom\Models\MailroomMessage;
 
 /**
  * Renders the text-shaped attachment kinds server-side.
@@ -27,17 +27,17 @@ class TextPreview
     /**
      * @return Rendered
      */
-    public function render(TestMailAttachment $attachment): array
+    public function render(MailroomAttachment $attachment): array
     {
         $kind = $attachment->previewKind();
-        $limit = (int) config('test-mail.preview.max_inline_bytes', 2 * 1024 * 1024);
+        $limit = (int) config('mailroom.preview.max_inline_bytes', 2 * 1024 * 1024);
 
         if ($attachment->size > $limit) {
             return $this->result($kind, 'too-large', notes: [
                 sprintf(
                     'This file is %s, over the %s inline preview limit. Download it to read the whole thing.',
                     $attachment->humanSize(),
-                    TestMailMessage::formatBytes($limit)
+                    MailroomMessage::formatBytes($limit)
                 ),
             ]);
         }
@@ -70,12 +70,12 @@ class TextPreview
     /**
      * @return Rendered
      */
-    protected function csv(string $contents, TestMailAttachment $attachment): array
+    protected function csv(string $contents, MailroomAttachment $attachment): array
     {
         $delimiter = $attachment->previewKind() === PreviewKind::Csv
             && str_contains((string) $attachment->mime_type, 'tab-separated') ? "\t" : $this->sniffDelimiter($contents);
 
-        $max = (int) config('test-mail.preview.max_csv_rows', 200);
+        $max = (int) config('mailroom.preview.max_csv_rows', 200);
         $notes = [];
         $rows = [];
         $total = 0;

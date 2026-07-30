@@ -1,11 +1,11 @@
 @php
-    use Ebbbang\TestMail\Support\PreviewKind;
-    use Ebbbang\TestMail\Support\TextPreview;
+    use Ebbbang\Mailroom\Support\PreviewKind;
+    use Ebbbang\Mailroom\Support\TextPreview;
 
     $kind = $file->previewKind();
 
     $src = $kind->servesBytes()
-        ? route('test-mail.attachment.preview', ['message' => $message, 'attachment' => $file])
+        ? route('mailroom.attachment.preview', ['message' => $message, 'attachment' => $file])
         : null;
 
     // Text-shaped kinds are read and escaped here rather than served, so a
@@ -16,7 +16,7 @@
 @switch (true)
     {{-- Images and SVG go through <img>, where an SVG cannot script or fetch. --}}
     @case ($kind === PreviewKind::Image || $kind === PreviewKind::Svg)
-        <img class="tm-shot" src="{{ $src }}" alt="{{ $file->displayName() }}">
+        <img class="mr-shot" src="{{ $src }}" alt="{{ $file->displayName() }}">
         @break
 
     {{--
@@ -26,11 +26,11 @@
         cannot be talked into treating this as anything but a PDF.
     --}}
     @case ($kind === PreviewKind::Pdf)
-        <object class="tm-doc" type="application/pdf" data="{{ $src }}" title="{{ $file->displayName() }}">
-            <div class="tm-blank">
-                <div class="tm-empty-title">This browser will not display the PDF</div>
+        <object class="mr-doc" type="application/pdf" data="{{ $src }}" title="{{ $file->displayName() }}">
+            <div class="mr-blank">
+                <div class="mr-empty-title">This browser will not display the PDF</div>
                 <div>
-                    <a href="{{ route('test-mail.attachment', ['message' => $message, 'attachment' => $file]) }}">
+                    <a href="{{ route('mailroom.attachment', ['message' => $message, 'attachment' => $file]) }}">
                         Download {{ $file->displayName() }}
                     </a>
                     to open it locally.
@@ -48,10 +48,10 @@
         @break
 
     @default
-        <div class="tm-sheet">
+        <div class="mr-sheet">
             @if ($rendered['state'] === 'too-large' || $rendered['state'] === 'unreadable' || $rendered['state'] === 'empty')
-                <div class="tm-blank">
-                    <div class="tm-empty-title">
+                <div class="mr-blank">
+                    <div class="mr-empty-title">
                         @switch ($rendered['state'])
                             @case ('too-large') Too large to preview @break
                             @case ('empty') This file is empty @break
@@ -64,11 +64,11 @@
                 </div>
             @else
                 @foreach ($rendered['notes'] as $note)
-                    <div class="tm-sheet-note">{{ $note }}</div>
+                    <div class="mr-sheet-note">{{ $note }}</div>
                 @endforeach
 
                 @if ($rendered['fields'])
-                    <dl class="tm-sheet-fields">
+                    <dl class="mr-sheet-fields">
                         @foreach ($rendered['fields'] as $label => $value)
                             <dt>{{ $label }}</dt>
                             <dd>{{ $value }}</dd>
@@ -78,10 +78,10 @@
 
                 @if ($rendered['rows'])
                     @php $header = array_shift($rendered['rows']); @endphp
-                    <table class="tm-grid">
+                    <table class="mr-grid">
                         <thead>
                             <tr>
-                                <th class="tm-grid-num" scope="col">#</th>
+                                <th class="mr-grid-num" scope="col">#</th>
                                 @foreach ($header as $cell)
                                     <th scope="col">{{ $cell }}</th>
                                 @endforeach
@@ -90,7 +90,7 @@
                         <tbody>
                             @foreach ($rendered['rows'] as $row)
                                 <tr>
-                                    <td class="tm-grid-num">{{ $loop->iteration }}</td>
+                                    <td class="mr-grid-num">{{ $loop->iteration }}</td>
                                     @foreach ($row as $cell)
                                         <td>{{ $cell }}</td>
                                     @endforeach
@@ -99,7 +99,7 @@
                         </tbody>
                     </table>
                 @elseif ($rendered['body'] !== null)
-                    <pre class="tm-pre">{{ $rendered['body'] }}</pre>
+                    <pre class="mr-pre">{{ $rendered['body'] }}</pre>
                 @endif
             @endif
         </div>

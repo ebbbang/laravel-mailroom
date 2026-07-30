@@ -1,9 +1,9 @@
 <?php
 
-namespace Ebbbang\TestMail\Tests\Unit;
+namespace Ebbbang\Mailroom\Tests\Unit;
 
-use Ebbbang\TestMail\Support\AttachmentPreview;
-use Ebbbang\TestMail\Support\PreviewKind;
+use Ebbbang\Mailroom\Support\AttachmentPreview;
+use Ebbbang\Mailroom\Support\PreviewKind;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

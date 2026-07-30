@@ -1,14 +1,14 @@
 <?php
 
-namespace Ebbbang\TestMail\Http\Controllers;
+namespace Ebbbang\Mailroom\Http\Controllers;
 
-use Ebbbang\TestMail\Models\TestMailMessage;
+use Ebbbang\Mailroom\Models\MailroomMessage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttachmentController
 {
-    public function __invoke(TestMailMessage $message, int $attachment): StreamedResponse
+    public function __invoke(MailroomMessage $message, int $attachment): StreamedResponse
     {
         // Resolved through the relation rather than by id alone, so an
         // attachment id from one message cannot be fetched via another.

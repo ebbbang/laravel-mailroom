@@ -54,11 +54,11 @@ return new class extends Migration
 
     public function getConnection(): ?string
     {
-        return config('test-mail.database.connection');
+        return config('mailroom.database.connection');
     }
 
     protected function table(): string
     {
-        return config('test-mail.database.messages_table', 'test_mail_messages');
+        return config('mailroom.database.messages_table', 'mailroom_messages');
     }
 };
