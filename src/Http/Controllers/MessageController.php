@@ -32,6 +32,15 @@ class MessageController
             'mailer' => $mailer,
             'mailers' => $this->availableMailers(),
             'pollInterval' => config('test-mail.ui.poll_interval'),
+
+            /*
+             * The highest id overall, not the newest on this page. The poll
+             * endpoint reports a global maximum, so comparing it against the
+             * current page's first row would announce "new mail" the moment you
+             * opened page two, or applied any filter that hid the newest
+             * message.
+             */
+            'latestId' => $this->latestId(),
         ]);
     }
 
@@ -41,12 +50,17 @@ class MessageController
      */
     public function recent(Request $request): JsonResponse
     {
-        $latest = TestMailMessage::query()->max('id');
-
         return new JsonResponse([
-            'latest_id' => $latest === null ? null : (int) $latest,
+            'latest_id' => $this->latestId(),
             'count' => TestMailMessage::query()->count(),
         ]);
+    }
+
+    protected function latestId(): ?int
+    {
+        $latest = TestMailMessage::query()->max('id');
+
+        return $latest === null ? null : (int) $latest;
     }
 
     public function destroy(TestMailMessage $message): RedirectResponse

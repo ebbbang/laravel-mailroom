@@ -75,9 +75,10 @@
     @endforeach
 
     @if ($inline->isNotEmpty())
-        <p class="tm-file-meta" style="margin:6px 0 0">
-            Plus {{ $inline->count() }} inline {{ Str::plural('image', $inline->count()) }}
-            embedded in the HTML body.
+        <p class="tm-file-meta" style="margin:{{ $files->isEmpty() ? '0' : '6px 0 0' }}">
+            {{ $files->isEmpty() ? '' : 'Plus ' }}{{ $inline->count() }}
+            inline {{ Str::plural('image', $inline->count()) }}
+            embedded in the HTML body{{ $files->isEmpty() ? '; no files are attached' : '' }}.
         </p>
     @endif
 </div>

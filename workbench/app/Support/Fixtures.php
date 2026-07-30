@@ -39,6 +39,42 @@ class Fixtures
         return (string) ob_get_clean();
     }
 
+    /**
+     * The same gradient re-encoded, so every raster kind the mailbox claims to
+     * preview has something to show. gd reports support for all three.
+     */
+    public static function jpeg(): string
+    {
+        return self::reencode('jpeg');
+    }
+
+    public static function gif(): string
+    {
+        return self::reencode('gif');
+    }
+
+    public static function webp(): string
+    {
+        return self::reencode('webp');
+    }
+
+    protected static function reencode(string $format): string
+    {
+        $image = imagecreatefromstring(self::png(320, 180));
+
+        ob_start();
+
+        match ($format) {
+            'jpeg' => imagejpeg($image, null, 82),
+            'gif' => imagegif($image),
+            'webp' => imagewebp($image, null, 82),
+        };
+
+        imagedestroy($image);
+
+        return (string) ob_get_clean();
+    }
+
     public static function svg(): string
     {
         return <<<'SVG'
@@ -124,6 +160,45 @@ class Fixtures
             .$data;
     }
 
+    /**
+     * A two-frame 160x90 H.264 clip.
+     *
+     * The only fixture here that is not generated in code. A PDF or a WAV can
+     * be assembled from a header and a few objects, but a valid MP4 cannot --
+     * it needs a real encoder. Shelling out to ffmpeg would mean the video
+     * preview scenario silently disappears on any machine without it, which is
+     * exactly the manual gap the seeder exists to close, so the bytes live
+     * here instead.
+     */
+    public static function mp4(): string
+    {
+        return base64_decode(
+            'AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAM2bW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAA+gAAQAA'
+            .'AQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            .'AAAAAgAAAmB0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAA+gAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA'
+            .'AAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAKAAAABaAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAPoAAAAAAABAAAAAAHY'
+            .'bWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAQABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRl'
+            .'b0hhbmRsZXIAAAABg21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAA'
+            .'AQAAAUNzdGJsAAAAw3N0c2QAAAAAAAAAAQAAALNhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAKAAWgBIAAAASAAAAAAA'
+            .'AAABFUxhdmM2Mi4yOC4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAAOWF2Y0MBZAAM/+EAG2dkAAyscgRCjfkwEQAAAwAB'
+            .'AAADAAQPFCmEYAEAB2joQ4GUsiz9+PgAAAAAEHBhc3AAAAABAAAAAQAAABRidHJ0AAAAAAAAFyAAAAAAAAAAGHN0dHMAAAAA'
+            .'AAAAAQAAAAIAACAAAAAAFHN0c3MAAAAAAAAAAQAAAAEAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAIAAAABAAAAHHN0c3oAAAAA'
+            .'AAAAAAAAAAIAAALXAAAADQAAABRzdGNvAAAAAAAAAAEAAANmAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAA'
+            .'bWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY2Mi4xMi4xMDIAAAAIZnJlZQAA'
+            .'AuxtZGF0AAACrwYF//+r3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NSByMzIyMiBiMzU2MDVhIC0gSC4yNjQvTVBF'
+            .'Ry00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAt'
+            .'IG9wdGlvbnM6IGNhYmFjPTEgcmVmPTE2IGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDM6MHgxMzMgbWU9dW1oIHN1Ym1lPTEw'
+            .'IHBzeT0xIHBzeV9yZD0xLjAwOjAuMDAgbWl4ZWRfcmVmPTEgbWVfcmFuZ2U9MjQgY2hyb21hX21lPTEgdHJlbGxpcz0yIDh4'
+            .'OGRjdD0xIGNxbT0wIGRlYWR6b25lPTIxLDExIGZhc3RfcHNraXA9MSBjaHJvbWFfcXBfb2Zmc2V0PS0yIHRocmVhZHM9MyBs'
+            .'b29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlf'
+            .'Y29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTggYl9weXJhbWlkPTIgYl9hZGFwdD0yIGJfYmlhcz0wIGRp'
+            .'cmVjdD0zIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MiBrZXlpbnQ9MjUwIGtleWludF9taW49MiBzY2VuZWN1dD00'
+            .'MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTYwIHJjPWNyZiBtYnRyZWU9MSBjcmY9NTEuMCBxY29tcD0wLjYwIHFw'
+            .'bWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAACBliIEAAp8Wo/P/bWAwDH0eIepu'
+            .'SlngAXt4BR4vdksdgQAAAAlBmggtiCX/Af4='
+        );
+    }
+
     public static function csv(int $rows = 40): string
     {
         $lines = ['order,customer,item,quantity,total'];
@@ -154,6 +229,99 @@ class Fixtures
             'total' => 49.00,
             'shipped_at' => '2026-07-30T09:14:00+00:00',
         ], JSON_UNESCAPED_SLASHES);
+    }
+
+    public static function tsv(): string
+    {
+        return implode("\n", [
+            "order\tcustomer\ttotal",
+            "A-1001\tRachel Okonkwo\t49.00",
+            "A-1002\tSam Ihejirika\t19.99",
+        ])."\n";
+    }
+
+    public static function markdown(): string
+    {
+        return <<<'MD'
+            # Packing note
+
+            Order **A-1001**, packed 30 July.
+
+            - 2 x Widget, size 2
+            - 1 x Gizmo
+
+            > Someone must be home to sign for this.
+
+            See `docs/shipping.md` for the full policy.
+            MD;
+    }
+
+    public static function xml(): string
+    {
+        return <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <order id="A-1001">
+              <customer email="rachel@example.test">Rachel Okonkwo</customer>
+              <items>
+                <item sku="WIDGET-1" quantity="2">19.99</item>
+                <item sku="GIZMO-7" quantity="1">9.02</item>
+              </items>
+              <total currency="GBP">49.00</total>
+            </order>
+            XML;
+    }
+
+    public static function yaml(): string
+    {
+        return <<<'YAML'
+            order: A-1001
+            customer:
+              name: Rachel Okonkwo
+              email: rachel@example.test
+            items:
+              - sku: WIDGET-1
+                quantity: 2
+              - sku: GIZMO-7
+                quantity: 1
+            total: 49.00
+            YAML;
+    }
+
+    public static function sql(): string
+    {
+        return <<<'SQL'
+            -- Snapshot of the order at dispatch.
+            INSERT INTO orders (reference, customer_email, total_pence)
+            VALUES ('A-1001', 'rachel@example.test', 4900);
+
+            SELECT * FROM order_items WHERE order_reference = 'A-1001';
+            SQL;
+    }
+
+    /**
+     * Deliberately malformed, to exercise the "not valid JSON" preview note.
+     */
+    public static function brokenJson(): string
+    {
+        return '{"order": "A-1001", "total": , "items": [}';
+    }
+
+    /**
+     * Over preview.max_inline_bytes, to exercise the "too large" state.
+     */
+    public static function oversizedText(int $bytes = 900 * 1024): string
+    {
+        $line = "This line exists only to push the file past the inline preview limit.\n";
+
+        return str_repeat($line, (int) ceil($bytes / strlen($line)));
+    }
+
+    /**
+     * Past preview.max_csv_rows, to exercise the truncation note.
+     */
+    public static function longCsv(int $rows = 500): string
+    {
+        return self::csv($rows);
     }
 
     public static function ics(): string

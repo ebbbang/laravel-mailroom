@@ -6,6 +6,9 @@
     $hasHtml = filled($message->html_body);
     $hasText = filled($message->text_body);
     $firstPane = $hasHtml ? 'html' : ($hasText ? 'text' : 'headers');
+
+    // Inline parts alone are enough to warrant the pane -- see the tab below.
+    $hasAttachmentsPane = $files->isNotEmpty() || $inline->isNotEmpty();
 @endphp
 
 <div class="tm-detail-head">
@@ -127,9 +130,18 @@
         <button type="button" class="tm-tab" role="tab" aria-selected="{{ $firstPane === 'text' ? 'true' : 'false' }}" data-tm-tab="text">Text</button>
     @endif
 
-    @if ($files->isNotEmpty())
+    {{--
+        Inline parts count towards showing this tab even though they are not
+        files. Without that, a message whose only attachments are embedded
+        images has no tab at all, and the "plus N inline images" note inside
+        the pane can never be reached.
+    --}}
+    @if ($hasAttachmentsPane)
         <button type="button" class="tm-tab" role="tab" aria-selected="false" data-tm-tab="files">
-            Attachments <span class="tm-tab-count">{{ $files->count() }}</span>
+            Attachments
+            @if ($files->isNotEmpty())
+                <span class="tm-tab-count">{{ $files->count() }}</span>
+            @endif
         </button>
     @endif
 
@@ -164,11 +176,13 @@
     </div>
 @endif
 
-@if ($files->isNotEmpty())
+@if ($hasAttachmentsPane)
     <div class="tm-panel" data-tm-pane="files" hidden>
         @include('test-mail::partials.attachments', ['files' => $files, 'inline' => $inline, 'message' => $message])
     </div>
+@endif
 
+@if ($files->isNotEmpty())
     {{-- Outside the pane so the overlay is not clipped by its scroll context. --}}
     @include('test-mail::partials.preview')
 @endif

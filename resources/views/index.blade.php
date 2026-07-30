@@ -134,7 +134,7 @@
         <script>
             (function () {
                 var url = @json(route('test-mail.recent'));
-                var known = @json($messages->total() > 0 ? $messages->first()->id : null);
+                var known = @json($latestId);
                 var banner = document.getElementById('tm-poll');
 
                 if (!banner) {

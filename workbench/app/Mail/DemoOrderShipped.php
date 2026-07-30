@@ -18,12 +18,27 @@ class DemoOrderShipped extends Mailable
     public function __construct(
         public string $orderNumber = 'A-1001',
         public string $customer = 'Rachel Okonkwo',
+        public ?string $subjectLine = null,
     ) {}
+
+    /**
+     * Override the subject.
+     *
+     * Not Mailable::subject() -- ensureEnvelopeIsHydrated() runs at delivery
+     * time and copies this envelope's subject over whatever subject() set, so
+     * the override has to reach the envelope itself.
+     */
+    public function titled(string $subject): static
+    {
+        $this->subjectLine = $subject;
+
+        return $this;
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: sprintf('Your order %s is on its way', $this->orderNumber),
+            subject: $this->subjectLine ?? sprintf('Your order %s is on its way', $this->orderNumber),
             using: [
                 function ($message): void {
                     $message->getHeaders()->add(new TagHeader('shipping'));

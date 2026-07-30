@@ -49,8 +49,12 @@
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "serve": [
             "@build",
+            "@php vendor/bin/testbench workbench:create-sqlite-db --ansi",
+            "@php vendor/bin/testbench migrate --force --ansi",
+            "@php vendor/bin/testbench demo:seed --ansi",
             "@php vendor/bin/testbench serve --ansi"
         ],
+        "seed": "@php vendor/bin/testbench demo:seed --fresh --ansi",
         "build": "@php vendor/bin/testbench workbench:build --ansi",
         "rector": "@php vendor/bin/rector process --ansi",
         "rector:check": "@php vendor/bin/rector process --dry-run --ansi",

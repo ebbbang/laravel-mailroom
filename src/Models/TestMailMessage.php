@@ -212,11 +212,17 @@ class TestMailMessage extends Model
      */
     public function preview(int $limit = 120): string
     {
+        /*
+         * Tags become a space rather than being stripped outright. strip_tags()
+         * on "<h2>Order shipped</h2><p>It left today</p>" yields
+         * "Order shippedIt left today", running the heading into the body --
+         * the whitespace collapse below then tidies up the extra spaces.
+         */
         $source = filled($this->text_body)
             ? $this->text_body
-            : strip_tags((string) $this->html_body);
+            : preg_replace('/<[^>]*+>/', ' ', (string) $this->html_body);
 
-        return Str::limit(trim(preg_replace('/\s+/u', ' ', $source) ?? ''), $limit);
+        return Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $source) ?? ''), $limit);
     }
 
     public function humanSize(): string

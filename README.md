@@ -236,8 +236,55 @@ composer test         # parallel, via paratest
 composer test:serial
 composer lint         # rector, then pint
 composer lint:check
-composer serve        # workbench demo at /test-mail, /send, /send-plain, /send-attachments
+composer serve        # migrate, seed and serve the workbench demo
+composer seed         # reseed the demo mailbox from scratch
 ```
+
+### The demo mailbox
+
+`composer serve` creates the database, migrates it, seeds it and starts the
+server, so a clean checkout gets you a populated mailbox at
+<http://127.0.0.1:8000/test-mail> in one step. Re-running it just starts the
+server, because each step is a no-op once done.
+
+The seeder aims at **one message per branch of the UI**, so everything can be
+inspected without composing anything by hand. Scenario subjects are prefixed
+with what they demonstrate:
+
+```
+[all kinds]        every previewable attachment type in one message
+[html only]        no text part, so no Text tab
+[text only]        no HTML part
+[no body]          opens on Headers instead
+[markdown]         a markdown mailable
+[addressing]       Cc, Bcc, Reply-To, tags, metadata, custom header
+[long]             a subject and recipient list that need truncating
+[unicode]          CJK, RTL, emoji, zero-width space
+[long body]        sixty paragraphs, for scrolling
+[inline only]      embedded images and nothing attached
+[preview states]   too large, empty, malformed JSON, truncated CSV
+[hostile names]    a path-traversal filename and unpreviewable types
+[skipped]          an attachment over storage.max_attachment_size
+[envelope]         delivered somewhere other than the To header
+[missing files]    row intact, blobs deleted
+[secondary mailer] a second mailer, so the filter appears
+[queued]           dispatched through the queue
+```
+
+Plus ~55 ordinary messages spread over 45 days, which gives three pages of
+pagination, something for search to match, and a range of ages so
+`test-mail:prune --days=7` and `--days=30` both have work to do.
+
+```bash
+php artisan demo:seed              # skips if the mailbox already has mail
+php artisan demo:seed --fresh      # wipe and reseed
+php artisan demo:seed --filler=0   # scenarios only, no padding
+```
+
+Every attachment is generated at runtime, so no binaries are committed. The
+one exception is a 1.6 KB MP4 held as base64 — a valid video file cannot be
+assembled in code the way the PDF and WAV fixtures are, and shelling out to
+ffmpeg would mean the video scenario vanished on machines without it.
 
 ## License
 

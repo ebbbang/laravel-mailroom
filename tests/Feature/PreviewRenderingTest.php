@@ -261,6 +261,66 @@ class PreviewRenderingTest extends TestCase
     }
 
     #[Test]
+    public function embedded_images_alone_still_get_an_attachments_tab(): void
+    {
+        // The inline count lives inside the Attachments pane, so gating that
+        // pane on file attachments alone made it unreachable for a message
+        // whose only parts are embedded images.
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+
+        Mail::send([], [], function ($message) use ($png): void {
+            $cid = $message->embedData($png, 'logo.png', 'image/png');
+
+            $message->to('rachel@example.test')
+                ->subject('Embedded only')
+                ->html('<p><img src="'.$cid.'"></p>');
+        });
+
+        $target = TestMailMessage::query()->latest('id')->first();
+
+        $this->assertCount(0, $target->load('attachments')->fileAttachments());
+        $this->assertCount(1, $target->inlineAttachments());
+
+        $this->get('/test-mail/'.$target->id)
+            ->assertOk()
+            ->assertSeeHtml('data-tm-tab="files"')
+            ->assertSee('inline image')
+            ->assertSee('no files are attached');
+    }
+
+    #[Test]
+    public function the_list_snippet_does_not_run_block_elements_together(): void
+    {
+        Mail::html(
+            '<h2>Order shipped</h2><p>It left the warehouse today.</p>',
+            fn ($message) => $message->to('rachel@example.test')->subject('Snippet')
+        );
+
+        $snippet = TestMailMessage::query()->latest('id')->first()->preview();
+
+        $this->assertSame('Order shipped It left the warehouse today.', $snippet);
+        $this->assertStringNotContainsString('shippedIt', $snippet);
+    }
+
+    #[Test]
+    public function the_poll_baseline_is_the_global_newest_id_not_the_pages_newest(): void
+    {
+        // Otherwise opening page two, or filtering out the newest message,
+        // immediately claims new mail has arrived.
+        config()->set('test-mail.ui.per_page', 2);
+
+        foreach (range(1, 5) as $n) {
+            Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
+        }
+
+        $newest = (int) TestMailMessage::query()->max('id');
+
+        $this->get('/test-mail?page=2')
+            ->assertOk()
+            ->assertSeeHtml('var known = '.$newest.';');
+    }
+
+    #[Test]
     public function no_lightbox_is_rendered_when_a_message_has_no_attachments(): void
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
