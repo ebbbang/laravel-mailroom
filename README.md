@@ -1,5 +1,10 @@
 # Laravel Test Mail
 
+[![Latest version](https://img.shields.io/packagist/v/ebbbang/laravel-test-mail.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-test-mail)
+[![Tests](https://img.shields.io/github/actions/workflow/status/ebbbang/laravel-test-mail/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/ebbbang/laravel-test-mail/actions/workflows/tests.yml)
+[![Downloads](https://img.shields.io/packagist/dt/ebbbang/laravel-test-mail.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-test-mail)
+[![License](https://img.shields.io/packagist/l/ebbbang/laravel-test-mail.svg?style=flat-square)](LICENSE)
+
 A mail driver that stores outgoing mail in your database, plus a mailbox at `/test-mail` to read it.
 
 `MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. This keeps the whole thing — the full MIME, attachments, embedded images, tags, metadata and custom headers — and gives you somewhere to look at it.
@@ -11,6 +16,16 @@ php artisan migrate
 ```
 
 Then set `MAIL_MAILER=database` and send something.
+
+> **Pin with `^0.1` while this is 0.x.** Composer treats `^0.1` as `0.1.*`
+> only, so moving to a 0.2 release will need a deliberate bump. Breaking
+> changes may land in minor versions until 1.0.
+
+### How this differs from the neighbours
+
+A few packages already log mail to the database — [`shvetsgroup/laravel-email-database-log`](https://packagist.org/packages/shvetsgroup/laravel-email-database-log) and [`stackkit/laravel-database-emails`](https://packagist.org/packages/stackkit/laravel-database-emails) among them — and [`spatie/laravel-database-mail-templates`](https://packagist.org/packages/spatie/laravel-database-mail-templates) stores templates rather than sent mail.
+
+This one is a **development tool** rather than a logging or queueing layer: it exists to be *read*. That means the mailbox UI with attachment previews and `.eml` export, and a package that refuses to run in production unless you explicitly opt in.
 
 ## Requirements
 

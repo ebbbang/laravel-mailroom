@@ -1,14 +1,20 @@
 {
     "name": "ebbbang/laravel-test-mail",
     "description": "A Laravel mail driver that stores outgoing mail in your database, with an auth-gated mailbox UI, attachment support, and .eml/.html export.",
-    "keywords": ["laravel", "mail", "mailer", "transport", "testing", "development", "mailbox", "eml"],
+    "keywords": ["laravel", "mail", "mailer", "transport", "testing", "development", "mailbox", "eml", "mailtrap", "mailpit"],
     "license": "MIT",
+    "homepage": "https://github.com/ebbbang/laravel-test-mail",
     "authors": [
         {
-            "name": "ebbbang",
-            "email": "ebb.bang@gmail.com"
+            "name": "Ebrahim Bangdiwala",
+            "email": "ebb.bang@gmail.com",
+            "role": "Developer"
         }
     ],
+    "support": {
+        "issues": "https://github.com/ebbbang/laravel-test-mail/issues",
+        "source": "https://github.com/ebbbang/laravel-test-mail"
+    },
     "require": {
         "php": "^8.2",
         "illuminate/console": "^11.0 || ^12.0 || ^13.0",
@@ -82,11 +88,7 @@
         }
     },
     "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
-        }
+        "sort-packages": true
     },
     "minimum-stability": "dev",
     "prefer-stable": true
