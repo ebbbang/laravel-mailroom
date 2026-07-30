@@ -85,34 +85,83 @@
         (function () {
             /*
              * Opening a message is a full page load, so the list's own scroll
-             * container starts at the top again and the message you just
-             * clicked can be well out of view. Bring it back.
+             * container would otherwise start at the top again.
              *
-             * Only when it is actually off-screen: scrolling on every click
-             * would yank the list about for messages that were already
-             * perfectly visible.
+             * The fix is to *preserve* the offset, not to recompute a nice one.
+             * Anything that repositions the list moves the row out from under
+             * the pointer, so clicking twice in the same spot hits two
+             * different messages. Restoring the exact offset means the list
+             * does not appear to move at all.
              */
             var list = document.querySelector('.tm-list');
-            var current = list && list.querySelector('.tm-item[aria-current="true"]');
 
-            if (!current) {
+            if (!list) {
                 return;
             }
 
-            // Rect maths rather than offsetTop: nothing between the item and
-            // the list establishes a positioning context, so offsetTop would
-            // be measured against the page and include the header.
-            var listBox = list.getBoundingClientRect();
-            var itemBox = current.getBoundingClientRect();
+            // Keyed on what the list contains, so changing page or filter
+            // starts at the top rather than inheriting an unrelated offset.
+            var params = new URLSearchParams(location.search);
+            var key = 'tm-list-scroll:' + [
+                params.get('page') || '1',
+                params.get('search') || '',
+                params.get('mailer') || '',
+            ].join('|');
 
-            var above = itemBox.top < listBox.top;
-            var below = itemBox.bottom > listBox.bottom;
-
-            if (above || below) {
-                // Centred, so it reads as deliberate rather than as the item
-                // having barely scraped into view at an edge.
-                list.scrollTop += (itemBox.top - listBox.top) - (list.clientHeight - itemBox.height) / 2;
+            function remember() {
+                try {
+                    sessionStorage.setItem(key, String(list.scrollTop));
+                } catch (e) { /* private mode: the list just starts at the top */ }
             }
+
+            try {
+                var saved = sessionStorage.getItem(key);
+
+                if (saved !== null) {
+                    list.scrollTop = parseFloat(saved) || 0;
+                }
+            } catch (e) { /* ignore */ }
+
+            /*
+             * Only when the selected row is *entirely* out of view -- arriving
+             * from a link, or a session with nothing stored. Scrolled to the
+             * nearest edge rather than centred, again to move as little as
+             * possible. scrollTop is set by hand instead of using
+             * scrollIntoView so no ancestor can scroll as a side effect.
+             */
+            var current = list.querySelector('.tm-item[aria-current="true"]');
+
+            if (current) {
+                var listBox = list.getBoundingClientRect();
+                var itemBox = current.getBoundingClientRect();
+
+                if (itemBox.bottom <= listBox.top) {
+                    list.scrollTop += itemBox.top - listBox.top;
+                    remember();
+                } else if (itemBox.top >= listBox.bottom) {
+                    var pager = list.querySelector('.tm-pager');
+
+                    // The pager is sticky, so aligning to the true bottom would
+                    // tuck the row behind it.
+                    list.scrollTop += (itemBox.bottom - listBox.bottom) + (pager ? pager.offsetHeight : 0);
+                    remember();
+                }
+            }
+
+            var pending = false;
+
+            list.addEventListener('scroll', function () {
+                if (pending) {
+                    return;
+                }
+
+                pending = true;
+
+                requestAnimationFrame(function () {
+                    pending = false;
+                    remember();
+                });
+            }, { passive: true });
         })();
     </script>
 @endpush
