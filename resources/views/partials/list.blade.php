@@ -80,3 +80,40 @@
         </div>
     @endif
 </nav>
+
+@push('scripts')
+    <script>
+        (function () {
+            /*
+             * Opening a message is a full page load, so the list's own scroll
+             * container starts at the top again and the message you just
+             * clicked can be well out of view. Bring it back.
+             *
+             * Only when it is actually off-screen: scrolling on every click
+             * would yank the list about for messages that were already
+             * perfectly visible.
+             */
+            var list = document.querySelector('.tm-list');
+            var current = list && list.querySelector('.tm-item[aria-current="true"]');
+
+            if (!current) {
+                return;
+            }
+
+            // Rect maths rather than offsetTop: nothing between the item and
+            // the list establishes a positioning context, so offsetTop would
+            // be measured against the page and include the header.
+            var listBox = list.getBoundingClientRect();
+            var itemBox = current.getBoundingClientRect();
+
+            var above = itemBox.top < listBox.top;
+            var below = itemBox.bottom > listBox.bottom;
+
+            if (above || below) {
+                // Centred, so it reads as deliberate rather than as the item
+                // having barely scraped into view at an edge.
+                list.scrollTop += (itemBox.top - listBox.top) - (list.clientHeight - itemBox.height) / 2;
+            }
+        })();
+    </script>
+@endpush

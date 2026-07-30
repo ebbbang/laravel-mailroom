@@ -308,6 +308,26 @@ class PreviewRenderingTest extends TestCase
     }
 
     #[Test]
+    public function the_selected_row_is_marked_so_the_list_can_scroll_back_to_it(): void
+    {
+        // The scroll restore itself is client side, but it hangs off this
+        // attribute -- if the marker ever stopped being rendered the list
+        // would silently start reloading at the top again.
+        config()->set('test-mail.ui.per_page', 3);
+
+        foreach (range(1, 6) as $n) {
+            Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
+        }
+
+        $selected = TestMailMessage::query()->latest('id')->skip(1)->first();
+
+        $this->get('/test-mail/'.$selected->id)
+            ->assertOk()
+            ->assertSeeHtml('aria-current="true"')
+            ->assertSeeHtml('.tm-item[aria-current="true"]');
+    }
+
+    #[Test]
     public function paging_while_a_message_is_open_keeps_it_open(): void
     {
         config()->set('test-mail.ui.per_page', 2);
