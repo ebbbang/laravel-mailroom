@@ -41,6 +41,39 @@ Everything Laravel's mail layer can produce, because it hooks in as a Symfony tr
 
 Every message can be exported as **`.eml`** (opens in Mail.app, Thunderbird, Outlook) or as a standalone **`.html`** file with embedded images rewritten to `data:` URIs so it renders anywhere.
 
+### Attachment previews
+
+Click an attachment to open it in a lightbox — arrow keys to move between them, `Esc` to close, and the open preview stays in the URL (`#preview-2`) so it survives a refresh and can be pasted to someone else.
+
+| Previewed inline | Download only |
+|---|---|
+| PNG, JPEG, GIF, WebP, AVIF, BMP, ICO, SVG | Office: `.docx`, `.xlsx`, `.pptx` |
+| PDF | Archives: `.zip`, `.7z` |
+| MP3, WAV, OGG, M4A, AAC, FLAC | TIFF, HEIC |
+| MP4, WebM, OGV, MOV | anything unrecognised |
+| Text, Markdown, CSV/TSV (as a table), JSON (pretty-printed) | |
+| HTML, XML, YAML, JS, CSS, SQL (as **source**) | |
+| `.ics` invites (parsed), `.eml` messages (headers + body) | |
+
+**Office documents genuinely cannot be previewed here.** Gmail and Outlook render them with server-side viewers — Google Docs Viewer, Office Online — and those services have to fetch the file over the public internet. A dev mailbox on `127.0.0.1` behind an auth gate is unreachable to them, and the self-hosted alternative is a multi-megabyte JS bundle this package has no build step for. Rather than half-render them, the mailbox says "no preview for .docx" and offers the download.
+
+TIFF and HEIC are left out for a smaller reason: Safari draws them and Chrome does not, so a preview would work on one machine and look broken on another.
+
+Media previews support HTTP Range, so seeking in audio and video works.
+
+#### How previewing stays safe
+
+Serving an attachment with its own MIME type is how stored XSS happens, so the preview route is separate from the download route (which still forces `application/octet-stream`) and is hardened on its own terms:
+
+- **The content type comes from an allowlist, never from the attachment.** `mime_type` is filled in by whoever composed the mail, so it is treated as a lookup key, not a value. It can only ever select a known-safe entry or be refused.
+- **Anything text-shaped is never served at all.** It is read and escaped into the page server-side, so an emailed `.html` or `.js` is shown as source and has no content type to be mis-interpreted through.
+- **SVG is only ever rendered through `<img>`**, where browsers permit neither scripts nor external fetches, and the response additionally carries `Content-Security-Policy: sandbox` — no `allow-scripts`, no `allow-same-origin` — which covers someone opening the URL directly.
+- `X-Content-Type-Options: nosniff` and `Cross-Origin-Resource-Policy: same-origin` on every preview response.
+
+**PDF is a deliberate exception to the sandbox.** Chrome renders PDFs by loading its viewer extension in a cross-process iframe, and a `sandbox` directive on the response blocks that extension's own scripts, so the PDF does not render at all ([crbug.com/413851](https://bugs.chromium.org/p/chromium/issues/detail?id=413851)). Little is given up: a page-level CSP never governed PDF JavaScript in the first place — that runs inside PDFium's sandbox, where it cannot reach the page's DOM, cookies or storage. The allowlisted type, `nosniff` and CORP still apply. PDFs use `<object>` rather than `<iframe>` because Safari has never rendered a PDF in an iframe.
+
+Set `preview.enabled` to `false` to switch all of this off and go back to plain downloads.
+
 ### Access control
 
 The package ships **no login page**. Access is decided in three escalating steps:
@@ -116,6 +149,9 @@ php artisan vendor:publish --tag=test-mail-config
 | `forward` | `null` | Also deliver via another mailer after capturing |
 | `prune.retention_days` | `7` | |
 | `ui.per_page` / `ui.poll_interval` | `25` / `5` | |
+| `preview.enabled` | `true` | Attachment previews, `TEST_MAIL_PREVIEW` |
+| `preview.max_inline_bytes` | `512 KB` | Cap on text-shaped previews |
+| `preview.max_csv_rows` | `200` | Rows shown before truncating a table |
 
 Message metadata lives in the database so the list stays fast; raw MIME and attachment bytes go to a disk, so the table stays small even with large attachments.
 
@@ -200,7 +236,7 @@ composer test         # parallel, via paratest
 composer test:serial
 composer lint         # rector, then pint
 composer lint:check
-composer serve        # workbench demo app at /test-mail, /send, /send-plain
+composer serve        # workbench demo at /test-mail, /send, /send-plain, /send-attachments
 ```
 
 ## License

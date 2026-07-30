@@ -1,6 +1,7 @@
 <?php
 
 use Ebbbang\TestMail\Http\Controllers\AttachmentController;
+use Ebbbang\TestMail\Http\Controllers\AttachmentPreviewController;
 use Ebbbang\TestMail\Http\Controllers\ContentController;
 use Ebbbang\TestMail\Http\Controllers\ExportController;
 use Ebbbang\TestMail\Http\Controllers\MessageController;
@@ -28,4 +29,14 @@ Route::middleware([])->whereNumber('message')->group(function (): void {
     Route::get('/{message}/attachments/{attachment}', AttachmentController::class)
         ->whereNumber('attachment')
         ->name('attachment');
+
+    // Kept separate from the download route above, which forces
+    // application/octet-stream and must keep doing so. See
+    // AttachmentPreviewController for how serving real content types is made
+    // safe. Not registered at all when previews are disabled.
+    if (config('test-mail.preview.enabled', true)) {
+        Route::get('/{message}/attachments/{attachment}/preview', AttachmentPreviewController::class)
+            ->whereNumber('attachment')
+            ->name('attachment.preview');
+    }
 });

@@ -119,4 +119,33 @@ return [
         'poll_interval' => 5,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Attachment Previews
+    |--------------------------------------------------------------------------
+    |
+    | Images, SVG, PDF, audio, video, text, CSV, JSON, source files, calendar
+    | invites and nested .eml messages are previewed in the mailbox. Office
+    | documents and archives are download-only -- see the README for why.
+    |
+    | "max_inline_bytes" caps the text-shaped kinds, which are read and escaped
+    | server-side rather than streamed. Images and media are not affected by it
+    | because the browser streams those itself.
+    |
+    | Turning this off unregisters the preview route entirely and leaves every
+    | attachment as a plain download.
+    |
+    */
+
+    'preview' => [
+        'enabled' => env('TEST_MAIL_PREVIEW', true),
+
+        // Text-shaped previews are rendered into the page itself, so this also
+        // bounds how large the mailbox HTML can get. 512 KB is far more text
+        // than anyone reads in a preview; larger files offer a download link.
+        'max_inline_bytes' => 512 * 1024,
+
+        'max_csv_rows' => 200,
+    ],
+
 ];

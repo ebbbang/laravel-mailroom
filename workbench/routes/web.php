@@ -5,6 +5,7 @@ use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Workbench\App\Mail\DemoOrderShipped;
+use Workbench\App\Support\Fixtures;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,35 @@ Route::get('/send', function (): Redirector|RedirectResponse {
                 ->attachData($invoice, 'invoice.txt', ['mime' => 'text/plain'])
                 ->attachData($terms, 'terms.txt', ['mime' => 'text/plain'])
         );
+
+    return redirect('/test-mail');
+});
+
+/*
+ * One message carrying every previewable kind, plus a .docx to exercise the
+ * "no preview" path. Fixtures are generated on the fly so the repository holds
+ * no binaries.
+ */
+Route::get('/send-attachments', function (): Redirector|RedirectResponse {
+    $mailable = (new DemoOrderShipped('A-'.random_int(1000, 9999)))
+        ->attachData(Fixtures::png(), 'screenshot.png', ['mime' => 'image/png'])
+        ->attachData(Fixtures::svg(), 'logo.svg', ['mime' => 'image/svg+xml'])
+        ->attachData(Fixtures::pdf(), 'invoice.pdf', ['mime' => 'application/pdf'])
+        ->attachData(Fixtures::wav(), 'notification.wav', ['mime' => 'audio/wav'])
+        ->attachData(Fixtures::csv(), 'orders.csv', ['mime' => 'text/csv'])
+        ->attachData(Fixtures::json(), 'payload.json', ['mime' => 'application/json'])
+        ->attachData(Fixtures::ics(), 'delivery.ics', ['mime' => 'text/calendar'])
+        ->attachData(Fixtures::eml(), 'forwarded.eml', ['mime' => 'message/rfc822'])
+        ->attachData("Order A-1001\n============\n\nPacked by: warehouse\n", 'notes.txt', ['mime' => 'text/plain'])
+        ->attachData("<p>An emailed HTML file.</p>\n<script>alert('never runs')</script>\n", 'report.html', ['mime' => 'text/html']);
+
+    if (($docx = Fixtures::docx()) !== null) {
+        $mailable->attachData($docx, 'invoice.docx', [
+            'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]);
+    }
+
+    Mail::to('rachel@example.test')->cc('accounts@example.test')->send($mailable);
 
     return redirect('/test-mail');
 });

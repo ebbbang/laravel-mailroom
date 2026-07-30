@@ -3,6 +3,8 @@
 namespace Ebbbang\TestMail\Models;
 
 use Ebbbang\TestMail\Storage\RawMessageStore;
+use Ebbbang\TestMail\Support\AttachmentPreview;
+use Ebbbang\TestMail\Support\PreviewKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,6 +21,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TestMailAttachment extends Model
 {
     protected $guarded = [];
+
+    /**
+     * Memoized: resolving a preview can touch the disk to sniff an
+     * unidentifiable file, and the mailbox asks for this several times per row.
+     */
+    protected ?AttachmentPreview $resolvedPreview = null;
 
     public function getTable(): string
     {
@@ -90,6 +98,44 @@ class TestMailAttachment extends Model
     public function readStream()
     {
         return $this->path === null ? null : $this->store()->readStream($this->path);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preview
+    |--------------------------------------------------------------------------
+    */
+
+    public function preview(): AttachmentPreview
+    {
+        return $this->resolvedPreview ??= AttachmentPreview::for($this);
+    }
+
+    public function previewKind(): PreviewKind
+    {
+        return $this->preview()->kind;
+    }
+
+    /**
+     * Whether the mailbox can show this attachment rather than only offer it
+     * as a download. Needs a recognised kind, bytes on disk, and the feature
+     * left enabled.
+     */
+    public function isPreviewable(): bool
+    {
+        return config('test-mail.preview.enabled', true)
+            && $this->previewKind()->isPreviewable()
+            && $this->hasContents();
+    }
+
+    /**
+     * The extension shown in the "no preview for .docx" state.
+     */
+    public function extensionLabel(): string
+    {
+        $extension = strtolower(pathinfo((string) $this->filename, PATHINFO_EXTENSION));
+
+        return $extension === '' ? 'this file type' : '.'.$extension;
     }
 
     /**

@@ -168,6 +168,9 @@
     <div class="tm-panel" data-tm-pane="files" hidden>
         @include('test-mail::partials.attachments', ['files' => $files, 'inline' => $inline, 'message' => $message])
     </div>
+
+    {{-- Outside the pane so the overlay is not clipped by its scroll context. --}}
+    @include('test-mail::partials.preview')
 @endif
 
 <div class="tm-panel" data-tm-pane="headers" @if ($firstPane !== 'headers') hidden @endif>
