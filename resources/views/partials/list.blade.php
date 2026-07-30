@@ -3,7 +3,9 @@
 <nav class="tm-list" aria-label="Captured messages">
     @forelse ($messages as $item)
         <a
-            href="{{ route('test-mail.show', ['message' => $item->id] + request()->only('search', 'mailer')) }}"
+            {{-- "page" belongs here too, or opening a message from page two
+                 sends the list back to page one and loses your place. --}}
+            href="{{ route('test-mail.show', ['message' => $item->id] + request()->only('search', 'mailer', 'page')) }}"
             class="tm-item"
             style="--tm-i: {{ $loop->index }}"
             aria-current="{{ $selected && $selected->is($item) ? 'true' : 'false' }}"

@@ -289,6 +289,42 @@ class PreviewRenderingTest extends TestCase
     }
 
     #[Test]
+    public function opening_a_message_keeps_your_place_in_the_list(): void
+    {
+        config()->set('test-mail.ui.per_page', 2);
+
+        foreach (range(1, 6) as $n) {
+            Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
+        }
+
+        // Third page, with a filter applied, so all three parameters matter.
+        $response = $this->get('/test-mail?page=3&search=Order&mailer=database')->assertOk();
+
+        $onThisPage = TestMailMessage::query()->latest('id')->skip(4)->take(2)->pluck('id');
+
+        foreach ($onThisPage as $id) {
+            $response->assertSeeHtml('/test-mail/'.$id.'?search=Order&amp;mailer=database&amp;page=3');
+        }
+    }
+
+    #[Test]
+    public function paging_while_a_message_is_open_keeps_it_open(): void
+    {
+        config()->set('test-mail.ui.per_page', 2);
+
+        foreach (range(1, 6) as $n) {
+            Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
+        }
+
+        $selected = TestMailMessage::query()->latest('id')->first();
+
+        $this->get('/test-mail/'.$selected->id.'?page=2')
+            ->assertOk()
+            ->assertSeeHtml('/test-mail/'.$selected->id.'?page=1')
+            ->assertSeeHtml('/test-mail/'.$selected->id.'?page=3');
+    }
+
+    #[Test]
     public function the_list_snippet_does_not_run_block_elements_together(): void
     {
         Mail::html(
