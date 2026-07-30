@@ -50,7 +50,7 @@ jobs:
             laravel: '13'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -60,7 +60,7 @@ jobs:
           coverage: none
 
       - name: Cache composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.composer/cache/files
           key: composer-${{ runner.os }}-php${{ matrix.php }}-L${{ matrix.laravel }}-${{ matrix.dependency-version }}-${{ hashFiles('composer.json') }}
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -102,7 +102,7 @@ jobs:
           coverage: none
 
       - name: Cache composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.composer/cache/files
           key: composer-lint-${{ runner.os }}-${{ hashFiles('composer.json') }}
@@ -116,7 +116,7 @@ jobs:
       # run_id in the key means every run saves a fresh entry while
       # restore-keys still inherits the previous one.
       - name: Cache rector
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/rector
           key: rector-${{ runner.os }}-${{ hashFiles('rector.php', 'composer.json') }}-${{ github.run_id }}
@@ -125,7 +125,7 @@ jobs:
             rector-${{ runner.os }}-
 
       - name: Cache pint
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/pint
           key: pint-${{ runner.os }}-${{ hashFiles('pint.json', 'composer.json') }}-${{ github.run_id }}
