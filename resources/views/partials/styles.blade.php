@@ -307,17 +307,16 @@
         padding: 12px 16px 13px 17px;
         border-bottom: 1px solid var(--tm-line-soft);
         transition: background .12s var(--tm-ease);
-        animation: tm-rise .34s var(--tm-ease) both;
-        animation-delay: calc(var(--tm-i, 0) * 22ms);
     }
 
-    @keyframes tm-rise {
-        from { opacity: 0; transform: translateY(4px); }
-        to   { opacity: 1; transform: none; }
-    }
+    /*
+     * The rows deliberately have no entry animation. A staggered fade-in looks
+     * pleasant once, but the mailbox is server-rendered and every click is a
+     * full page load, so it replayed top-to-bottom on every message you opened,
+     * every page change and every filter. Instant is the right answer here.
+     */
 
     @media (prefers-reduced-motion: reduce) {
-        .tm-item { animation: none; }
         .tm-scope * { transition-duration: .01ms !important; }
     }
 
