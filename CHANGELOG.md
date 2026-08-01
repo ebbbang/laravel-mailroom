@@ -9,6 +9,12 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-01
+
+**Contains breaking changes.** Two public surfaces were removed, so this is a
+minor rather than a patch release. If you pinned `^0.1`, Composer resolves that
+to `0.1.*` and will not pick this up until you bump the constraint deliberately.
+
 ### Added
 
 - `mailroom:install` can now run the migrations, so installation is a single
@@ -75,5 +81,6 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ebbbang/laravel-mailroom/releases/tag/v0.1.0

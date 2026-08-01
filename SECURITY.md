@@ -6,7 +6,8 @@ While the package is below 1.0, only the latest minor receives fixes.
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | yes       |
+| 0.2.x   | yes       |
+| 0.1.x   | no        |
 
 ## Reporting a vulnerability
 
