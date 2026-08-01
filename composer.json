@@ -81,10 +81,7 @@
         "laravel": {
             "providers": [
                 "Ebbbang\\Mailroom\\MailroomServiceProvider"
-            ],
-            "aliases": {
-                "Mailroom": "Ebbbang\\Mailroom\\Mailroom"
-            }
+            ]
         }
     },
     "config": {

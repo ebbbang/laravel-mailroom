@@ -117,9 +117,13 @@ class MailroomServiceProvider extends ServiceProvider
             __DIR__.'/../config/mailroom.php' => config_path('mailroom.php'),
         ], 'mailroom-config');
 
-        $this->publishes([
-            __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'mailroom-migrations');
+        // The migrations are deliberately not publishable. loadMigrationsFrom
+        // above is gated on Mailroom::enabled(), and a published copy sitting
+        // in database/migrations would run regardless -- handing a production
+        // deploy the tables that gate exists to withhold. Table names and the
+        // connection are already config-driven, so the only thing publishing
+        // would buy is schema edits, and those belong in your own ALTER
+        // migration where they neither collide nor leak into production.
 
         // Styles are inlined into the layout rather than published, so there
         // is no build step for consumers and no stale-asset failure mode.
