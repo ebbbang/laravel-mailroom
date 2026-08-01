@@ -9,13 +9,39 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+### Added
+
+- `mailroom:install` can now run the migrations, so installation is a single
+  command. It refuses to do so while the package is disabled, because the
+  migrations are not registered in that state and running them would only
+  execute the application's unrelated pending migrations.
+- Flags for every prompt, so the installer can run unattended:
+  `--set-mailer`, `--migrate`, `--no-migrate`, `--no-config`.
+
+### Changed
+
+- The README no longer implies `mailroom:install` is required. It is a
+  convenience: the provider is auto-discovered, config is merged, migrations
+  are loaded from the package, and the `mailroom` mailer is registered, so
+  `composer require` plus `migrate` plus `MAIL_MAILER=mailroom` is enough.
+
+### Removed
+
+- The `mailroom-migrations` publish tag. Publishing put a copy in
+  `database/migrations` that ran regardless of `MAILROOM_ENABLED`, defeating
+  the guard that keeps a production deploy from gaining the tables. Table
+  names and the connection are already config-driven; schema changes belong
+  in your own `ALTER` migration.
+- The global `Mailroom` class alias. It was never a facade, and the class is
+  imported normally.
+
 ## [0.1.0] - 2026-07-30
 
 First release.
 
 ### Added
 
-- A `database` mail transport that captures every outgoing message: HTML and
+- A `mailroom` mail transport that captures every outgoing message: HTML and
   text bodies, attachments, inline images, tags, metadata and custom headers.
   It hooks in as a Symfony transport, so it sees the finished message rather
   than reconstructing one.

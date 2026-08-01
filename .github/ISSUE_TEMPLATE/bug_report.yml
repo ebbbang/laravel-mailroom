@@ -1,0 +1,92 @@
+name: Bug report
+description: Something in Mailroom does not behave as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The fields below are the ones that usually decide
+        whether a bug can be reproduced, so please fill them in even if they feel
+        redundant.
+
+        **Not a bug:** `Mail::fake()` bypasses this package entirely — it replaces
+        the mail manager, so no transport runs and nothing is captured. That is
+        expected behaviour.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: >
+        The smallest set of steps that shows the problem. A mailable, the
+        `Mail::` call that sends it, and what the mailbox shows is usually enough.
+      placeholder: |
+        1. Send `new OrderShipped(...)` with an attached PDF
+        2. Open /mailroom and select the message
+        3. The Attachments tab shows 0 attachments
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Mailroom version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: laravel-version
+    attributes:
+      label: Laravel version
+      placeholder: "13.2.1"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "8.4.3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does this happen?
+      options:
+        - Local development
+        - Staging
+        - Production (MAILROOM_ENABLED=true)
+        - CI / automated tests
+        - Laravel Octane
+        - Laravel Cloud or another ephemeral filesystem
+      multiple: true
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration
+      description: >
+        Anything you changed from the defaults in `config/mailroom.php` — the
+        storage disk especially, since a missing blob and a bug look alike.
+        Please redact credentials.
+      render: php
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Exception or log output
+      description: Paste the stack trace if there is one. No backticks needed.
+      render: shell

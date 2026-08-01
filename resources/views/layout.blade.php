@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'Test Mail')</title>
+    <title>@yield('title', 'Mailroom')</title>
 
     {{--
         Applied before the stylesheet so the stored theme is in place on the

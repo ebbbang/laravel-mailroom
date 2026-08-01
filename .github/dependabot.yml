@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  # Keeps the actions in tests.yml current. Node-runtime deprecations on
+  # GitHub-authored actions are announced through releases, so this is the
+  # thing that surfaces them before a workflow starts warning.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "github-actions"]
+    commit-message:
+      prefix: "ci"
+
+  # Dev dependencies only in practice: the runtime requirements are wide
+  # ranges (^11 || ^12 || ^13) that Dependabot should not be narrowing.
+  - package-ecosystem: composer
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies"]
+    commit-message:
+      prefix: "deps"
+    ignore:
+      # The whole point of the constraints is to span supported majors, and
+      # the CI matrix already proves each one. A PR bumping these would be
+      # narrowing support, not updating a dependency.
+      - dependency-name: "illuminate/*"
+      - dependency-name: "symfony/mailer"
+      - dependency-name: "symfony/mime"

@@ -6,7 +6,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Test Mail Master Switch
+    | Mailroom Master Switch
     |--------------------------------------------------------------------------
     |
     | When disabled, the "mailroom" mail transport refuses to be constructed
@@ -78,7 +78,7 @@ return [
     | Forwarding
     |--------------------------------------------------------------------------
     |
-    | By default the database transport is terminal -- mail is captured and
+    | By default the mailroom transport is terminal -- mail is captured and
     | goes no further. Name another configured mailer here to also deliver the
     | message after capturing it, which is useful on staging.
     |

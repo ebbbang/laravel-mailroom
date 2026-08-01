@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest something Mailroom should do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Mailroom is deliberately a development tool: a mailbox for reading what
+        your application sent. Proposals that push it toward being a production
+        mail log, a queue, or a sending service are unlikely to land — but say so
+        anyway if you think the line is in the wrong place.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you hitting?
+      description: >
+        Describe the situation rather than the solution. What were you trying to
+        find out about a message, and what stopped you?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried instead?
+      description: >
+        Workarounds you are using today, other packages that do this, or how
+        Mailpit, Mailtrap or Helo handle it.

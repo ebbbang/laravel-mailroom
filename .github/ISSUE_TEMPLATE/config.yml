@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/ebbbang/laravel-mailroom/security/advisories/new
+    about: >
+      Please do not open a public issue. Report privately here, and read
+      SECURITY.md first — the mailbox renders attacker-controlled content by
+      design, and how that is contained is documented.
+  - name: Ask a question
+    url: https://github.com/ebbbang/laravel-mailroom/discussions
+    about: For usage questions and ideas that are not yet a bug report.
