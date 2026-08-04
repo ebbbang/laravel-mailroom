@@ -20,6 +20,7 @@ A mail driver that stores outgoing mail in your database, plus a mailbox at `/ma
 - [What gets captured](#what-gets-captured)
 - [The mailbox](#the-mailbox)
 - [Access control](#access-control)
+- [Staging and QA](#staging-and-qa)
 - [Configuration](#configuration)
 - [Production](#production)
 - [Pruning](#pruning)
@@ -59,7 +60,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.2` while this is 0.x.** Composer treats `^0.2` as `0.2.*` only, so moving to a 0.3 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.3` while this is 0.x.** Composer treats `^0.3` as `0.3.*` only, so moving to a 0.4 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -160,6 +161,34 @@ To put the mailbox behind your application's existing login, add `auth` to the m
 
 Email HTML is attacker-controlled as far as your app is concerned. Message bodies are served from their own route into an `<iframe sandbox>` with neither `allow-scripts` nor `allow-same-origin`, putting them in an opaque origin that cannot run scripts, reach the parent page, or touch cookies, under a `default-src 'none'` CSP.
 
+## Staging and QA
+
+Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser — no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure.
+
+Captured mail stays captured, so your staging fixtures can use whatever addresses make the test realistic.
+
+```dotenv
+MAIL_MAILER=mailroom
+MAILROOM_ENABLED=true
+MAILROOM_DISK=<your object storage disk>
+```
+
+Three things to get right:
+
+**Enable it explicitly.** Most staging platforms — Laravel Cloud, Forge, Heroku-style hosts — set `APP_ENV=production` even when the environment is really staging, and Mailroom stays off in production unless you say otherwise. That default is deliberate: see [Production](#production).
+
+**Put it behind your login.** The mailbox holds the full contents of every email your app sends, password reset links included. On anything reachable from the internet, add `auth` to the middleware stack and gate it:
+
+```php
+'middleware' => ['web', 'auth', Authorize::class],
+
+Gate::define('viewMailroom', fn (?User $user) => $user?->isQaTeam());
+```
+
+**Point the disk at persistent storage.** Staging platforms usually run ephemeral, multi-replica filesystems, where the default `local` disk loses attachments between deploys and between replicas. [Laravel Cloud and other ephemeral platforms](#laravel-cloud-and-other-ephemeral-platforms) covers this.
+
+Set a short `prune.retention_days` while you are there, so a long-lived staging box does not accumulate months of real-looking personal data.
+
 ## Configuration
 
 Defaults are merged from the package, so everything below works without publishing anything. Publish only what you mean to change:
@@ -183,7 +212,6 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `database.connection` | default | Keep captured mail off your main database |
 | `database.messages_table` | `mailroom_messages` | |
 | `database.attachments_table` | `mailroom_attachments` | |
-| `forward` | `null` | Also deliver via another mailer after capturing |
 | `prune.retention_days` | `7` | Default age cutoff for `mailroom:prune` |
 | `prune.schedule` | `null` | Cron expression or frequency name to auto-schedule pruning |
 | `ui.per_page` | `25` | Messages per page |
@@ -202,7 +230,6 @@ Every environment variable Mailroom reads:
 | `MAILROOM_DISK` | `storage.disk` | `local` |
 | `MAILROOM_STORAGE_PATH` | `storage.path` | `mailroom` |
 | `MAILROOM_DB_CONNECTION` | `database.connection` | your default connection |
-| `MAILROOM_FORWARD` | `forward` | `null` |
 | `MAILROOM_RETENTION_DAYS` | `prune.retention_days` | `7` |
 | `MAILROOM_PRUNE_SCHEDULE` | `prune.schedule` | `null` |
 | `MAILROOM_PREVIEW` | `preview.enabled` | `true` |
@@ -255,15 +282,6 @@ Event::listen(function (MessageStored $event) {
 ```
 
 Laravel's own `MessageSent` carries no reference to the stored row, so this is how you get hold of it.
-
-### Capture and still deliver
-
-Set `forward` to another configured mailer and messages are stored *and* sent on, which is useful on staging:
-
-```dotenv
-MAIL_MAILER=mailroom
-MAILROOM_FORWARD=smtp
-```
 
 ### Laravel Cloud and other ephemeral platforms
 

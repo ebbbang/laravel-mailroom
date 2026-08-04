@@ -9,6 +9,41 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-04
+
+**Contains a breaking change.** If you set `MAILROOM_FORWARD`, remove it — see
+below for why, and for what replaces it.
+
+### Added
+
+- A **Staging and QA** section in the README. Mailroom is as useful on a shared
+  staging environment as it is locally: testers read captured mail in the
+  browser without a third-party catcher, without shared inbox credentials, and
+  without mail leaving your infrastructure. Covers enabling it where the
+  platform reports `APP_ENV=production`, gating it behind your own login, and
+  pointing the disk at persistent storage.
+
+### Removed
+
+- **`mailroom.forward` and `MAILROOM_FORWARD`.** Naming another mailer there
+  relayed every captured message on send, to the message's *original*
+  recipients — so pointing it at working SMTP on a staging environment
+  delivered test mail to real customers. It also billed an SMTP send for every
+  message whether or not anyone wanted it delivered.
+
+  Deliberate, per-message forwarding from the mailbox replaces it in 0.3.1:
+  everything is captured, and a message goes out only when someone opens it and
+  chooses to send it, which is the point at which you want a real client to
+  render it.
+
+  If you relied on capture-and-deliver, keep a second mailer configured and
+  select it directly for the mail you want delivered.
+
+### Changed
+
+- The transport is now terminal in all configurations, which removes the
+  self-forward and recursion guards it needed to carry.
+
 ## [0.2.0] - 2026-08-01
 
 **Contains breaking changes.** Two public surfaces were removed, so this is a
@@ -81,6 +116,7 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ebbbang/laravel-mailroom/releases/tag/v0.1.0

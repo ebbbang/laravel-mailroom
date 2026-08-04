@@ -75,19 +75,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Forwarding
-    |--------------------------------------------------------------------------
-    |
-    | By default the mailroom transport is terminal -- mail is captured and
-    | goes no further. Name another configured mailer here to also deliver the
-    | message after capturing it, which is useful on staging.
-    |
-    */
-
-    'forward' => env('MAILROOM_FORWARD'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Pruning
     |--------------------------------------------------------------------------
     |

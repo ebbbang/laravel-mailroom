@@ -17,6 +17,10 @@ use Symfony\Component\Mime\RawMessage;
  * Modelled on Illuminate\Mail\Transport\ArrayTransport: a terminal transport
  * implementing TransportInterface directly rather than extending Symfony's
  * AbstractTransport, since there is no remote endpoint to talk to.
+ *
+ * Terminal: the message is recorded and the send completes there, so captured
+ * mail stays in the mailbox. That is what lets a staging environment use real
+ * customer addresses in its fixtures.
  */
 class MailroomTransport implements Stringable, TransportInterface
 {
@@ -24,7 +28,6 @@ class MailroomTransport implements Stringable, TransportInterface
         protected MessageRecorder $recorder,
         protected Dispatcher $events,
         protected string $mailerName = 'mailroom',
-        protected ?TransportInterface $next = null,
     ) {}
 
     public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
@@ -33,20 +36,11 @@ class MailroomTransport implements Stringable, TransportInterface
 
         $stored = $this->recorder->record($message, $envelope, $this->mailerName);
 
-        // Terminal by default. When mailroom.forward names another mailer we
-        // hand the message on afterwards, so staging can capture and still
-        // deliver in one pass.
-        $sent = $this->next?->send($message, $envelope)
-            ?? new SentMessage($message, $envelope);
+        $sent = new SentMessage($message, $envelope);
 
         $this->events->dispatch(new MessageStored($stored, $sent));
 
         return $sent;
-    }
-
-    public function forwardsTo(): ?TransportInterface
-    {
-        return $this->next;
     }
 
     public function __toString(): string
