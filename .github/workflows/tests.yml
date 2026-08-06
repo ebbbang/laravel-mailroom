@@ -80,12 +80,18 @@ jobs:
       # on a paratest/PHPUnit pair that cannot drive each other. That says
       # nothing about this package, so the lowest-dependency run uses PHPUnit
       # directly; every other combination runs in parallel.
+      #
+      # The publishes-files group writes into the shared testbench skeleton, so
+      # it cannot run alongside anything else -- see InstallCommandTest. It goes
+      # after the parallel pass, in a single process. The serial run needs no
+      # such split.
       - name: Run tests
         run: |
           if [ "${{ matrix.dependency-version }}" = "prefer-lowest" ]; then
             vendor/bin/phpunit --colors=always
           else
-            vendor/bin/paratest --colors=always
+            vendor/bin/paratest --colors=always --exclude-group=publishes-files
+            vendor/bin/phpunit --colors=always --group=publishes-files
           fi
 
   lint:

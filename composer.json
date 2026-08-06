@@ -74,7 +74,12 @@
             "@rector:check",
             "@pint:check"
         ],
-        "test": "@php vendor/bin/paratest --colors=always",
+        "test": [
+            "@test:parallel",
+            "@test:isolated"
+        ],
+        "test:parallel": "@php vendor/bin/paratest --colors=always --exclude-group=publishes-files",
+        "test:isolated": "@php vendor/bin/phpunit --colors=always --group=publishes-files",
         "test:serial": "@php vendor/bin/phpunit --colors=always"
     },
     "extra": {

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Orchestra\Testbench\Concerns\InteractsWithPublishedFiles;
 use Orchestra\Testbench\TestCase as Orchestra;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -16,7 +17,17 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * Two routes through the command are covered: the flags, which is how CI and
  * Dockerfiles will drive it, and the prompts, which is what a person sees.
+ *
+ * Grouped out of the parallel run because it is the one place in the suite
+ * that writes into the shared testbench skeleton. Publishing drops a
+ * config/mailroom.php into the same directory every other worker's app boots
+ * from, and testbench's LoadConfiguration globs that directory and then
+ * requires what it found -- so deleting the file in teardown makes a
+ * concurrent boot fail on a path that existed a moment earlier. The .env
+ * fixtures have the same problem: a worker can read the file mid-rewrite.
+ * Neither is a race this class can win, so it runs on its own.
  */
+#[Group('publishes-files')]
 class InstallCommandTest extends Orchestra
 {
     use InteractsWithPublishedFiles;

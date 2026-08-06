@@ -27,6 +27,19 @@ Run `composer lint` before opening a pull request. CI runs `lint:check`, which f
 
 Both tools cache into `build/`, so repeat runs are fast and the directory is git-ignored.
 
+### Why `composer test` runs two passes
+
+Testbench gives every worker the same skeleton application, so a test that writes into it is visible to all the others. `InstallCommandTest` does exactly that: publishing puts a `config/mailroom.php` in the directory each worker boots from, and testbench globs that directory and then requires what it found — so removing the file in teardown makes a concurrent boot fail on a path that existed a moment earlier. Its `.env` fixtures can likewise be read mid-rewrite.
+
+So it carries `#[Group('publishes-files')]`, and `composer test` runs everything else in parallel first, then that group on its own:
+
+```bash
+composer test:parallel   # everything except the group
+composer test:isolated   # just the group, single process
+```
+
+If you add a test that writes into the skeleton — publishing, `.env`, anything under `config_path()` — put it in that group. The symptom otherwise is an unrelated test failing intermittently on a different worker, which is a miserable thing to debug.
+
 ## The demo mailbox
 
 `composer serve` creates the database, migrates it, seeds it and starts the server, so a clean checkout gets you a populated mailbox in one step. Re-running it just starts the server, because each step is a no-op once done.
