@@ -268,6 +268,14 @@ php artisan model:prune --model="Ebbbang\Mailroom\Models\MailroomMessage"
 
 Schedule it yourself, or set `prune.schedule` to a cron expression or frequency name (`daily`, `hourly`) and the package registers it for you.
 
+### Wiping the database
+
+`migrate:fresh` and `migrate:refresh` empty Mailroom's storage along with its tables, so wiping your database takes the captured mail with it — bodies and attachments included.
+
+`migrate:rollback` and `migrate:reset` leave the stored files behind. Run `php artisan mailroom:clear` to remove them.
+
+If you keep captured mail on its own connection with `MAILROOM_DB_CONNECTION`, only refreshing *that* connection clears the storage.
+
 ## Advanced
 
 ### Events

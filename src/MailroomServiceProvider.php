@@ -5,12 +5,15 @@ namespace Ebbbang\Mailroom;
 use Ebbbang\Mailroom\Console\ClearCommand;
 use Ebbbang\Mailroom\Console\InstallCommand;
 use Ebbbang\Mailroom\Console\PruneCommand;
+use Ebbbang\Mailroom\Listeners\FlushStorageOnDatabaseRefresh;
 use Ebbbang\Mailroom\Recording\MessageRecorder;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Ebbbang\Mailroom\Transport\TransportFactory;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Events\DatabaseRefreshed;
 use Illuminate\Mail\MailManager;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,6 +38,17 @@ class MailroomServiceProvider extends ServiceProvider
         $this->registerPublishing();
         $this->registerCommands();
         $this->registerSchedule();
+        $this->registerListeners();
+    }
+
+    /**
+     * `migrate:fresh` drops tables without firing model events, which is what
+     * would otherwise delete a message's blobs along with its row. Listening
+     * for the refresh keeps the disk in step with the database.
+     */
+    protected function registerListeners(): void
+    {
+        Event::listen(DatabaseRefreshed::class, FlushStorageOnDatabaseRefresh::class);
     }
 
     /**

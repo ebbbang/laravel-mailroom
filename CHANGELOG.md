@@ -9,6 +9,21 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-05
+
+### Fixed
+
+- `migrate:fresh` and `migrate:refresh` left every captured message's `.eml`
+  and attachments on disk. Wiping your database now takes the stored files with
+  it. Upgrading will not reclaim orphans from earlier releases — run
+  `php artisan mailroom:clear` once to remove those.
+- Storage is emptied only when the refreshed connection is the one Mailroom
+  uses, so a `migrate:fresh` elsewhere leaves mail on a separate
+  `MAILROOM_DB_CONNECTION` intact. `migrate:rollback` and `migrate:reset` still
+  leave files behind.
+- `mailroom:clear` reported `Cleared 0 captured message(s)` while deleting
+  orphaned files. It now reports the stored files separately from the row count.
+
 ## [0.3.0] - 2026-08-04
 
 **Contains a breaking change.** If you set `MAILROOM_FORWARD`, remove it — see
@@ -116,7 +131,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ebbbang/laravel-mailroom/releases/tag/v0.1.0

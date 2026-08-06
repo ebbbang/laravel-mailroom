@@ -34,7 +34,15 @@ class ClearCommand extends Command
         MailroomMessage::query()->delete();
         $store->flush();
 
-        $this->components->info(sprintf('Cleared %d captured message(s).', $count));
+        /*
+         * Reported separately because the two can legitimately disagree. After
+         * a `migrate:fresh` on an older release the rows are gone while the
+         * blobs remain, so this command clears "0 messages" and still frees
+         * real disk -- and saying only the row count made it look like a no-op.
+         */
+        $this->components->info($count > 0
+            ? sprintf('Cleared %d captured message(s) and their stored files.', $count)
+            : 'No captured messages. Stored files emptied.');
 
         return self::SUCCESS;
     }
