@@ -20,6 +20,7 @@ A mail driver that stores outgoing mail in your database, plus a mailbox at `/ma
 - [What gets captured](#what-gets-captured)
 - [The mailbox](#the-mailbox)
 - [Access control](#access-control)
+- [Forwarding a message](#forwarding-a-message)
 - [Staging and QA](#staging-and-qa)
 - [Configuration](#configuration)
 - [Production](#production)
@@ -60,7 +61,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.3` while this is 0.x.** Composer treats `^0.3` as `0.3.*` only, so moving to a 0.4 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.4` while this is 0.x.** Composer treats `^0.4` as `0.4.*` only, so moving to a 0.5 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -161,6 +162,34 @@ To put the mailbox behind your application's existing login, add `auth` to the m
 
 Email HTML is attacker-controlled as far as your app is concerned. Message bodies are served from their own route into an `<iframe sandbox>` with neither `allow-scripts` nor `allow-same-origin`, putting them in an opaque origin that cannot run scripts, reach the parent page, or touch cookies, under a `default-src 'none'` CSP.
 
+## Forwarding a message
+
+The one thing a mailbox cannot show you is how Gmail or Outlook will actually render a message. Name a mailer that can deliver, and each message gains a **Forward** button:
+
+```dotenv
+MAILROOM_FORWARD_MAILER=smtp
+```
+
+Open a message, click Forward, and send it to yourself. The field starts on the real recipient, and what happens next depends on whether you change it:
+
+| | |
+|---|---|
+| **Left as it is** | The stored MIME goes out **byte for byte**. What lands in the inbox is exactly what your application produced. |
+| **Changed** | `To` is rewritten to your address and `Cc` dropped, with the originals preserved as `X-Mailroom-Original-To` and `X-Mailroom-Original-Cc`, so it reads naturally rather than like a misdelivery. |
+
+Either way only the address you chose receives anything, and the stored copy is never modified.
+
+Because sending takes a deliberate click, your SMTP bill covers the handful of messages someone actually checked rather than everything the application sent.
+
+### Keeping it safe
+
+The mailbox becomes able to send, so four things bound it:
+
+- **There is nothing to send through until you configure it.** With no `forward.mailer` the route is never registered, so the button explains the setup instead of offering a form.
+- **Outside `local`, forwarding needs an authenticated user.** Reading the mailbox and relaying from it are different privileges: opening the mailbox up with a permissive `Mailroom::auth()` callback grants reading, not sending. Set `MAILROOM_FORWARD_REQUIRE_AUTH=false` to accept that anyone who can open the mailbox can send through it.
+- **Sending asks first**, naming the address, since the field is pre-filled with a real customer's.
+- **A Mailroom mailer is refused as the destination** — it would capture the message again instead of delivering it, leaving you waiting for mail that was never going to arrive.
+
 ## Staging and QA
 
 Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser — no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure.
@@ -187,6 +216,8 @@ Gate::define('viewMailroom', fn (?User $user) => $user?->isQaTeam());
 
 **Point the disk at persistent storage.** Staging platforms usually run ephemeral, multi-replica filesystems, where the default `local` disk loses attachments between deploys and between replicas. [Laravel Cloud and other ephemeral platforms](#laravel-cloud-and-other-ephemeral-platforms) covers this.
 
+Add `MAILROOM_FORWARD_MAILER` and testers can also send a message to their own inbox when they want to check it in a real client — see [Forwarding a message](#forwarding-a-message).
+
 Set a short `prune.retention_days` while you are there, so a long-lived staging box does not accumulate months of real-looking personal data.
 
 ## Configuration
@@ -212,6 +243,8 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `database.connection` | default | Keep captured mail off your main database |
 | `database.messages_table` | `mailroom_messages` | |
 | `database.attachments_table` | `mailroom_attachments` | |
+| `forward.mailer` | `null` | Mailer the Forward button sends through; `null` leaves it explaining the setup |
+| `forward.require_authenticated_user` | `true` | Outside `local`, forwarding needs a signed-in user |
 | `prune.retention_days` | `7` | Default age cutoff for `mailroom:prune` |
 | `prune.schedule` | `null` | Cron expression or frequency name to auto-schedule pruning |
 | `ui.per_page` | `25` | Messages per page |
@@ -230,6 +263,8 @@ Every environment variable Mailroom reads:
 | `MAILROOM_DISK` | `storage.disk` | `local` |
 | `MAILROOM_STORAGE_PATH` | `storage.path` | `mailroom` |
 | `MAILROOM_DB_CONNECTION` | `database.connection` | your default connection |
+| `MAILROOM_FORWARD_MAILER` | `forward.mailer` | `null` |
+| `MAILROOM_FORWARD_REQUIRE_AUTH` | `forward.require_authenticated_user` | `true` |
 | `MAILROOM_RETENTION_DAYS` | `prune.retention_days` | `7` |
 | `MAILROOM_PRUNE_SCHEDULE` | `prune.schedule` | `null` |
 | `MAILROOM_PREVIEW` | `preview.enabled` | `true` |

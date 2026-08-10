@@ -9,6 +9,30 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-06
+
+### Added
+
+- A **Forward** button on each message. Set `MAILROOM_FORWARD_MAILER` to a
+  mailer that can deliver and a tester can send one message to a real inbox to
+  see how it renders in Gmail or Outlook. Nothing is sent without a click, so
+  SMTP covers only what someone actually checked.
+
+  Sending to the original recipient replays the stored MIME byte for byte.
+  Sending anywhere else rewrites `To`, drops `Cc`, and keeps the originals as
+  `X-Mailroom-Original-To` and `X-Mailroom-Original-Cc`. Only the chosen
+  address receives a copy, and the stored message is never modified.
+
+  The button is present whether or not forwarding is configured — without a
+  mailer it explains how to switch it on, which is how anyone finds out the
+  feature exists. The route that does the sending is never registered until you
+  configure one.
+
+- `MAILROOM_FORWARD_REQUIRE_AUTH`, on by default. Outside the `local`
+  environment a forward needs a signed-in user, so opening the mailbox up with
+  a permissive `Mailroom::auth()` callback grants reading without also granting
+  the ability to send from your domain.
+
 ## [0.3.2] - 2026-08-06
 
 ### Fixed
@@ -142,7 +166,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...v0.3.0

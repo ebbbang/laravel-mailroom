@@ -4,7 +4,9 @@ use Ebbbang\Mailroom\Http\Controllers\AttachmentController;
 use Ebbbang\Mailroom\Http\Controllers\AttachmentPreviewController;
 use Ebbbang\Mailroom\Http\Controllers\ContentController;
 use Ebbbang\Mailroom\Http\Controllers\ExportController;
+use Ebbbang\Mailroom\Http\Controllers\ForwardController;
 use Ebbbang\Mailroom\Http\Controllers\MessageController;
+use Ebbbang\Mailroom\Mailroom;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MessageController::class, 'index'])->name('index');
@@ -29,6 +31,12 @@ Route::middleware([])->whereNumber('message')->group(function (): void {
     Route::get('/{message}/attachments/{attachment}', AttachmentController::class)
         ->whereNumber('attachment')
         ->name('attachment');
+
+    // Not registered at all unless a mailer is configured to forward through,
+    // so the feature has no surface until it is deliberately set up.
+    if (Mailroom::canForward()) {
+        Route::post('/{message}/forward', ForwardController::class)->name('forward');
+    }
 
     // Kept separate from the download route above, which forces
     // application/octet-stream and must keep doing so. See

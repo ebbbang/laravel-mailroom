@@ -9,6 +9,13 @@ env:
   - DB_CONNECTION="sqlite"
   - MAIL_MAILER="mailroom"
   - MAILROOM_ENABLED=true
+  # Gives the demo a Forward button. The log mailer is a real transport as far
+  # as the recursion guard is concerned, so the forwarded copy is written to
+  # the log rather than sent anywhere.
+  - MAILROOM_FORWARD_MAILER="log"
+  # Left at its default. Set APP_ENV to something other than local and flip
+  # this to false to see the two halves of the forwarding auth guard.
+  - MAILROOM_FORWARD_REQUIRE_AUTH=true
   # Sync, so demo:seed's queued mailable is captured during seeding instead of
   # sitting in the jobs table waiting for a worker nobody is running.
   - QUEUE_CONNECTION="sync"

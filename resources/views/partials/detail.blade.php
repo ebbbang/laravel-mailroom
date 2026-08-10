@@ -76,6 +76,18 @@
             </a>
         @endif
 
+        {{-- Always rendered. Nobody discovers a feature whose only trace is a
+             line in the README, so the button is what teaches you forwarding
+             exists; the dialog explains how to switch it on. The route itself
+             is still absent until a mailer is configured, so this reveals the
+             feature without opening a way to use it. --}}
+        <button type="button" class="mr-btn" id="mr-forward-open" aria-haspopup="dialog">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m14 8 4 4-4 4M18 12H6"/>
+            </svg>
+            Forward
+        </button>
+
         <form
             method="POST"
             action="{{ route('mailroom.destroy', $message) }}"
@@ -87,6 +99,100 @@
             @method('DELETE')
             <button type="submit" class="mr-btn mr-btn-danger">Delete</button>
         </form>
+    </div>
+</div>
+
+@php
+    $forwardMailer = config('mailroom.forward.mailer');
+    $canForward = \Ebbbang\Mailroom\Mailroom::canForwardFrom(request());
+    $originalRecipient = $message->to[0]['address'] ?? '';
+    $forwardError = session('mailroom.error') ?: $errors->first('to');
+@endphp
+
+{{-- Success is announced by the toast in the layout. A failure reopens this
+     dialog instead, so the message sits beside the field you would change to
+     put it right, and nothing on the page moves. --}}
+<div
+    class="mr-modal"
+    id="mr-forward"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="mr-forward-title"
+    @if ($forwardError) data-mr-open @endif
+    hidden
+>
+    <div class="mr-modal-card" id="mr-forward-card">
+        <div class="mr-modal-head">
+            <h2 class="mr-modal-title" id="mr-forward-title">Forward this message</h2>
+            <button type="button" class="mr-btn mr-btn-ghost" id="mr-forward-close" aria-label="Close" title="Close (Esc)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        @if ($forwardError)
+            <p class="mr-modal-error" role="alert">{{ $forwardError }}</p>
+        @endif
+
+        @if (! $message->hasRaw())
+            <p class="mr-modal-body">
+                Forwarding replays the stored copy of this message, and that copy is missing — so
+                there is nothing to send. Everything shown above came from the database and is
+                intact.
+            </p>
+        @elseif (blank($forwardMailer))
+            <p class="mr-modal-body">
+                Mailroom can send a copy of this message to a real inbox, so you can see how Gmail
+                or Outlook renders it. Nothing is sent unless you ask for it here.
+            </p>
+            <p class="mr-modal-body">
+                To switch it on, point <code>MAILROOM_FORWARD_MAILER</code> at a mailer from
+                <code>config/mail.php</code> that can actually deliver:
+            </p>
+            <pre class="mr-modal-pre"><code>MAILROOM_FORWARD_MAILER=smtp</code></pre>
+        @elseif (! $canForward)
+            <p class="mr-modal-body">
+                Forwarding is configured, but sending mail from your application needs a signed-in
+                user outside local development. Being able to read the mailbox is not enough.
+            </p>
+            <p class="mr-modal-body">
+                Sign in, or set <code>forward.require_authenticated_user</code> to <code>false</code>
+                to let anyone who can open the mailbox send through it.
+            </p>
+        @else
+            <form
+                method="POST"
+                action="{{ route('mailroom.forward', ['message' => $message, ...request()->only('search', 'mailer', 'page')]) }}"
+                id="mr-forward-form"
+            >
+                @csrf
+                <label class="mr-modal-label" for="mr-forward-to">Send a copy to</label>
+                <input
+                    type="email"
+                    class="mr-modal-input"
+                    name="to"
+                    id="mr-forward-to"
+                    value="{{ old('to', $originalRecipient) }}"
+                    required
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+
+                <p class="mr-modal-body">
+                    Leaving the address as it is sends the message exactly as captured. Changing it
+                    rewrites the <code>To</code> header and keeps the original in
+                    <code>X-Mailroom-Original-To</code>. Either way, only this address receives a
+                    copy, and the message stored here is not altered.
+                </p>
+
+                <div class="mr-modal-foot">
+                    <span class="mr-modal-meta">via <code>{{ $forwardMailer }}</code></span>
+                    <button type="button" class="mr-btn" data-mr-forward-cancel>Cancel</button>
+                    <button type="submit" class="mr-btn mr-btn-primary">Send</button>
+                </div>
+            </form>
+        @endif
     </div>
 </div>
 
@@ -220,6 +326,88 @@
                     });
                 });
             });
+
+        })();
+    </script>
+@endpush
+
+@push('scripts')
+    <script>
+        (function () {
+            var open = document.getElementById('mr-forward-open');
+            var modal = document.getElementById('mr-forward');
+            var card = document.getElementById('mr-forward-card');
+
+            if (!open || !modal) {
+                return;
+            }
+
+            var field = document.getElementById('mr-forward-to');
+
+            function show() {
+                modal.hidden = false;
+
+                if (field) {
+                    field.focus();
+                    field.select();
+                } else {
+                    document.getElementById('mr-forward-close').focus();
+                }
+            }
+
+            function dismiss() {
+                modal.hidden = true;
+                open.focus();
+            }
+
+            open.addEventListener('click', show);
+            document.getElementById('mr-forward-close').addEventListener('click', dismiss);
+
+            // A failed send comes back as a fresh page load, so the dialog has
+            // to reopen itself for the message inside it to be seen at all.
+            if (modal.hasAttribute('data-mr-open')) {
+                show();
+            }
+
+            modal.querySelectorAll('[data-mr-forward-cancel]').forEach(function (button) {
+                button.addEventListener('click', dismiss);
+            });
+
+            // Backdrop dismissal, matching the attachment lightbox: the press
+            // and the release both have to land outside the card, so dragging
+            // a selection out of the field does not close the dialog.
+            var pressedOutside = false;
+
+            modal.addEventListener('mousedown', function (event) {
+                pressedOutside = event.button === 0 && !card.contains(event.target);
+            });
+
+            modal.addEventListener('click', function (event) {
+                if (pressedOutside && event.button === 0 && !card.contains(event.target)) {
+                    dismiss();
+                }
+
+                pressedOutside = false;
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !modal.hidden) {
+                    dismiss();
+                }
+            });
+
+            var form = document.getElementById('mr-forward-form');
+
+            // The field is pre-filled with the real recipient, so a stray
+            // Enter would email an actual customer. Naming the address in the
+            // prompt makes that visible before it happens.
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!window.confirm('Forward this message to ' + field.value + '?')) {
+                        event.preventDefault();
+                    }
+                });
+            }
         })();
     </script>
 @endpush

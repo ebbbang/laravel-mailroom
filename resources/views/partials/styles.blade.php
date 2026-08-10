@@ -535,16 +535,167 @@
     .mr-notice svg { flex-shrink: 0; margin-top: 1px; }
     .mr-notice code { font-family: var(--mr-mono); font-size: 11.5px; }
 
-    .mr-flash {
+    /*
+    | A centred dialog, sharing the lightbox's overlay treatment so the two
+    | modals in this UI behave and feel the same. An author display rule beats
+    | the user agent's [hidden] { display: none }, so the attribute has to be
+    | honoured explicitly or the dialog is permanently open.
+    */
+    .mr-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: light-dark(rgba(27, 27, 24, .62), rgba(0, 0, 0, .76));
+        backdrop-filter: blur(6px);
+        animation: mr-fade .16s var(--mr-ease);
+    }
+
+    .mr-modal[hidden] { display: none; }
+
+    .mr-modal-card {
+        width: 100%;
+        max-width: 460px;
+        max-height: 100%;
+        overflow-y: auto;
+        padding: 18px 20px 20px;
+        border-radius: var(--mr-r-md);
+        border: 1px solid var(--mr-line-strong);
+        background: var(--mr-panel);
+        box-shadow: var(--mr-shadow-lg, 0 24px 60px rgba(0, 0, 0, .28));
+    }
+
+    .mr-modal-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .mr-modal-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--mr-ink);
+    }
+
+    .mr-modal-head .mr-btn { margin-left: auto; height: 28px; padding: 0 8px; }
+
+    .mr-modal-body {
+        margin: 0 0 10px;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--mr-ink-soft);
+    }
+
+    .mr-modal-body code,
+    .mr-modal-meta code { font-family: var(--mr-mono); font-size: 11.5px; }
+
+    .mr-modal-pre {
+        margin: 0 0 4px;
+        padding: 10px 12px;
+        overflow-x: auto;
+        border-radius: var(--mr-r-sm);
+        background: var(--mr-raised);
+        border: 1px solid var(--mr-line);
+        font-family: var(--mr-mono);
+        font-size: 12px;
+        color: var(--mr-ink);
+    }
+
+    .mr-modal-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--mr-ink-soft);
+    }
+
+    .mr-modal-input {
+        width: 100%;
+        height: 34px;
+        margin-bottom: 12px;
+        padding: 0 10px;
+        font: inherit;
+        font-size: 13px;
+        color: var(--mr-ink);
+        background: var(--mr-raised);
+        border: 1px solid var(--mr-line-strong);
+        border-radius: var(--mr-r-sm);
+    }
+
+    .mr-modal-input:focus {
+        outline: none;
+        border-color: var(--mr-accent);
+    }
+
+    .mr-modal-foot {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 9px 18px;
+        margin-top: 14px;
+    }
+
+    .mr-modal-meta {
+        margin-right: auto;
+        font-size: 12px;
+        color: var(--mr-ink-faint);
+    }
+
+    /*
+    | A toast, not a banner. Inserting a strip between the header and the panes
+    | pushed the entire mailbox down, so whatever you had just clicked moved out
+    | from under the cursor. Floating it over the layout says the same thing
+    | without moving anything.
+    */
+    .mr-flash {
+        position: fixed;
+        /* Bottom rather than top: at the top it sat over the search field and
+           the theme controls, which are the things you might want next. */
+        bottom: 18px;
+        left: 50%;
+        z-index: 70;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: min(560px, calc(100vw - 32px));
+        padding: 9px 14px;
         font-size: 13px;
         background: var(--mr-accent-wash);
         color: var(--mr-accent);
-        border-bottom: 1px solid var(--mr-accent-line);
-        flex-shrink: 0;
+        border: 1px solid var(--mr-accent-line);
+        border-radius: var(--mr-r-md);
+        box-shadow: var(--mr-shadow-lg, 0 12px 32px rgba(0, 0, 0, .18));
+        cursor: pointer;
+        transform: translateX(-50%);
+        animation: mr-toast-in .18s var(--mr-ease);
+    }
+
+    .mr-flash[hidden] { display: none; }
+
+    /* The keyframes carry the centring translate, or the animation would drop
+       it and the toast would jump to the middle-right on entry. */
+    @keyframes mr-toast-in {
+        from { opacity: 0; transform: translate(-50%, 8px); }
+        to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .mr-flash { animation: none; }
+    }
+
+    .mr-modal-error {
+        margin: 0 0 12px;
+        padding: 9px 11px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        border-radius: var(--mr-r-sm);
+        background: var(--mr-warn-wash);
+        border: 1px solid var(--mr-warn-line);
+        color: var(--mr-warn-ink);
     }
 
     .mr-poll {

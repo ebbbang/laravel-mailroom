@@ -75,6 +75,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Forwarding
+    |--------------------------------------------------------------------------
+    |
+    | Captured mail stays captured. Name a configured mailer here and the
+    | Forward button on each message becomes a send form, so a tester can pass
+    | one message to a real inbox and see how it renders in Gmail or Outlook.
+    |
+    | Until then the button explains how to switch it on, and the route that
+    | would do the sending is never registered -- so the feature is visible
+    | enough to be discovered, and inert until you ask for it.
+    |
+    | Because only a deliberate click sends anything, your SMTP bill tracks
+    | what someone actually looked at, and real addresses stay safe to use in
+    | staging fixtures.
+    |
+    | "require_authenticated_user" refuses to forward outside the local
+    | environment unless the request carries an authenticated user. Reaching
+    | the mailbox is enough to read it; sending mail from your domain should
+    | take more. Turning this off accepts that anyone who can open the mailbox
+    | can relay through it.
+    |
+    */
+
+    'forward' => [
+        'mailer' => env('MAILROOM_FORWARD_MAILER'),
+        'require_authenticated_user' => env('MAILROOM_FORWARD_REQUIRE_AUTH', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pruning
     |--------------------------------------------------------------------------
     |
