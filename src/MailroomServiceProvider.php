@@ -45,9 +45,20 @@ class MailroomServiceProvider extends ServiceProvider
      * `migrate:fresh` drops tables without firing model events, which is what
      * would otherwise delete a message's blobs along with its row. Listening
      * for the refresh keeps the disk in step with the database.
+     *
+     * Never during a test run. Laravel's RefreshDatabase trait runs
+     * `migrate:fresh` as it boots each test, and it does so before a test has
+     * had the chance to call Storage::fake() -- so the listener would fire
+     * against the developer's real disk and delete the mail they had captured
+     * while working. The refresh there belongs to a throwaway test database,
+     * which is no reason to touch their files at all.
      */
     protected function registerListeners(): void
     {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
+
         Event::listen(DatabaseRefreshed::class, FlushStorageOnDatabaseRefresh::class);
     }
 

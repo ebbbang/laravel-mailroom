@@ -2,6 +2,7 @@
 
 namespace Ebbbang\Mailroom\Tests\Feature;
 
+use Ebbbang\Mailroom\Listeners\FlushStorageOnDatabaseRefresh;
 use Ebbbang\Mailroom\Models\MailroomMessage;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
@@ -34,6 +35,39 @@ class DatabaseRefreshTest extends TestCase
         return trim((string) config('mailroom.storage.path', 'mailroom'), '/');
     }
 
+    /**
+     * Hand the event straight to the listener.
+     *
+     * The listener is deliberately not registered during a test run -- see
+     * the test below for why -- so dispatching would do nothing here. Calling
+     * it directly still exercises every branch of its logic.
+     */
+    protected function refresh(DatabaseRefreshed $event): void
+    {
+        resolve(FlushStorageOnDatabaseRefresh::class)->handle($event);
+    }
+
+    #[Test]
+    public function the_listener_is_not_registered_while_tests_are_running(): void
+    {
+        /*
+         * Laravel's RefreshDatabase trait runs `migrate:fresh` as it boots
+         * each test, which fires this very event -- and it does so before the
+         * test can call Storage::fake(). A registered listener would therefore
+         * flush the developer's real disk and delete the mail they captured
+         * while working, every time they ran their suite. The refresh belongs
+         * to a throwaway test database, so it is no reason to touch files at
+         * all.
+         */
+        $registered = Event::getRawListeners()[DatabaseRefreshed::class] ?? [];
+
+        $this->assertNotContains(
+            FlushStorageOnDatabaseRefresh::class,
+            $registered,
+            'Registering this listener during tests deletes real captured mail on every RefreshDatabase boot.'
+        );
+    }
+
     #[Test]
     public function refreshing_the_database_reclaims_the_orphaned_blobs(): void
     {
@@ -41,7 +75,7 @@ class DatabaseRefreshTest extends TestCase
 
         Storage::disk('local')->assertExists($message->raw_path);
 
-        Event::dispatch(new DatabaseRefreshed);
+        $this->refresh(new DatabaseRefreshed);
 
         Storage::disk('local')->assertMissing($message->raw_path);
         $this->assertEmpty(Storage::disk('local')->allFiles($this->storageRoot()));
@@ -65,7 +99,7 @@ class DatabaseRefreshTest extends TestCase
 
         config()->set('mailroom.database.connection', 'mailroom_store');
 
-        Event::dispatch(new DatabaseRefreshed('testing'));
+        $this->refresh(new DatabaseRefreshed('testing'));
 
         Storage::disk('local')->assertExists($message->raw_path);
     }
@@ -77,7 +111,7 @@ class DatabaseRefreshTest extends TestCase
 
         $message = $this->captureWithAttachment();
 
-        Event::dispatch(new DatabaseRefreshed('testing'));
+        $this->refresh(new DatabaseRefreshed('testing'));
 
         Storage::disk('local')->assertMissing($message->raw_path);
     }
@@ -95,7 +129,7 @@ class DatabaseRefreshTest extends TestCase
 
         $message = $this->captureWithAttachment();
 
-        Event::dispatch(new DatabaseRefreshed(config('database.default')));
+        $this->refresh(new DatabaseRefreshed(config('database.default')));
 
         Storage::disk('local')->assertMissing($message->raw_path);
     }
@@ -120,7 +154,7 @@ class DatabaseRefreshTest extends TestCase
 
         config()->set('mailroom.enabled', false);
 
-        Event::dispatch(new DatabaseRefreshed);
+        $this->refresh(new DatabaseRefreshed);
 
         Storage::disk('local')->assertExists($message->raw_path);
     }

@@ -9,6 +9,17 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-08-06
+
+### Fixed
+
+- A database refresh no longer deletes captured mail during a test run.
+  Laravel's `RefreshDatabase` runs `migrate:fresh` as it boots each test, which
+  fired the storage cleanup added in 0.3.1 — before a test could call
+  `Storage::fake()`, so it emptied the real disk. Anyone running their suite
+  lost the mail they had captured while developing. The refresh belongs to a
+  throwaway test database, so it is no longer acted on while tests are running.
+
 ## [0.3.1] - 2026-08-05
 
 ### Fixed
@@ -131,7 +142,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...v0.2.0
