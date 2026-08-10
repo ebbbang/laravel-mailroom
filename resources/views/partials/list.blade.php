@@ -27,7 +27,7 @@
                     @if ($item->attachment_count > 0)
                         <span class="mr-badge">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                             </svg>
                             {{ $item->attachment_count }}
                         </span>
@@ -47,7 +47,8 @@
         <div class="mr-empty">
             <span class="mr-empty-mark">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m21 21-4.3-4.3" />
                 </svg>
             </span>
 
@@ -102,16 +103,16 @@
             // Keyed on what the list contains, so changing page or filter
             // starts at the top rather than inheriting an unrelated offset.
             var params = new URLSearchParams(location.search);
-            var key = 'mr-list-scroll:' + [
-                params.get('page') || '1',
-                params.get('search') || '',
-                params.get('mailer') || '',
-            ].join('|');
+            var key =
+                'mr-list-scroll:' +
+                [params.get('page') || '1', params.get('search') || '', params.get('mailer') || ''].join('|');
 
             function remember() {
                 try {
                     sessionStorage.setItem(key, String(list.scrollTop));
-                } catch (e) { /* private mode: the list just starts at the top */ }
+                } catch (e) {
+                    /* private mode: the list just starts at the top */
+                }
             }
 
             try {
@@ -120,7 +121,9 @@
                 if (saved !== null) {
                     list.scrollTop = parseFloat(saved) || 0;
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                /* ignore */
+            }
 
             /*
              * Only when the selected row is *entirely* out of view -- arriving
@@ -143,25 +146,29 @@
 
                     // The pager is sticky, so aligning to the true bottom would
                     // tuck the row behind it.
-                    list.scrollTop += (itemBox.bottom - listBox.bottom) + (pager ? pager.offsetHeight : 0);
+                    list.scrollTop += itemBox.bottom - listBox.bottom + (pager ? pager.offsetHeight : 0);
                     remember();
                 }
             }
 
             var pending = false;
 
-            list.addEventListener('scroll', function () {
-                if (pending) {
-                    return;
-                }
+            list.addEventListener(
+                'scroll',
+                function () {
+                    if (pending) {
+                        return;
+                    }
 
-                pending = true;
+                    pending = true;
 
-                requestAnimationFrame(function () {
-                    pending = false;
-                    remember();
-                });
-            }, { passive: true });
+                    requestAnimationFrame(function () {
+                        pending = false;
+                        remember();
+                    });
+                },
+                { passive: true },
+            );
         })();
     </script>
 @endpush

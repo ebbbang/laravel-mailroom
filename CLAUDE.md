@@ -87,7 +87,11 @@ Metadata and bodies live in the database so the list stays fast; raw MIME and at
 
 ### The mailbox UI
 
-Server-rendered Blade in `resources/views/`, with styles in `partials/styles.blade.php` and small vanilla scripts inlined via `@push('scripts')`. **There is no build step, no npm, no published assets** — keep it that way; consumers get working styles with zero setup and no stale-asset failure mode.
+Server-rendered Blade in `resources/views/`, with styles in `partials/styles.blade.php` and small vanilla scripts inlined via `@push('scripts')`. **The package ships no assets and needs no build step** — keep it that way; consumers get working styles with zero setup and no stale-asset failure mode.
+
+Formatting them is a different matter: `pint.json` enables `Pint/laravel_blade`, which shells out to prettier, so `composer lint` needs `npm install` locally and the CI lint job installs it. Pint errors rather than installing on demand.
+
+**Prettier reflows whitespace.** That is correct for HTML and wrong for anything rendered as `text/plain` or markdown, where a blank line between paragraphs *is* the content — it will silently join short paragraphs onto one line, depending on print width. Mark those templates with `{{-- prettier-ignore --}}`, as `tests/Fixtures/views/order-shipped-text.blade.php` does; the comment is stripped at render time and leaves the body byte-identical. Nothing catches this automatically: a collapsed paragraph in a text email fails no test.
 
 Message bodies are attacker-controlled, so they are served from their own route into an `<iframe sandbox>` with neither `allow-scripts` nor `allow-same-origin`.
 

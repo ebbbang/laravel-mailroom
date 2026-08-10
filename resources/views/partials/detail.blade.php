@@ -39,7 +39,7 @@
         <span class="mr-field-label">Sent</span>
         <span class="mr-field-value">
             {{ $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString() }}
-            <span class="mr-badge" style="margin-left:6px">{{ $message->mailer }}</span>
+            <span class="mr-badge" style="margin-left: 6px">{{ $message->mailer }}</span>
             <span class="mr-badge">{{ $message->humanSize() }}</span>
         </span>
 
@@ -61,7 +61,7 @@
         @if ($message->hasRaw())
             <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'eml']) }}" class="mr-btn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
                 </svg>
                 .eml
             </a>
@@ -70,7 +70,7 @@
         @if ($hasHtml)
             <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'html']) }}" class="mr-btn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
                 </svg>
                 .html
             </a>
@@ -83,7 +83,7 @@
              feature without opening a way to use it. --}}
         <button type="button" class="mr-btn" id="mr-forward-open" aria-haspopup="dialog">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m14 8 4 4-4 4M18 12H6"/>
+                <path d="m14 8 4 4-4 4M18 12H6" />
             </svg>
             Forward
         </button>
@@ -92,8 +92,8 @@
             method="POST"
             action="{{ route('mailroom.destroy', $message) }}"
             class="mr-inline-form"
-            style="margin-left:auto"
-            onsubmit="return confirm('Delete this message?')"
+            style="margin-left: auto"
+            onsubmit="return confirm('Delete this message?');"
         >
             @csrf
             @method('DELETE')
@@ -124,9 +124,15 @@
     <div class="mr-modal-card" id="mr-forward-card">
         <div class="mr-modal-head">
             <h2 class="mr-modal-title" id="mr-forward-title">Forward this message</h2>
-            <button type="button" class="mr-btn mr-btn-ghost" id="mr-forward-close" aria-label="Close" title="Close (Esc)">
+            <button
+                type="button"
+                class="mr-btn mr-btn-ghost"
+                id="mr-forward-close"
+                aria-label="Close"
+                title="Close (Esc)"
+            >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 6 6 18M6 6l12 12"/>
+                    <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -137,14 +143,13 @@
 
         @if (! $message->hasRaw())
             <p class="mr-modal-body">
-                Forwarding replays the stored copy of this message, and that copy is missing — so
-                there is nothing to send. Everything shown above came from the database and is
-                intact.
+                Forwarding replays the stored copy of this message, and that copy is missing — so there is nothing to
+                send. Everything shown above came from the database and is intact.
             </p>
         @elseif (blank($forwardMailer))
             <p class="mr-modal-body">
-                Mailroom can send a copy of this message to a real inbox, so you can see how Gmail
-                or Outlook renders it. Nothing is sent unless you ask for it here.
+                Mailroom can send a copy of this message to a real inbox, so you can see how Gmail or Outlook renders
+                it. Nothing is sent unless you ask for it here.
             </p>
             <p class="mr-modal-body">
                 To switch it on, point <code>MAILROOM_FORWARD_MAILER</code> at a mailer from
@@ -153,8 +158,8 @@
             <pre class="mr-modal-pre"><code>MAILROOM_FORWARD_MAILER=smtp</code></pre>
         @elseif (! $canForward)
             <p class="mr-modal-body">
-                Forwarding is configured, but sending mail from your application needs a signed-in
-                user outside local development. Being able to read the mailbox is not enough.
+                Forwarding is configured, but sending mail from your application needs a signed-in user outside local
+                development. Being able to read the mailbox is not enough.
             </p>
             <p class="mr-modal-body">
                 Sign in, or set <code>forward.require_authenticated_user</code> to <code>false</code>
@@ -177,13 +182,12 @@
                     required
                     autocomplete="off"
                     spellcheck="false"
-                >
+                />
 
                 <p class="mr-modal-body">
-                    Leaving the address as it is sends the message exactly as captured. Changing it
-                    rewrites the <code>To</code> header and keeps the original in
-                    <code>X-Mailroom-Original-To</code>. Either way, only this address receives a
-                    copy, and the message stored here is not altered.
+                    Leaving the address as it is sends the message exactly as captured. Changing it rewrites the
+                    <code>To</code> header and keeps the original in <code>X-Mailroom-Original-To</code>. Either way,
+                    only this address receives a copy, and the message stored here is not altered.
                 </p>
 
                 <div class="mr-modal-foot">
@@ -199,16 +203,14 @@
 @if ($message->hasMissingFiles())
     <div class="mr-notice">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+            <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         </svg>
         <span>
             <strong>Stored files are missing.</strong>
-            Everything above was read from the database and is intact, but the
-            {{ $message->rawIsMissing() ? 'raw message' : 'attachment data' }}
-            is no longer on the <code>{{ config('mailroom.storage.disk') }}</code> disk, so
-            {{ $message->rawIsMissing() ? '.eml export' : 'downloads' }} cannot work.
-            This is what an ephemeral or per-replica disk looks like — on Laravel Cloud
-            and similar platforms, point <code>MAILROOM_DISK</code> at persistent object storage.
+            Everything above was read from the database and is intact, but the {{ $message->rawIsMissing() ? 'raw message' : 'attachment data' }} is
+            no longer on the <code>{{ config('mailroom.storage.disk') }}</code> disk, so {{ $message->rawIsMissing() ? '.eml export' : 'downloads' }} cannot
+            work. This is what an ephemeral or per-replica disk looks like — on Laravel Cloud and similar platforms,
+            point <code>MAILROOM_DISK</code> at persistent object storage.
         </span>
     </div>
 @endif
@@ -216,24 +218,40 @@
 @if ($message->envelopeDivergesFromHeaders())
     <div class="mr-notice">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+            <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         </svg>
         <span>
             <strong>Envelope differs from headers.</strong>
-            This was delivered to <strong>{{ Msg::formatAddressList($message->envelope_recipients) }}</strong>,
-            which is not what the message is addressed to. Something supplied a custom
-            envelope, so the recipients above are not who actually received it.
+            This was delivered to <strong>{{ Msg::formatAddressList($message->envelope_recipients) }}</strong>, which is
+            not what the message is addressed to. Something supplied a custom envelope, so the recipients above are not
+            who actually received it.
         </span>
     </div>
 @endif
 
 <div class="mr-tabs" role="tablist">
     @if ($hasHtml)
-        <button type="button" class="mr-tab" role="tab" aria-selected="{{ $firstPane === 'html' ? 'true' : 'false' }}" data-mr-tab="html">HTML</button>
+        <button
+            type="button"
+            class="mr-tab"
+            role="tab"
+            aria-selected="{{ $firstPane === 'html' ? 'true' : 'false' }}"
+            data-mr-tab="html"
+        >
+            HTML
+        </button>
     @endif
 
     @if ($hasText)
-        <button type="button" class="mr-tab" role="tab" aria-selected="{{ $firstPane === 'text' ? 'true' : 'false' }}" data-mr-tab="text">Text</button>
+        <button
+            type="button"
+            class="mr-tab"
+            role="tab"
+            aria-selected="{{ $firstPane === 'text' ? 'true' : 'false' }}"
+            data-mr-tab="text"
+        >
+            Text
+        </button>
     @endif
 
     {{--
@@ -251,7 +269,15 @@
         </button>
     @endif
 
-    <button type="button" class="mr-tab" role="tab" aria-selected="{{ $firstPane === 'headers' ? 'true' : 'false' }}" data-mr-tab="headers">Headers</button>
+    <button
+        type="button"
+        class="mr-tab"
+        role="tab"
+        aria-selected="{{ $firstPane === 'headers' ? 'true' : 'false' }}"
+        data-mr-tab="headers"
+    >
+        Headers
+    </button>
 
     @if ($message->hasRaw())
         <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="raw">Raw</button>
@@ -326,7 +352,6 @@
                     });
                 });
             });
-
         })();
     </script>
 @endpush

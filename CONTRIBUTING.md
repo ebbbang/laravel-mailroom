@@ -27,6 +27,12 @@ Run `composer lint` before opening a pull request. CI runs `lint:check`, which f
 
 Both tools cache into `build/`, so repeat runs are fast and the directory is git-ignored.
 
+### Blade formatting needs Node
+
+Pint formats Blade through prettier, so the first `composer lint` will ask to install a few npm packages. That is a contributor-only requirement — the package itself still ships no assets and needs no build step.
+
+Prettier reflows whitespace, which is right for HTML and wrong for templates rendered as plain text or markdown, where a blank line between paragraphs is content rather than layout. Mark those with `{{-- prettier-ignore --}}` on the first line; the comment disappears at render time. No test will catch it if you forget, so treat any reformatting of a mail template in your diff as a bug.
+
 ### Why `composer test` runs two passes
 
 Testbench gives every worker the same skeleton application, so a test that writes into it is visible to all the others. `InstallCommandTest` does exactly that: publishing puts a `config/mailroom.php` in the directory each worker boots from, and testbench globs that directory and then requires what it found — so removing the file in teardown makes a concurrent boot fail on a path that existed a moment earlier. Its `.env` fixtures can likewise be read mid-rewrite.

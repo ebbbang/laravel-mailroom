@@ -1,11 +1,4 @@
-<div
-    class="mr-lightbox"
-    id="mr-lightbox"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="mr-lightbox-title"
-    hidden
->
+<div class="mr-lightbox" id="mr-lightbox" role="dialog" aria-modal="true" aria-labelledby="mr-lightbox-title" hidden>
     <div class="mr-lightbox-bar">
         <span class="mr-lightbox-title" id="mr-lightbox-title"></span>
         <span class="mr-lightbox-sub" id="mr-lightbox-meta"></span>
@@ -13,28 +6,52 @@
         <span class="mr-lightbox-tools">
             <span class="mr-lightbox-sub" id="mr-lightbox-count"></span>
 
-            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-prev" aria-label="Previous attachment" title="Previous (←)">
+            <button
+                type="button"
+                class="mr-lightbox-btn"
+                id="mr-lightbox-prev"
+                aria-label="Previous attachment"
+                title="Previous (←)"
+            >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m15 18-6-6 6-6"/>
+                    <path d="m15 18-6-6 6-6" />
                 </svg>
             </button>
 
-            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-next" aria-label="Next attachment" title="Next (→)">
+            <button
+                type="button"
+                class="mr-lightbox-btn"
+                id="mr-lightbox-next"
+                aria-label="Next attachment"
+                title="Next (→)"
+            >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m9 18 6-6-6-6"/>
+                    <path d="m9 18 6-6-6-6" />
                 </svg>
             </button>
 
             {{-- Points at the hardened download route, never the preview route. --}}
-            <a class="mr-lightbox-btn" id="mr-lightbox-download" href="#" aria-label="Download this attachment" title="Download">
+            <a
+                class="mr-lightbox-btn"
+                id="mr-lightbox-download"
+                href="#"
+                aria-label="Download this attachment"
+                title="Download"
+            >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
                 </svg>
             </a>
 
-            <button type="button" class="mr-lightbox-btn" id="mr-lightbox-close" aria-label="Close preview" title="Close (Esc)">
+            <button
+                type="button"
+                class="mr-lightbox-btn"
+                id="mr-lightbox-close"
+                aria-label="Close preview"
+                title="Close (Esc)"
+            >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 6 6 18M6 6l12 12"/>
+                    <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
             </button>
         </span>
@@ -96,9 +113,7 @@
                 meta.textContent = trigger.getAttribute('data-mr-meta') || '';
                 download.setAttribute('href', trigger.getAttribute('data-mr-download') || '#');
 
-                count.textContent = triggers.length > 1
-                    ? (index + 1) + ' of ' + triggers.length
-                    : '';
+                count.textContent = triggers.length > 1 ? index + 1 + ' of ' + triggers.length : '';
 
                 prev.disabled = index === 0;
                 next.disabled = index === triggers.length - 1;
@@ -146,8 +161,12 @@
                 });
             });
 
-            prev.addEventListener('click', function () { step(-1); });
-            next.addEventListener('click', function () { step(1); });
+            prev.addEventListener('click', function () {
+                step(-1);
+            });
+            next.addEventListener('click', function () {
+                step(1);
+            });
             close.addEventListener('click', dismiss);
 
             /*
@@ -165,10 +184,11 @@
              * its own document and those clicks never reach this listener.
              */
             function isBackdrop(element) {
-                return element instanceof Element && (
-                    element.classList.contains('mr-lightbox') ||
-                    element.classList.contains('mr-lightbox-body') ||
-                    element.classList.contains('mr-lightbox-stage')
+                return (
+                    element instanceof Element &&
+                    (element.classList.contains('mr-lightbox') ||
+                        element.classList.contains('mr-lightbox-body') ||
+                        element.classList.contains('mr-lightbox-stage'))
                 );
             }
 
@@ -220,7 +240,9 @@
 
                 // Keep Tab inside the dialog while it is open.
                 if (event.key === 'Tab') {
-                    var focusable = box.querySelectorAll('button:not([disabled]), a[href], iframe, audio, video, [tabindex]:not([tabindex="-1"])');
+                    var focusable = box.querySelectorAll(
+                        'button:not([disabled]), a[href], iframe, audio, video, [tabindex]:not([tabindex="-1"])',
+                    );
 
                     if (!focusable.length) {
                         return;

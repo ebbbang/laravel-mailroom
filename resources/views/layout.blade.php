@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, nofollow">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
     <title>@yield('title', 'Mailroom')</title>
 
     {{--
@@ -18,7 +18,9 @@
                 if (stored === 'light' || stored === 'dark') {
                     document.documentElement.setAttribute('data-mr-theme', stored);
                 }
-            } catch (e) { /* private mode, storage disabled -- fall back to system */ }
+            } catch (e) {
+                /* private mode, storage disabled -- fall back to system */
+            }
         })();
     </script>
 
@@ -47,10 +49,7 @@
                 }
 
                 buttons.forEach(function (button) {
-                    button.setAttribute(
-                        'aria-pressed',
-                        String(button.getAttribute('data-mr-theme-choice') === choice)
-                    );
+                    button.setAttribute('aria-pressed', String(button.getAttribute('data-mr-theme-choice') === choice));
                 });
             }
 
@@ -62,7 +61,9 @@
                         choice === 'system'
                             ? localStorage.removeItem('mr-theme')
                             : localStorage.setItem('mr-theme', choice);
-                    } catch (e) { /* not fatal -- the choice still applies for this page */ }
+                    } catch (e) {
+                        /* not fatal -- the choice still applies for this page */
+                    }
 
                     paint(choice);
                 });
@@ -74,7 +75,9 @@
                 if (stored === 'light' || stored === 'dark') {
                     current = stored;
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                /* ignore */
+            }
 
             paint(current);
         })();

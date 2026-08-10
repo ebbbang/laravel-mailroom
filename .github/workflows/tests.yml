@@ -117,6 +117,17 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
+      # Pint's blade rule shells out to prettier. It refuses to run rather than
+      # installing on demand, so the lint job needs node -- even though the
+      # package itself has no build step and ships no assets.
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
       # Both tools write into build/, and both are keyed on their own config
       # plus the lockfile so a tooling upgrade invalidates the cache. The
       # run_id in the key means every run saves a fresh entry while

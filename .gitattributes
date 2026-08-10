@@ -12,6 +12,8 @@
 /phpunit.xml        export-ignore
 /rector.php         export-ignore
 /pint.json          export-ignore
+/package.json       export-ignore
+/package-lock.json  export-ignore
 /testbench.yaml     export-ignore
 /CHANGELOG.md       export-ignore
 /CLAUDE.md          export-ignore

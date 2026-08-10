@@ -16,10 +16,9 @@
 @switch (true)
     {{-- Images and SVG go through <img>, where an SVG cannot script or fetch. --}}
     @case ($kind === PreviewKind::Image || $kind === PreviewKind::Svg)
-        <img class="mr-shot" src="{{ $src }}" alt="{{ $file->displayName() }}">
+        <img class="mr-shot" src="{{ $src }}" alt="{{ $file->displayName() }}" />
         @break
-
-    {{--
+        {{--
         <object> rather than <iframe>: Safari has never rendered a PDF inside
         an iframe and needs <object>/<embed>, while Chrome and Firefox handle
         both. The type is pinned here and by the response, so the browser
@@ -38,24 +37,26 @@
             </div>
         </object>
         @break
-
     @case ($kind === PreviewKind::Audio)
         <audio controls preload="metadata" src="{{ $src }}"></audio>
         @break
-
     @case ($kind === PreviewKind::Video)
         <video controls preload="metadata" src="{{ $src }}"></video>
         @break
-
     @default
         <div class="mr-sheet">
             @if ($rendered['state'] === 'too-large' || $rendered['state'] === 'unreadable' || $rendered['state'] === 'empty')
                 <div class="mr-blank">
                     <div class="mr-empty-title">
                         @switch ($rendered['state'])
-                            @case ('too-large') Too large to preview @break
-                            @case ('empty') This file is empty @break
-                            @default Could not read this file
+                            @case ('too-large')
+                                Too large to preview
+                                @break
+                            @case ('empty')
+                                This file is empty
+                                @break
+                            @default
+                                Could not read this file
                         @endswitch
                     </div>
                     @foreach ($rendered['notes'] as $note)
@@ -103,4 +104,5 @@
                 @endif
             @endif
         </div>
+
 @endswitch
