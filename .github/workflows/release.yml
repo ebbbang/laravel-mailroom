@@ -1,0 +1,46 @@
+name: release
+
+# A tag and a GitHub Release are separate objects: pushing the first is what
+# Packagist consumes, but it leaves the Releases page empty and each tag page
+# showing only the tip commit subject, which rarely describes the release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Notes come from CHANGELOG.md, which is written for somebody deciding
+      # whether to upgrade. A generated list of commit subjects is not.
+      - name: Read the changelog entry for this tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+
+          awk -v tag="## [${version}]" '
+            index($0, tag) == 1 { inside = 1; next }
+            inside && index($0, "## [") == 1 { exit }
+            inside { print }
+          ' CHANGELOG.md > release-notes.md
+
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG.md has no entry for ${version}. Add one before tagging."
+            exit 1
+          fi
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --verify-tag

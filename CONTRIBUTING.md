@@ -96,7 +96,10 @@ Testbench majors track Laravel majors and cap the usable PHPUnit version, so the
 - **One concern per pull request.** A refactor bundled with a fix is hard to review and harder to revert.
 - **Add a test.** Anything touching capture, the mailbox or previews should fail without your change — please check that it does, rather than only that it passes with it.
 - **Update the docs** when behaviour changes, including `config/mailroom.php` comments and the README's configuration table.
-- **Add a `CHANGELOG.md` entry** under `## [Unreleased]`.
+- **Add a `CHANGELOG.md` entry** under `## [Unreleased]`. Keep sections in Keep
+  a Changelog's order — Added, Changed, Deprecated, Removed, Fixed, Security —
+  and use only those headings. Tagging a release publishes that section verbatim
+  as the GitHub release notes, so it is read far more often than it is written.
 - Match the surrounding style. Pint settles formatting; the comment density and naming are worth matching by eye.
 
 ## Security
