@@ -96,11 +96,30 @@ return [
     | take more. Turning this off accepts that anyone who can open the mailbox
     | can relay through it.
     |
+    | "allowed" bounds where a message may be sent. Entries are whole
+    | addresses, or "@domain" to permit everyone there. An empty list permits
+    | anywhere, which is the default. Set MAILROOM_FORWARD_ALLOWED to a
+    | comma-separated list on a staging box several people share.
+    |
+    | "rate_limit" is how many forwards one person may send a minute, counted
+    | per authenticated user and otherwise per IP. Null removes the limit.
+    | Counting runs through your cache store, as Laravel's throttling does.
+    |
     */
 
     'forward' => [
         'mailer' => env('MAILROOM_FORWARD_MAILER'),
+
         'require_authenticated_user' => env('MAILROOM_FORWARD_REQUIRE_AUTH', true),
+
+        // Split here rather than expecting an array from the environment,
+        // which can only ever hand us a string.
+        'allowed' => array_values(array_filter(array_map(
+            trim(...),
+            explode(',', (string) env('MAILROOM_FORWARD_ALLOWED', ''))
+        ))),
+
+        'rate_limit' => env('MAILROOM_FORWARD_RATE_LIMIT', 10),
     ],
 
     /*

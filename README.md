@@ -61,7 +61,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.4` while this is 0.x.** Composer treats `^0.4` as `0.4.*` only, so moving to a 0.5 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.5` while this is 0.x.** Composer treats `^0.5` as `0.5.*` only, so moving to a 0.6 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -183,12 +183,22 @@ Because sending takes a deliberate click, your SMTP bill covers the handful of m
 
 ### Keeping it safe
 
-The mailbox becomes able to send, so four things bound it:
+The mailbox becomes able to send, so six things bound it:
 
 - **There is nothing to send through until you configure it.** With no `forward.mailer` the route is never registered, so the button explains the setup instead of offering a form.
 - **Outside `local`, forwarding needs an authenticated user.** Reading the mailbox and relaying from it are different privileges: opening the mailbox up with a permissive `Mailroom::auth()` callback grants reading, not sending. Set `MAILROOM_FORWARD_REQUIRE_AUTH=false` to accept that anyone who can open the mailbox can send through it.
 - **Sending asks first**, naming the address, since the field is pre-filled with a real customer's.
 - **A Mailroom mailer is refused as the destination** — it would capture the message again instead of delivering it, leaving you waiting for mail that was never going to arrive.
+- **You can bound where mail may go.** `MAILROOM_FORWARD_ALLOWED` takes a comma-separated list of whole addresses, or `@domain` to permit everyone there. Empty means anywhere, which is the default.
+- **And how often.** `MAILROOM_FORWARD_RATE_LIMIT` caps forwards per minute, counted per signed-in user and otherwise per IP. Ten by default; `null` removes the ceiling.
+
+On a staging box several people share, those last two are what turn a send button into a bounded one:
+
+```dotenv
+MAILROOM_FORWARD_MAILER=smtp
+MAILROOM_FORWARD_ALLOWED=@yourcompany.com
+MAILROOM_FORWARD_RATE_LIMIT=10
+```
 
 ## Staging and QA
 
@@ -245,6 +255,8 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `database.attachments_table` | `mailroom_attachments` | |
 | `forward.mailer` | `null` | Mailer the Forward button sends through; `null` leaves it explaining the setup |
 | `forward.require_authenticated_user` | `true` | Outside `local`, forwarding needs a signed-in user |
+| `forward.allowed` | `[]` | Addresses or `@domain` entries a forward may target; empty means anywhere |
+| `forward.rate_limit` | `10` | Forwards a minute, per user then per IP; `null` removes the limit |
 | `prune.retention_days` | `7` | Default age cutoff for `mailroom:prune` |
 | `prune.schedule` | `null` | Cron expression or frequency name to auto-schedule pruning |
 | `ui.per_page` | `25` | Messages per page |
@@ -265,6 +277,8 @@ Every environment variable Mailroom reads:
 | `MAILROOM_DB_CONNECTION` | `database.connection` | your default connection |
 | `MAILROOM_FORWARD_MAILER` | `forward.mailer` | `null` |
 | `MAILROOM_FORWARD_REQUIRE_AUTH` | `forward.require_authenticated_user` | `true` |
+| `MAILROOM_FORWARD_ALLOWED` | `forward.allowed` | empty |
+| `MAILROOM_FORWARD_RATE_LIMIT` | `forward.rate_limit` | `10` |
 | `MAILROOM_RETENTION_DAYS` | `prune.retention_days` | `7` |
 | `MAILROOM_PRUNE_SCHEDULE` | `prune.schedule` | `null` |
 | `MAILROOM_PREVIEW` | `preview.enabled` | `true` |

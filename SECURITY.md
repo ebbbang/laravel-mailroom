@@ -6,7 +6,8 @@ While the package is below 1.0, only the latest minor receives fixes.
 
 | Version | Supported |
 |---------|-----------|
-| 0.4.x   | yes       |
+| 0.5.x   | yes       |
+| 0.4.x   | no        |
 | 0.3.x   | no        |
 | 0.2.x   | no        |
 | 0.1.x   | no        |
@@ -71,6 +72,10 @@ your relay — to an address of their choosing. Four things bound that:
   reached even on the byte-identical path.
 - A mailer whose transport is itself `mailroom` is refused, so a forward
   cannot loop.
+- `MAILROOM_FORWARD_ALLOWED` bounds the destinations to named addresses or
+  whole domains. Left empty, any address is permitted.
+- `MAILROOM_FORWARD_RATE_LIMIT` caps forwards a minute, counted per signed-in
+  user and otherwise per IP, so a compromised session cannot drain a relay.
 
 The forwarded copy is the stored MIME, so it carries whatever the original
 did. Treat the destination as you would the mailbox itself: it receives real

@@ -9,6 +9,22 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-16
+
+### Added
+
+- `MAILROOM_FORWARD_ALLOWED` bounds where a message may be forwarded. Entries
+  are whole addresses, or `@domain` to permit everyone there. Left empty, which
+  is the default, any address is permitted — so nothing changes for an existing
+  install until you set it.
+- `MAILROOM_FORWARD_RATE_LIMIT` caps forwards a minute, counted per signed-in
+  user and otherwise per IP, defaulting to ten. Set it to `null` to remove the
+  ceiling. Counting runs through your cache store, as Laravel's throttling
+  does.
+
+  Exceeding it reopens the dialog with an explanation rather than returning a
+  browser-facing 429, so a refusal reads like every other forwarding failure.
+
 ## [0.4.0] - 2026-08-06
 
 ### Added

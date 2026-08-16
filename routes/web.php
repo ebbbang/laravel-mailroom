@@ -35,7 +35,9 @@ Route::middleware([])->whereNumber('message')->group(function (): void {
     // Not registered at all unless a mailer is configured to forward through,
     // so the feature has no surface until it is deliberately set up.
     if (Mailroom::canForward()) {
-        Route::post('/{message}/forward', ForwardController::class)->name('forward');
+        Route::post('/{message}/forward', ForwardController::class)
+            ->middleware('throttle:mailroom-forward')
+            ->name('forward');
     }
 
     // Kept separate from the download route above, which forces

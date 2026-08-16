@@ -16,6 +16,9 @@ env:
   # Left at its default. Set APP_ENV to something other than local and flip
   # this to false to see the two halves of the forwarding auth guard.
   - MAILROOM_FORWARD_REQUIRE_AUTH=true
+  # Bounds the demo to one domain, so trying to forward anywhere else shows
+  # the refusal. Clear it to forward to any address again.
+  - MAILROOM_FORWARD_ALLOWED="@example.test"
   # Sync, so demo:seed's queued mailable is captured during seeding instead of
   # sitting in the jobs table waiting for a worker nobody is running.
   - QUEUE_CONNECTION="sync"

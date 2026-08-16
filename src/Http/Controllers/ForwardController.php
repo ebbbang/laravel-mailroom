@@ -3,6 +3,7 @@
 namespace Ebbbang\Mailroom\Http\Controllers;
 
 use Ebbbang\Mailroom\Exceptions\CannotForwardException;
+use Ebbbang\Mailroom\Forwarding\AllowedAddress;
 use Ebbbang\Mailroom\Forwarding\MessageForwarder;
 use Ebbbang\Mailroom\Mailroom;
 use Ebbbang\Mailroom\Models\MailroomMessage;
@@ -19,7 +20,10 @@ class ForwardController
         abort_unless(Mailroom::canForwardFrom($request), 403);
 
         $validated = $request->validate([
-            'to' => ['required', 'string', 'email:rfc', 'max:254'],
+            // The allowlist is a validation concern rather than something
+            // MessageForwarder enforces: a refusal then lands beside the field
+            // that caused it, with the rejected address still there to correct.
+            'to' => ['required', 'string', 'email:rfc', 'max:254', AllowedAddress::fromConfig()],
         ]);
 
         try {

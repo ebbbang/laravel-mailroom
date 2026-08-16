@@ -9,11 +9,15 @@ use Ebbbang\Mailroom\Listeners\FlushStorageOnDatabaseRefresh;
 use Ebbbang\Mailroom\Recording\MessageRecorder;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Ebbbang\Mailroom\Transport\TransportFactory;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Events\DatabaseRefreshed;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -39,6 +43,40 @@ class MailroomServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerSchedule();
         $this->registerListeners();
+        $this->registerRateLimiter();
+    }
+
+    /**
+     * Bound how often one person may forward a message.
+     *
+     * A named limiter rather than a bare "throttle:10,1" so a refusal can
+     * redirect back with an explanation, landing in the dialog like every
+     * other forwarding failure instead of a browser-facing 429.
+     *
+     * The key has to be set explicitly. ThrottleRequests only falls back to a
+     * per-user request signature for the unnamed form; a named limiter keys on
+     * md5($name . $limit->key), so leaving that empty puts everyone in one
+     * bucket and lets one busy tester lock out the team.
+     */
+    protected function registerRateLimiter(): void
+    {
+        RateLimiter::for('mailroom-forward', function (Request $request): Limit {
+            $perMinute = config('mailroom.forward.rate_limit');
+
+            if (blank($perMinute) || (int) $perMinute < 1) {
+                return Limit::none();
+            }
+
+            $identifier = $request->user()?->getAuthIdentifier();
+
+            return Limit::perMinute((int) $perMinute)
+                // Prefixed so a user id can never collide with an IP.
+                ->by($identifier === null ? 'ip:'.$request->ip() : 'user:'.$identifier)
+                ->response(fn (): RedirectResponse => back()->with(
+                    'mailroom.error',
+                    'That is a lot of forwarding in one minute. Give it a moment and try again.'
+                ));
+        });
     }
 
     /**

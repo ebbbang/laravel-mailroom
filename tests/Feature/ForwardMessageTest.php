@@ -5,16 +5,14 @@ namespace Ebbbang\Mailroom\Tests\Feature;
 use Ebbbang\Mailroom\Mailroom;
 use Ebbbang\Mailroom\Models\MailroomMessage;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
+use Ebbbang\Mailroom\Tests\Fixtures\RelaySpy;
 use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
-use Symfony\Component\Mailer\Envelope;
-use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\RawMessage;
 
 class ForwardMessageTest extends TestCase
 {
@@ -269,45 +267,5 @@ class ForwardMessageTest extends TestCase
         // nothing new lands in the mailbox and the original is untouched.
         $this->assertSame(1, MailroomMessage::query()->count());
         $this->assertSame($message->uuid, MailroomMessage::sole()->uuid);
-    }
-}
-
-/**
- * Stands in for a real relay so the tests can read exactly what would have
- * gone out, envelope included.
- */
-class RelaySpy implements TransportInterface
-{
-    /** @var array<int, array{message: RawMessage, envelope: Envelope}> */
-    public array $sent = [];
-
-    protected ?string $failure = null;
-
-    public function refuseWith(string $message): void
-    {
-        $this->failure = $message;
-    }
-
-    public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
-    {
-        if ($this->failure !== null) {
-            throw new \RuntimeException($this->failure);
-        }
-
-        $envelope ??= new Envelope(new Address('app@example.test'), [new Address('nobody@example.test')]);
-
-        $this->sent[] = ['message' => $message, 'envelope' => $envelope];
-
-        return new SentMessage($message, $envelope);
-    }
-
-    public function body(int $index): string
-    {
-        return $this->sent[$index]['message']->toString();
-    }
-
-    public function __toString(): string
-    {
-        return 'relay-spy';
     }
 }

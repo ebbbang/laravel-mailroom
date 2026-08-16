@@ -55,6 +55,10 @@ abstract class TestCase extends Orchestra
         // that the transport captured the message without running a worker.
         $app['config']->set('queue.default', 'sync');
 
+        // Rate limiting runs through the cache, and the skeleton defaults to
+        // the database store without a cache table to back it.
+        $app['config']->set('cache.default', 'array');
+
         $app['config']->set('mail.default', 'mailroom');
         $app['config']->set('mail.from', [
             'address' => 'app@example.test',
