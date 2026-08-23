@@ -212,17 +212,33 @@ class MailroomMessage extends Model
      */
     public function preview(int $limit = 120): string
     {
-        /*
-         * Tags become a space rather than being stripped outright. strip_tags()
-         * on "<h2>Order shipped</h2><p>It left today</p>" yields
-         * "Order shippedIt left today", running the heading into the body --
-         * the whitespace collapse below then tidies up the extra spaces.
-         */
         $source = filled($this->text_body)
             ? $this->text_body
-            : preg_replace('/<[^>]*+>/', ' ', (string) $this->html_body);
+            : $this->htmlAsText();
 
         return Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $source) ?? ''), $limit);
+    }
+
+    /**
+     * The HTML body reduced to the prose inside it.
+     */
+    protected function htmlAsText(): string
+    {
+        /*
+         * Style and script elements go first, contents and all. Removing the
+         * tags alone leaves their bodies behind as text, so a message carrying
+         * a <style> block -- which most templated mail does -- would read as a
+         * line of CSS rather than as anything anyone wrote.
+         */
+        $html = preg_replace('#<(style|script)\b[^>]*+>.*?</\1>#is', ' ', (string) $this->html_body);
+
+        /*
+         * What remains has its tags turned into spaces rather than removed
+         * outright. strip_tags() on "<h2>Order shipped</h2><p>It left today</p>"
+         * yields "Order shippedIt left today", running the heading into the
+         * body -- the caller's whitespace collapse then tidies up the spares.
+         */
+        return (string) preg_replace('/<[^>]*+>/', ' ', (string) $html);
     }
 
     public function humanSize(): string

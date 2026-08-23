@@ -9,6 +9,14 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+### Fixed
+
+- The message list showed a line of CSS as the preview snippet for any message
+  whose HTML carried a `<style>` block, which most templated mail does. Only
+  the tags were being removed, leaving the stylesheet itself to stand in as the
+  summary; the contents of `<script>` elements arrived there the same way. Both
+  are now dropped along with their tags.
+
 ## [0.5.0] - 2026-08-16
 
 ### Added
@@ -182,7 +190,9 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.0...v0.3.1

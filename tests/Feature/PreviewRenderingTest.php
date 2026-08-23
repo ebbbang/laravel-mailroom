@@ -377,6 +377,44 @@ class PreviewRenderingTest extends TestCase
     }
 
     #[Test]
+    public function the_list_snippet_is_not_a_line_of_css(): void
+    {
+        /*
+         * Most templated mail carries a <style> block, and removing the tags
+         * alone leaves its contents behind as the snippet. Shaped like real
+         * builder output rather than the tidiest case: a type attribute on the
+         * tag, a second block further down, and one in capitals.
+         */
+        Mail::html(
+            '<html><head>'
+            .'<style type="text/css">@media (max-width: 480px) { .col { display: block !important; } }</style>'
+            .'</head><body>'
+            .'<STYLE>.footer { color: #a3a09a }</STYLE>'
+            .'<p>Your order has shipped.</p>'
+            .'</body></html>',
+            fn ($message) => $message->to('rachel@example.test')->subject('Styled')
+        );
+
+        $snippet = MailroomMessage::query()->latest('id')->first()->preview();
+
+        $this->assertSame('Your order has shipped.', $snippet);
+    }
+
+    #[Test]
+    public function the_list_snippet_leaves_out_script_contents_too(): void
+    {
+        Mail::html(
+            '<body><script>var tracking = "should never be read as prose";</script>'
+            .'<p>Your refund is on its way.</p></body>',
+            fn ($message) => $message->to('rachel@example.test')->subject('Scripted')
+        );
+
+        $snippet = MailroomMessage::query()->latest('id')->first()->preview();
+
+        $this->assertSame('Your refund is on its way.', $snippet);
+    }
+
+    #[Test]
     public function the_poll_baseline_is_the_global_newest_id_not_the_pages_newest(): void
     {
         // Otherwise opening page two, or filtering out the newest message,
