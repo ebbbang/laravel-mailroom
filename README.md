@@ -397,6 +397,8 @@ Mailroom is a **development tool** rather than a logging or queueing layer: it e
 
 If you would rather run a separate service, [Mailpit](https://mailpit.axllent.org) and [Helo](https://usehelo.com) catch SMTP outside your application entirely. Mailroom trades that isolation for needing nothing else installed, and for capturing what Laravel actually built rather than what reached an SMTP socket.
 
+Different again are template previewers such as [Statamic's Mailables Viewer](https://statamic.com/addons/statamic/mailables-viewer), which find your `Mailable` classes and render them on demand with sample constructor data. Those are good for iterating on a template you are actively writing. Mailroom answers a different question: it stores the message your application really produced, with the values it really used, the attachments it really generated, and whichever conditionals really ran. Nothing has to be re-rendered for you to read it.
+
 ## Testing
 
 ```bash
