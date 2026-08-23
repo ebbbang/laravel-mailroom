@@ -9,6 +9,28 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-23
+
+### Added
+
+- **Desktop, tablet and mobile preview.** The rendered body can be viewed at
+  768px and 375px as well as full width, so you can see whether an email holds
+  together on a phone without forwarding it to one. An iframe carries its own
+  viewport, so the message's own media queries fire at the chosen width — this
+  is a real layout at that size, not a scaled picture of one.
+
+  Desktop is the default and is unchanged from 0.5.0, so nothing looks
+  different until you pick another width. The choice is remembered between
+  messages.
+
+### Changed
+
+- `composer serve` no longer stops after five minutes. Composer applies a
+  300-second timeout to every script it runs, which was killing the demo server
+  mid-session; the `serve` script now clears it for itself, leaving `test` and
+  `lint` bounded as before. This affects working on the package rather than
+  applications that install it.
+
 ### Fixed
 
 - The message list showed a line of CSS as the preview snippet for any message

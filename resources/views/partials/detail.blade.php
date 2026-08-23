@@ -282,15 +282,56 @@
     @if ($message->hasRaw())
         <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="raw">Raw</button>
     @endif
+
+    {{--
+        Sits in the tab row rather than beside the message actions, because it
+        changes how the body is displayed rather than what happens to the
+        message. Only the HTML pane reflows, so the tab script hides it
+        whenever another pane is showing.
+    --}}
+    @if ($hasHtml)
+        <div class="mr-viewport" id="mr-viewport" role="group" aria-label="Preview width">
+            {{--
+                The label is the accessible name, so there is no aria-label to
+                override it. The title carries the width, which is the part
+                worth knowing and too noisy to put on screen.
+            --}}
+            <button type="button" data-mr-viewport-choice="desktop" aria-pressed="true" title="Fills the pane">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8m-4-4v4" />
+                </svg>
+                <span class="mr-viewport-label">Desktop</span>
+            </button>
+            <button type="button" data-mr-viewport-choice="tablet" aria-pressed="false" title="768 pixels">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <path d="M12 18h.01" />
+                </svg>
+                <span class="mr-viewport-label">Tablet</span>
+            </button>
+            <button type="button" data-mr-viewport-choice="mobile" aria-pressed="false" title="375 pixels">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="7" y="2" width="10" height="20" rx="2" />
+                    <path d="M12 18h.01" />
+                </svg>
+                <span class="mr-viewport-label">Mobile</span>
+            </button>
+        </div>
+    @endif
 </div>
 
 @if ($hasHtml)
-    <div class="mr-panel" data-mr-pane="html">
+    <div class="mr-panel" data-mr-pane="html" data-mr-viewport="desktop">
         {{--
             The body is untrusted markup. It is loaded from a separate route
             into a sandbox carrying neither allow-scripts nor
             allow-same-origin, which leaves it in an opaque origin: no script
             execution, no reach into this page, no access to cookies.
+
+            data-mr-viewport carries the preview width. It lives on the pane
+            rather than on the frame because the Raw pane uses .mr-frame too,
+            and narrowing the raw source would help nobody.
         --}}
         <iframe
             class="mr-frame"
@@ -340,6 +381,7 @@
         (function () {
             var tabs = document.querySelectorAll('[data-mr-tab]');
             var panes = document.querySelectorAll('[data-mr-pane]');
+            var viewport = document.getElementById('mr-viewport');
 
             tabs.forEach(function (tab) {
                 tab.addEventListener('click', function () {
@@ -350,11 +392,81 @@
                     panes.forEach(function (pane) {
                         pane.hidden = pane.getAttribute('data-mr-pane') !== tab.getAttribute('data-mr-tab');
                     });
+
+                    // Nothing but the rendered body reflows, so the width
+                    // control has no meaning on the other panes.
+                    if (viewport) {
+                        viewport.hidden = tab.getAttribute('data-mr-tab') !== 'html';
+                    }
                 });
             });
         })();
     </script>
 @endpush
+
+{{-- Guarded, so a message with no HTML body ships none of this. --}}
+@if ($hasHtml)
+    @push('scripts')
+        <script>
+            (function () {
+                var group = document.getElementById('mr-viewport');
+                var pane = document.querySelector('[data-mr-pane="html"]');
+
+                if (!group || !pane) {
+                    return;
+                }
+
+                var buttons = group.querySelectorAll('button[data-mr-viewport-choice]');
+
+                function paint(choice) {
+                    pane.setAttribute('data-mr-viewport', choice);
+
+                    buttons.forEach(function (button) {
+                        button.setAttribute(
+                            'aria-pressed',
+                            String(button.getAttribute('data-mr-viewport-choice') === choice),
+                        );
+                    });
+                }
+
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        var choice = button.getAttribute('data-mr-viewport-choice');
+
+                        /*
+                         * Remembered across messages: someone checking a
+                         * staging run at phone width is checking all of it,
+                         * not one mail. Desktop removes the key rather than
+                         * storing itself, so absence means the default, as
+                         * the theme switch does.
+                         */
+                        try {
+                            choice === 'desktop'
+                                ? localStorage.removeItem('mr-viewport')
+                                : localStorage.setItem('mr-viewport', choice);
+                        } catch (e) {
+                            /* not fatal -- the choice still applies for this page */
+                        }
+
+                        paint(choice);
+                    });
+                });
+
+                var current = 'desktop';
+                try {
+                    var stored = localStorage.getItem('mr-viewport');
+                    if (stored === 'tablet' || stored === 'mobile') {
+                        current = stored;
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
+
+                paint(current);
+            })();
+        </script>
+    @endpush
+@endif
 
 @push('scripts')
     <script>

@@ -474,10 +474,99 @@
 
     .mr-tab-count { color: var(--mr-ink-faint); font-variant-numeric: tabular-nums; font-weight: 450; }
 
+    /* Preview width switch, pushed to the far end of the tab row */
+
+    .mr-viewport {
+        display: inline-flex;
+        align-items: center;
+        align-self: center;
+        gap: 1px;
+        margin-left: auto;
+        padding: 2px;
+        border: 1px solid var(--mr-line-strong);
+        border-radius: var(--mr-r-sm);
+        background: var(--mr-sunken);
+        flex-shrink: 0;
+    }
+
+    /*
+        Spelled out because an author display rule wins against the user agent
+        stylesheet's [hidden] { display: none }, and the tab script relies on
+        the attribute to take the control off the other panes.
+    */
+    .mr-viewport[hidden] { display: none; }
+
+    .mr-viewport button {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 24px;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 4px;
+        background: none;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+        color: var(--mr-ink-faint);
+        cursor: pointer;
+        transition: background .14s var(--mr-ease), color .14s var(--mr-ease);
+    }
+
+    .mr-viewport button:hover { color: var(--mr-ink-soft); }
+
+    .mr-viewport button[aria-pressed="true"] {
+        background: var(--mr-panel);
+        color: var(--mr-ink);
+        box-shadow: var(--mr-shadow-sm);
+    }
+
+    .mr-viewport svg { display: block; }
+
     .mr-panel { flex: 1; min-height: 0; overflow: auto; }
     .mr-panel[hidden] { display: none; }
 
     .mr-frame { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+
+    /*
+        An iframe carries its own viewport, so narrowing the frame is the whole
+        mechanism: the email's own media queries fire at that width, with no
+        change to how the body is served and the sandbox left shut. Keyed off
+        the pane rather than .mr-frame, which the Raw pane uses too.
+
+        :not([hidden]) is load-bearing here. This selector and .mr-panel[hidden]
+        above have identical specificity, so without it the later rule wins and
+        the body keeps rendering underneath whichever tab you switch to.
+    */
+    .mr-panel[data-mr-viewport="tablet"]:not([hidden]),
+    .mr-panel[data-mr-viewport="mobile"]:not([hidden]) {
+        display: flex;
+        justify-content: center;
+        background: var(--mr-sunken);
+    }
+
+    /*
+        Only the width is constrained. No vertical padding, so the frame meets
+        the tab row and the foot of the pane exactly as it does on desktop --
+        inset it and switching width appears to change the height too, which is
+        not what any of these devices do.
+
+        The width itself is deliberately not clamped to the pane: a frame that
+        quietly rendered narrower than the button claims would make the preview
+        a lie, so the pane scrolls sideways instead on a display too small to
+        hold it.
+    */
+    .mr-panel[data-mr-viewport="tablet"] .mr-frame,
+    .mr-panel[data-mr-viewport="mobile"] .mr-frame {
+        flex: none;
+        border-left: 1px solid var(--mr-line);
+        border-right: 1px solid var(--mr-line);
+    }
+
+    .mr-panel[data-mr-viewport="tablet"] .mr-frame { width: 768px; }
+    .mr-panel[data-mr-viewport="mobile"] .mr-frame { width: 375px; }
 
     .mr-pre {
         margin: 0;
@@ -1118,5 +1207,15 @@
         .mr-detail-head, .mr-tabs { padding-left: 16px; padding-right: 16px; }
         .mr-table td { padding-left: 16px; padding-right: 16px; }
         .mr-files { padding-left: 16px; padding-right: 16px; }
+    }
+
+    /*
+        Back to icons alone once the tab row runs out of room. It scrolls
+        sideways rather than wrapping, and a width control you have to scroll
+        to reach is one nobody finds.
+    */
+    @media (max-width: 620px) {
+        .mr-viewport button { padding: 0 6px; }
+        .mr-viewport-label { display: none; }
     }
 </style>

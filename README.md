@@ -61,7 +61,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.5` while this is 0.x.** Composer treats `^0.5` as `0.5.*` only, so moving to a 0.6 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.6` while this is 0.x.** Composer treats `^0.6` as `0.6.*` only, so moving to a 0.7 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -91,6 +91,16 @@ Everything Laravel's mail layer can produce. Mailroom hooks in as a Symfony tran
 `/mailroom` is a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw tabs. Light, dark and system themes.
 
 No build step, no npm, no published assets — the styles are inlined, so it works offline and behind a strict CSP.
+
+### Desktop, tablet and mobile
+
+Most of the mail an application sends is read on a phone, so the rendered body can be viewed at three widths:
+
+- **Desktop** — fills the pane, which is the default
+- **Tablet** — 768px
+- **Mobile** — 375px
+
+An iframe carries its own viewport, so the message's own media queries fire at the chosen width: what you see is what a client that size would lay out, not a scaled picture of it. The choice is kept in your browser and applies to every message you open, since someone checking a staging run at phone width is usually checking all of it.
 
 ### Exporting
 

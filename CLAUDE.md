@@ -93,7 +93,12 @@ Formatting them is a different matter: `pint.json` enables `Pint/laravel_blade`,
 
 **Prettier reflows whitespace.** That is correct for HTML and wrong for anything rendered as `text/plain` or markdown, where a blank line between paragraphs *is* the content — it will silently join short paragraphs onto one line, depending on print width. Mark those templates with `{{-- prettier-ignore --}}`, as `tests/Fixtures/views/order-shipped-text.blade.php` does; the comment is stripped at render time and leaves the body byte-identical. Nothing catches this automatically: a collapsed paragraph in a text email fails no test.
 
-Message bodies are attacker-controlled, so they are served from their own route into an `<iframe sandbox>` with neither `allow-scripts` nor `allow-same-origin`.
+Message bodies are attacker-controlled, so they are served from their own route into an `<iframe sandbox>` with neither `allow-scripts` nor `allow-same-origin`. That sandbox is also why the preview widths are CSS on the parent and nothing else: with no `allow-same-origin` there is no `contentDocument` to measure, and with no `allow-scripts` the frame cannot `postMessage` a height back. Anything wanting to size a frame to its content is asking to loosen the sandbox.
+
+**Two traps this UI has fallen into twice each, so check for both when adding a control:**
+
+- **An author `display` rule beats the user agent's `[hidden] { display: none }`.** Any selector that sets `display` on something toggled by the `hidden` attribute needs a matching `[hidden] { display: none }` — or `:not([hidden])` on the rule itself, which survives reordering. It caught the forward modal in 0.4.0 (permanently open) and the HTML pane in 0.6.0 (rendering underneath every other tab). Neither fails a test; both are obvious in a browser.
+- **`@push('scripts')` blocks are not covered by the `@if` that renders their markup.** A script pushed unconditionally ships to every message, including ones without the element it drives. Guard the push itself.
 
 ### Attachment previews
 

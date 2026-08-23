@@ -58,6 +58,7 @@ The seeder aims at **one message per branch of the UI**, so every state can be i
 [text only]        no HTML part
 [no body]          opens on Headers instead
 [markdown]         a markdown mailable
+[responsive]       a breakpoint, so the preview width switch has something to do
 [addressing]       Cc, Bcc, Reply-To, tags, metadata, custom header
 [long]             a subject and recipient list that need truncating
 [unicode]          CJK, RTL, emoji, zero-width space

@@ -87,6 +87,7 @@ class SeedMailboxCommand extends Command
     {
         $this->everyAttachmentKind();
         $this->bodyShapes();
+        $this->responsiveBody();
         $this->addressingAndMetadata();
         $this->awkwardContent();
         $this->attachmentEdgeCases();
@@ -164,6 +165,21 @@ class SeedMailboxCommand extends Command
         ), hoursAgo: 6);
 
         $this->aged(fn () => Mail::to('dara@example.test')->send(new PackingNote('A-1002')), hoursAgo: 7);
+    }
+
+    /**
+     * The only message here carrying a breakpoint, and so the only one that
+     * shows the preview width switch doing anything: its two columns stack and
+     * its button goes full width below 480px. Everything else in this mailbox
+     * is fluid or pinned to a fixed max-width, and looks much the same at 375px
+     * as it does at full width.
+     */
+    protected function responsiveBody(): void
+    {
+        $this->aged(fn () => Mail::html(
+            view('mail.responsive-digest')->render(),
+            fn ($message) => $message->to('kit@example.test')->subject('[responsive] Stacks below 480px')
+        ), hoursAgo: 8);
     }
 
     /**
