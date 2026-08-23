@@ -9,7 +9,7 @@ body:
         whether a bug can be reproduced, so please fill them in even if they feel
         redundant.
 
-        **Not a bug:** `Mail::fake()` bypasses this package entirely — it replaces
+        **Not a bug:** `Mail::fake()` bypasses this package entirely. It replaces
         the mail manager, so no transport runs and nothing is captured. That is
         expected behaviour.
 
@@ -79,7 +79,7 @@ body:
     attributes:
       label: Relevant configuration
       description: >
-        Anything you changed from the defaults in `config/mailroom.php` — the
+        Anything you changed from the defaults in `config/mailroom.php`, the
         storage disk especially, since a missing blob and a bug look alike.
         Please redact credentials.
       render: php

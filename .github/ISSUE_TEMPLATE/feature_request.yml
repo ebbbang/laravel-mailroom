@@ -7,7 +7,7 @@ body:
       value: |
         Mailroom is deliberately a development tool: a mailbox for reading what
         your application sent. Proposals that push it toward being a production
-        mail log, a queue, or a sending service are unlikely to land — but say so
+        mail log, a queue, or a sending service are unlikely to land, but say so
         anyway if you think the line is in the wrong place.
 
   - type: textarea

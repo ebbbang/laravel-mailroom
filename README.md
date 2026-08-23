@@ -7,7 +7,7 @@
 
 A mail driver that stores outgoing mail in your database, plus a mailbox at `/mailroom` to read it.
 
-`MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. Mailroom keeps the whole thing — full MIME, attachments, embedded images, tags, metadata, custom headers — and gives you somewhere to look at it.
+`MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. Mailroom keeps the whole thing: full MIME, attachments, embedded images, tags, metadata, custom headers. And it gives you somewhere to look at it.
 
 ![The Mailroom mailbox in light mode](https://raw.githubusercontent.com/ebbbang/laravel-mailroom/main/art/mailbox-light.png)
 
@@ -44,7 +44,7 @@ php artisan mailroom:install
 
 The installer publishes the config, offers to set `MAIL_MAILER=mailroom` in your `.env`, and offers to run the migrations. Open `/mailroom` and your next email will be there.
 
-**The installer is a convenience, not a requirement.** The service provider is auto-discovered, the config is merged from the package, the migrations are loaded from it, and a `mailroom` mailer is registered for you — so this is equivalent:
+**The installer is a convenience, not a requirement.** The service provider is auto-discovered, the config is merged from the package, the migrations are loaded from it, and a `mailroom` mailer is registered for you, so this is equivalent:
 
 ```bash
 composer require --dev ebbbang/laravel-mailroom
@@ -54,7 +54,7 @@ echo "MAIL_MAILER=mailroom" >> .env
 
 You only need `config/mailroom.php` in your project if you intend to change something in it.
 
-To run unattended — CI, a Dockerfile, a provisioning script — every prompt has a flag:
+To run unattended in CI, a Dockerfile or a provisioning script, every prompt has a flag:
 
 ```bash
 php artisan mailroom:install --no-interaction --set-mailer --migrate
@@ -90,15 +90,15 @@ Everything Laravel's mail layer can produce. Mailroom hooks in as a Symfony tran
 
 `/mailroom` is a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw tabs. Light, dark and system themes.
 
-No build step, no npm, no published assets — the styles are inlined, so it works offline and behind a strict CSP.
+No build step, no npm, no published assets. The styles are inlined, so it works offline and behind a strict CSP.
 
 ### Desktop, tablet and mobile
 
 Most of the mail an application sends is read on a phone, so the rendered body can be viewed at three widths:
 
-- **Desktop** — fills the pane, which is the default
-- **Tablet** — 768px
-- **Mobile** — 375px
+- **Desktop**: fills the pane, which is the default
+- **Tablet**: 768px
+- **Mobile**: 375px
 
 An iframe carries its own viewport, so the message's own media queries fire at the chosen width: what you see is what a client that size would lay out, not a scaled picture of it. The choice is kept in your browser and applies to every message you open, since someone checking a staging run at phone width is usually checking all of it.
 
@@ -106,8 +106,8 @@ An iframe carries its own viewport, so the message's own media queries fire at t
 
 Every message can be exported as:
 
-- **`.eml`** — opens in Mail.app, Thunderbird and Outlook
-- **`.html`** — a standalone file with embedded images rewritten to `data:` URIs, so it renders anywhere
+- **`.eml`**: opens in Mail.app, Thunderbird and Outlook
+- **`.html`**: a standalone file with embedded images rewritten to `data:` URIs, so it renders anywhere
 
 ### Attachment previews
 
@@ -125,7 +125,7 @@ Click an attachment to open it in a lightbox. Arrow keys move between attachment
 
 Media previews support HTTP Range, so seeking in audio and video works.
 
-**Office documents genuinely cannot be previewed here.** Gmail and Outlook render them with server-side viewers — Google Docs Viewer, Office Online — and those services must fetch the file over the public internet. A dev mailbox on `127.0.0.1` behind an auth gate is unreachable to them. The self-hosted alternative is a multi-megabyte JS bundle this package has no build step for, so rather than half-render them the mailbox says "no preview for .docx" and offers the download.
+**Office documents genuinely cannot be previewed here.** Gmail and Outlook render them with server-side viewers such as Google Docs Viewer and Office Online, and those services must fetch the file over the public internet. A dev mailbox on `127.0.0.1` behind an auth gate is unreachable to them. The self-hosted alternative is a multi-megabyte JS bundle this package has no build step for, so rather than half-render them the mailbox says "no preview for .docx" and offers the download.
 
 TIFF and HEIC are left out for a smaller reason: Safari draws them and Chrome does not, so a preview would work on one machine and look broken on another.
 
@@ -136,7 +136,7 @@ Set `preview.enabled` to `false` to switch previews off and go back to plain dow
 Serving an attachment under its own MIME type is how stored XSS happens, so the preview route is separate from the download route and hardened on its own terms:
 
 - The content type comes from an **allowlist**, never from the attachment's `mime_type`, which is untrusted input.
-- Anything text-shaped is **never served at all** — it is escaped into the page server-side, so an emailed `.html` or `.js` is shown as source.
+- Anything text-shaped is **never served at all**. It is escaped into the page server-side, so an emailed `.html` or `.js` is shown as source.
 - SVG renders only through `<img>`, under a `Content-Security-Policy: sandbox` response header.
 - Downloads are always `application/octet-stream` with `Content-Disposition: attachment`.
 
@@ -146,9 +146,9 @@ PDF is a deliberate, documented exception to the sandbox. [SECURITY.md](https://
 
 Mailroom ships **no login page**. Access is decided in three escalating steps.
 
-**1. Nothing configured** — the mailbox is reachable in the `local` environment only.
+**1. Nothing configured.** The mailbox is reachable in the `local` environment only.
 
-**2. A gate** — define `viewMailroom` and it takes over completely:
+**2. A gate.** Define `viewMailroom` and it takes over completely:
 
 ```php
 Gate::define('viewMailroom', fn (?User $user) => $user?->isAdmin());
@@ -156,7 +156,7 @@ Gate::define('viewMailroom', fn (?User $user) => $user?->isAdmin());
 
 Type the parameter as nullable and guests are evaluated too, which is what lets this work without auth middleware.
 
-**3. A callback** — for anything a gate cannot express:
+**3. A callback**, for anything a gate cannot express:
 
 ```php
 Mailroom::auth(fn (Request $request) => $request->ip() === '10.0.0.1');
@@ -198,7 +198,7 @@ The mailbox becomes able to send, so six things bound it:
 - **There is nothing to send through until you configure it.** With no `forward.mailer` the route is never registered, so the button explains the setup instead of offering a form.
 - **Outside `local`, forwarding needs an authenticated user.** Reading the mailbox and relaying from it are different privileges: opening the mailbox up with a permissive `Mailroom::auth()` callback grants reading, not sending. Set `MAILROOM_FORWARD_REQUIRE_AUTH=false` to accept that anyone who can open the mailbox can send through it.
 - **Sending asks first**, naming the address, since the field is pre-filled with a real customer's.
-- **A Mailroom mailer is refused as the destination** — it would capture the message again instead of delivering it, leaving you waiting for mail that was never going to arrive.
+- **A Mailroom mailer is refused as the destination.** It would capture the message again instead of delivering it, leaving you waiting for mail that was never going to arrive.
 - **You can bound where mail may go.** `MAILROOM_FORWARD_ALLOWED` takes a comma-separated list of whole addresses, or `@domain` to permit everyone there. Empty means anywhere, which is the default.
 - **And how often.** `MAILROOM_FORWARD_RATE_LIMIT` caps forwards per minute, counted per signed-in user and otherwise per IP. Ten by default; `null` removes the ceiling.
 
@@ -212,7 +212,7 @@ MAILROOM_FORWARD_RATE_LIMIT=10
 
 ## Staging and QA
 
-Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser — no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure.
+Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser: no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure.
 
 Captured mail stays captured, so your staging fixtures can use whatever addresses make the test realistic.
 
@@ -224,7 +224,7 @@ MAILROOM_DISK=<your object storage disk>
 
 Three things to get right:
 
-**Enable it explicitly.** Most staging platforms — Laravel Cloud, Forge, Heroku-style hosts — set `APP_ENV=production` even when the environment is really staging, and Mailroom stays off in production unless you say otherwise. That default is deliberate: see [Production](#production).
+**Enable it explicitly.** Most staging platforms, Laravel Cloud and Forge and Heroku-style hosts among them, set `APP_ENV=production` even when the environment is really staging, and Mailroom stays off in production unless you say otherwise. That default is deliberate: see [Production](#production).
 
 **Put it behind your login.** The mailbox holds the full contents of every email your app sends, password reset links included. On anything reachable from the internet, add `auth` to the middleware stack and gate it:
 
@@ -236,7 +236,7 @@ Gate::define('viewMailroom', fn (?User $user) => $user?->isQaTeam());
 
 **Point the disk at persistent storage.** Staging platforms usually run ephemeral, multi-replica filesystems, where the default `local` disk loses attachments between deploys and between replicas. [Laravel Cloud and other ephemeral platforms](#laravel-cloud-and-other-ephemeral-platforms) covers this.
 
-Add `MAILROOM_FORWARD_MAILER` and testers can also send a message to their own inbox when they want to check it in a real client — see [Forwarding a message](#forwarding-a-message).
+Add `MAILROOM_FORWARD_MAILER` and testers can also send a message to their own inbox when they want to check it in a real client. See [Forwarding a message](#forwarding-a-message).
 
 Set a short `prune.retention_days` while you are there, so a long-lived staging box does not accumulate months of real-looking personal data.
 
@@ -307,7 +307,7 @@ To use it in production regardless, opt in explicitly:
 MAILROOM_ENABLED=true
 ```
 
-Be deliberate about that. You are storing the full contents of every outgoing email — password reset links included — in your database and on a disk.
+Be deliberate about that. You are storing the full contents of every outgoing email, password reset links included, in your database and on a disk.
 
 ## Pruning
 
@@ -319,7 +319,7 @@ php artisan mailroom:prune --pretend
 php artisan mailroom:clear              # everything, including stored files
 ```
 
-Deletes go through model events so the raw `.eml` and attachment blobs are removed with the row — a mass delete would orphan every file on disk. The model is `Prunable`, so this works too:
+Deletes go through model events so the raw `.eml` and attachment blobs are removed with the row. A mass delete would orphan every file on disk. The model is `Prunable`, so this works too:
 
 ```bash
 php artisan model:prune --model="Ebbbang\Mailroom\Models\MailroomMessage"
@@ -329,7 +329,7 @@ Schedule it yourself, or set `prune.schedule` to a cron expression or frequency 
 
 ### Wiping the database
 
-`migrate:fresh` and `migrate:refresh` empty Mailroom's storage along with its tables, so wiping your database takes the captured mail with it — bodies and attachments included.
+`migrate:fresh` and `migrate:refresh` empty Mailroom's storage along with its tables, so wiping your database takes the captured mail with it, bodies and attachments included.
 
 `migrate:rollback` and `migrate:reset` leave the stored files behind. Run `php artisan mailroom:clear` to remove them.
 
@@ -352,11 +352,11 @@ Laravel's own `MessageSent` carries no reference to the stored row, so this is h
 
 ### Laravel Cloud and other ephemeral platforms
 
-Mailroom works on Laravel Cloud, but **you must set `MAILROOM_DISK`** — the default `local` disk is the wrong choice there. Laravel Cloud's docs are explicit that environment filesystems are
+Mailroom works on Laravel Cloud, but **you must set `MAILROOM_DISK`**, because the default `local` disk is the wrong choice there. Laravel Cloud's docs are explicit that environment filesystems are
 
 > ephemeral […] each replica of your compute cluster has its own filesystem. Thus, you should treat the filesystem as temporary, unshared disk space that is only consistent during a single request or job.
 
-Message metadata and bodies live in the database, so those survive fine. The raw `.eml` and attachment bytes do not: they vanish on redeploy, and a message captured on one replica is unreadable from another. The mailbox stays usable, but `.eml` export, attachment downloads and embedded images break — intermittently, which is worse than breaking outright.
+Message metadata and bodies live in the database, so those survive fine. The raw `.eml` and attachment bytes do not: they vanish on redeploy, and a message captured on one replica is unreadable from another. The mailbox stays usable, but `.eml` export, attachment downloads and embedded images break intermittently, which is worse than breaking outright.
 
 Point the disk at persistent object storage, and set the master switch, since Cloud environments carry `APP_ENV=production` even when they are really staging:
 
@@ -366,7 +366,7 @@ MAILROOM_DISK=<your object storage disk>
 MAILROOM_ENABLED=true
 ```
 
-If blobs do go missing the mailbox says so explicitly, rather than quietly hiding the download button — and it distinguishes a file that vanished from one deliberately skipped by `storage.max_attachment_size`.
+If blobs do go missing the mailbox says so explicitly, rather than quietly hiding the download button, and it distinguishes a file that vanished from one deliberately skipped by `storage.max_attachment_size`.
 
 The same applies to any ephemeral or multi-replica setup: containers without a shared volume, autoscaling groups, `/tmp`-backed disks.
 
@@ -376,7 +376,7 @@ Supported, and tested against a sandbox modelled on Octane's own `CurrentApplica
 
 The transport is built from whichever container resolved the mail manager, not from the one the service provider booted with. Under Octane those differ: providers boot against the base application while each request runs in a sandbox clone, and `mail.manager` is not one of Octane's warmed services, so it is rebuilt per request. Following it into the sandbox is what keeps `MessageStored` firing on the same dispatcher as Laravel's own `MessageSent`.
 
-Nothing in the package holds per-request state between requests. The one piece of state that deliberately outlives a request is the `Mailroom::auth()` callback, set once from a service provider — the same lifetime a provider has under Octane. Two things follow:
+Nothing in the package holds per-request state between requests. The one piece of state that deliberately outlives a request is the `Mailroom::auth()` callback, set once from a service provider, which is the same lifetime a provider has under Octane. Two things follow:
 
 - Do not capture a request, a user, or `$this` inside that closure. It receives the current request as its argument; use that.
 - `Mailroom::flushState()` clears it, if a worker ever needs resetting.
@@ -391,7 +391,7 @@ Attachment bytes are read into memory to be written to the disk. That is a trans
 
 ## Alternatives
 
-A few packages already log mail to the database — [`shvetsgroup/laravel-email-database-log`](https://packagist.org/packages/shvetsgroup/laravel-email-database-log) and [`stackkit/laravel-database-emails`](https://packagist.org/packages/stackkit/laravel-database-emails) among them — and [`spatie/laravel-database-mail-templates`](https://packagist.org/packages/spatie/laravel-database-mail-templates) stores templates rather than sent mail.
+A few packages already log mail to the database, [`shvetsgroup/laravel-email-database-log`](https://packagist.org/packages/shvetsgroup/laravel-email-database-log) and [`stackkit/laravel-database-emails`](https://packagist.org/packages/stackkit/laravel-database-emails) among them, and [`spatie/laravel-database-mail-templates`](https://packagist.org/packages/spatie/laravel-database-mail-templates) stores templates rather than sent mail.
 
 Mailroom is a **development tool** rather than a logging or queueing layer: it exists to be *read*. That means the mailbox UI, attachment previews and `.eml` export, and a package that refuses to run in production unless you explicitly opt in.
 
@@ -412,13 +412,13 @@ See [CHANGELOG.md](https://github.com/ebbbang/laravel-mailroom/blob/main/CHANGEL
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/ebbbang/laravel-mailroom/blob/main/CONTRIBUTING.md) — it covers the workbench demo mailbox, which seeds one message per branch of the UI so you can see every state without composing mail by hand.
+See [CONTRIBUTING.md](https://github.com/ebbbang/laravel-mailroom/blob/main/CONTRIBUTING.md). It covers the workbench demo mailbox, which seeds one message per branch of the UI so you can see every state without composing mail by hand.
 
 Please note the [Code of Conduct](https://github.com/ebbbang/laravel-mailroom/blob/main/CODE_OF_CONDUCT.md).
 
 ## Security
 
-Please do not open a public issue for a vulnerability. [SECURITY.md](https://github.com/ebbbang/laravel-mailroom/blob/main/SECURITY.md) explains how to report privately, and documents the threat model — the mailbox renders attacker-controlled content by design, and how that is contained is worth reading before reporting.
+Please do not open a public issue for a vulnerability. [SECURITY.md](https://github.com/ebbbang/laravel-mailroom/blob/main/SECURITY.md) explains how to report privately, and documents the threat model. The mailbox renders attacker-controlled content by design, and how that is contained is worth reading before reporting.
 
 ## Credits
 

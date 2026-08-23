@@ -10,7 +10,7 @@ cd laravel-mailroom
 composer install
 ```
 
-That is the whole setup. The package is developed against [Orchestra Testbench](https://packages.tools/testbench), so there is no separate Laravel application to create — `composer install` scaffolds one under `vendor/orchestra/testbench-core/laravel`.
+That is the whole setup. The package is developed against [Orchestra Testbench](https://packages.tools/testbench), so there is no separate Laravel application to create. `composer install` scaffolds one under `vendor/orchestra/testbench-core/laravel`.
 
 ## Running things
 
@@ -29,13 +29,13 @@ Both tools cache into `build/`, so repeat runs are fast and the directory is git
 
 ### Blade formatting needs Node
 
-Pint formats Blade through prettier, so the first `composer lint` will ask to install a few npm packages. That is a contributor-only requirement — the package itself still ships no assets and needs no build step.
+Pint formats Blade through prettier, so the first `composer lint` will ask to install a few npm packages. That is a contributor-only requirement. The package itself still ships no assets and needs no build step.
 
 Prettier reflows whitespace, which is right for HTML and wrong for templates rendered as plain text or markdown, where a blank line between paragraphs is content rather than layout. Mark those with `{{-- prettier-ignore --}}` on the first line; the comment disappears at render time. No test will catch it if you forget, so treat any reformatting of a mail template in your diff as a bug.
 
 ### Why `composer test` runs two passes
 
-Testbench gives every worker the same skeleton application, so a test that writes into it is visible to all the others. `InstallCommandTest` does exactly that: publishing puts a `config/mailroom.php` in the directory each worker boots from, and testbench globs that directory and then requires what it found — so removing the file in teardown makes a concurrent boot fail on a path that existed a moment earlier. Its `.env` fixtures can likewise be read mid-rewrite.
+Testbench gives every worker the same skeleton application, so a test that writes into it is visible to all the others. `InstallCommandTest` does exactly that: publishing puts a `config/mailroom.php` in the directory each worker boots from, and testbench globs that directory and then requires what it found, so removing the file in teardown makes a concurrent boot fail on a path that existed a moment earlier. Its `.env` fixtures can likewise be read mid-rewrite.
 
 So it carries `#[Group('publishes-files')]`, and `composer test` runs everything else in parallel first, then that group on its own:
 
@@ -44,7 +44,7 @@ composer test:parallel   # everything except the group
 composer test:isolated   # just the group, single process
 ```
 
-If you add a test that writes into the skeleton — publishing, `.env`, anything under `config_path()` — put it in that group. The symptom otherwise is an unrelated test failing intermittently on a different worker, which is a miserable thing to debug.
+If you add a test that writes into the skeleton, whether by publishing, by touching `.env`, or by writing anything under `config_path()`, put it in that group. The symptom otherwise is an unrelated test failing intermittently on a different worker, which is a miserable thing to debug.
 
 ## The demo mailbox
 
@@ -81,7 +81,7 @@ php artisan demo:seed --fresh      # wipe and reseed
 php artisan demo:seed --filler=0   # scenarios only, no padding
 ```
 
-Every attachment is generated at runtime, so no binaries are committed. The one exception is a 1.6 KB MP4 held as base64 — a valid video file cannot be assembled in code the way the PDF and WAV fixtures are, and shelling out to ffmpeg would mean the video scenario vanished on machines without it.
+Every attachment is generated at runtime, so no binaries are committed. The one exception is a 1.6 KB MP4 held as base64. A valid video file cannot be assembled in code the way the PDF and WAV fixtures are, and shelling out to ffmpeg would mean the video scenario vanished on machines without it.
 
 If you add a UI state, add a scenario for it. The seeder is the only way a reviewer can see your change without composing mail by hand.
 
@@ -93,7 +93,7 @@ Eleven combinations, so a change that only works on your PHP version will be cau
 |---|---|
 | PHP | 8.2, 8.3, 8.4, 8.5 |
 | Laravel | 11, 12, 13 |
-| Excluded | PHP 8.5 × Laravel 11, PHP 8.2 × Laravel 13 — neither is a supported pairing |
+| Excluded | PHP 8.5 × Laravel 11, PHP 8.2 × Laravel 13, neither being a supported pairing |
 | Plus | one `--prefer-lowest` run on PHP 8.2 × Laravel 12 |
 
 Testbench majors track Laravel majors and cap the usable PHPUnit version, so the workflow pins both together. Constraining the framework alone lets testbench drag in a newer Laravel than the cell intends.
@@ -101,14 +101,14 @@ Testbench majors track Laravel majors and cap the usable PHPUnit version, so the
 ## Pull requests
 
 - **One concern per pull request.** A refactor bundled with a fix is hard to review and harder to revert.
-- **Add a test.** Anything touching capture, the mailbox or previews should fail without your change — please check that it does, rather than only that it passes with it.
+- **Add a test.** Anything touching capture, the mailbox or previews should fail without your change. Please check that it does, rather than only that it passes with it.
 - **Update the docs** when behaviour changes, including `config/mailroom.php` comments and the README's configuration table.
 - **Add a `CHANGELOG.md` entry** under `## [Unreleased]`. Keep sections in Keep
-  a Changelog's order — Added, Changed, Deprecated, Removed, Fixed, Security —
+  a Changelog's order (Added, Changed, Deprecated, Removed, Fixed, Security)
   and use only those headings. Tagging a release publishes that section verbatim
   as the GitHub release notes, so it is read far more often than it is written.
 - Match the surrounding style. Pint settles formatting; the comment density and naming are worth matching by eye.
 
 ## Security
 
-Please do not open a public issue for a vulnerability. See [SECURITY.md](SECURITY.md) for how to report privately, and for the threat model — the mailbox deliberately renders attacker-controlled content, and it is worth reading how that is contained before reporting.
+Please do not open a public issue for a vulnerability. See [SECURITY.md](SECURITY.md) for how to report privately, and for the threat model. The mailbox deliberately renders attacker-controlled content, and it is worth reading how that is contained before reporting.

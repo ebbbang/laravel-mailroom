@@ -57,7 +57,7 @@ class SeedMailboxCommand extends Command
         } elseif (MailroomMessage::query()->exists()) {
             // Keeps this safe to chain into `composer serve`.
             $this->components->info(sprintf(
-                'Mailbox already holds %d message(s) — nothing to do. Use --fresh to reseed.',
+                'Mailbox already holds %d message(s), so there is nothing to do. Use --fresh to reseed.',
                 MailroomMessage::query()->count()
             ));
 

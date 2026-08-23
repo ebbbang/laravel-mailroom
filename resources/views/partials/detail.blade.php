@@ -16,10 +16,10 @@
 
     <div class="mr-fields">
         <span class="mr-field-label">From</span>
-        <span class="mr-field-value">{{ Msg::formatAddressList($message->from) ?: '—' }}</span>
+        <span class="mr-field-value">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
 
         <span class="mr-field-label">To</span>
-        <span class="mr-field-value">{{ Msg::formatAddressList($message->to) ?: '—' }}</span>
+        <span class="mr-field-value">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
 
         @if (filled($message->cc))
             <span class="mr-field-label">Cc</span>
@@ -143,7 +143,7 @@
 
         @if (! $message->hasRaw())
             <p class="mr-modal-body">
-                Forwarding replays the stored copy of this message, and that copy is missing — so there is nothing to
+                Forwarding replays the stored copy of this message, and that copy is missing, so there is nothing to
                 send. Everything shown above came from the database and is intact.
             </p>
         @elseif (blank($forwardMailer))
@@ -209,7 +209,7 @@
             <strong>Stored files are missing.</strong>
             Everything above was read from the database and is intact, but the {{ $message->rawIsMissing() ? 'raw message' : 'attachment data' }} is
             no longer on the <code>{{ config('mailroom.storage.disk') }}</code> disk, so {{ $message->rawIsMissing() ? '.eml export' : 'downloads' }} cannot
-            work. This is what an ephemeral or per-replica disk looks like — on Laravel Cloud and similar platforms,
+            work. This is what an ephemeral or per-replica disk looks like. On Laravel Cloud and similar platforms,
             point <code>MAILROOM_DISK</code> at persistent object storage.
         </span>
     </div>

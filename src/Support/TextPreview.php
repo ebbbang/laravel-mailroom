@@ -118,7 +118,7 @@ class TextPreview
         if (json_last_error() !== JSON_ERROR_NONE) {
             return $this->result(PreviewKind::Json, 'ok',
                 body: $this->normalizeNewlines($contents),
-                notes: ['Not valid JSON ('.json_last_error_msg().') — showing the raw text.'],
+                notes: ['Not valid JSON ('.json_last_error_msg().'), so this is the raw text.'],
             );
         }
 
@@ -168,7 +168,7 @@ class TextPreview
         return $this->result(PreviewKind::Calendar, 'ok',
             body: $this->normalizeNewlines($contents),
             fields: $fields === [] ? null : $fields,
-            notes: $fields === [] ? ['No VEVENT fields found — showing the raw source.'] : [],
+            notes: $fields === [] ? ['No VEVENT fields found, so this is the raw source.'] : [],
         );
     }
 
@@ -210,7 +210,7 @@ class TextPreview
             body: trim($body) === '' ? $normalized : $body,
             fields: $fields === [] ? null : $fields,
             notes: $fields === []
-                ? ['No recognisable headers — showing the raw source.']
+                ? ['No recognisable headers, so this is the raw source.']
                 : ['Headers and the top-level body only; nested parts are not expanded.'],
         );
     }

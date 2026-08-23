@@ -35,13 +35,13 @@ mitigations are:
 
 - Message bodies and HTML attachments are shown inside an `<iframe sandbox>`
   with neither `allow-scripts` nor `allow-same-origin`, so they sit in an
-  opaque origin that cannot script, reach the parent page, or read cookies —
-  under a `default-src 'none'` policy.
+  opaque origin that cannot script, reach the parent page, or read cookies,
+  all under a `default-src 'none'` policy.
 - Attachment previews serve a content type from an internal allowlist, never
   the attachment's declared `mime_type`, which is untrusted input. A type
   outside the allowlist gets no preview at all.
-- Anything text-shaped — `.html`, `.js`, `.svg` source, `.csv` — is read and
-  escaped server-side rather than served, so it has no content type to be
+- Anything text-shaped, `.html` and `.js` and `.svg` source and `.csv`, is read
+  and escaped server-side rather than served, so it has no content type to be
   reinterpreted through.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment` and `X-Content-Type-Options: nosniff`.
@@ -50,7 +50,7 @@ mitigations are:
 loads its PDF viewer as an extension in a cross-process iframe, and a sandbox
 directive on the response blocks that extension's own scripts, so the PDF does
 not render at all ([crbug.com/413851](https://bugs.chromium.org/p/chromium/issues/detail?id=413851)).
-A page-level CSP never governed PDF JavaScript in the first place — that runs
+A page-level CSP never governed PDF JavaScript in the first place. That runs
 inside PDFium's sandbox, where it cannot reach the page's DOM, cookies or
 storage. The allowlisted content type, `nosniff` and
 `Cross-Origin-Resource-Policy` still apply. This is a documented trade-off
@@ -58,8 +58,8 @@ rather than an oversight.
 
 **Forwarding makes the mailbox a sending surface.** Once
 `MAILROOM_FORWARD_MAILER` is set, anyone who can both reach the mailbox and
-satisfy the forwarding guard can send stored mail — from your domain, through
-your relay — to an address of their choosing. Four things bound that:
+satisfy the forwarding guard can send stored mail to an address of their
+choosing, from your domain and through your relay. Four things bound that:
 
 - With no mailer configured the route is never registered, so the default
   install has no such surface at all.
@@ -91,6 +91,6 @@ want it behind a login. A mailbox left open is a mailbox anyone can read.
 
 **Production.** The package is disabled unless `MAILROOM_ENABLED=true`. If you
 opt in on a production system, you are storing the full contents of every
-outgoing email — including password reset links and anything else sensitive —
+outgoing email, including password reset links and anything else sensitive,
 in your database and on a disk. Set a short `prune.retention_days` and keep the
 gate tight.

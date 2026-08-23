@@ -1,6 +1,6 @@
 @extends('mailroom::layout')
 
-@section('title', $selected ? $selected->displaySubject().' — Mailroom' : 'Mailroom')
+@section('title', $selected ? $selected->displaySubject().' - Mailroom' : 'Mailroom')
 
 @section('content')
     <header class="mr-header">

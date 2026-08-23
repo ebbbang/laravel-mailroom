@@ -16,7 +16,7 @@
                 </span>
             </div>
 
-            <div class="mr-item-to">{{ Msg::formatAddressList($item->to) ?: '—' }}</div>
+            <div class="mr-item-to">{{ Msg::formatAddressList($item->to) ?: '-' }}</div>
 
             @if (filled($item->preview()))
                 <div class="mr-item-preview">{{ $item->preview(90) }}</div>

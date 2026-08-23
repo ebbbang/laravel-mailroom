@@ -19,8 +19,8 @@
                 <td>
                     {{ \Ebbbang\Mailroom\Models\MailroomMessage::formatAddressList($message->bcc) }}
                     <div style="font-family: inherit; color: var(--mr-text-faint); margin-top: 3px">
-                        Recorded separately — a Bcc header is stripped before a message is sent, so it will not appear
-                        in the .eml export.
+                        Recorded separately, because a Bcc header is stripped before a message is sent, so it will not
+                        appear in the .eml export.
                     </div>
                 </td>
             </tr>

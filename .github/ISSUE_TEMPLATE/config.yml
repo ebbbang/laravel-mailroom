@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/ebbbang/laravel-mailroom/security/advisories/new
     about: >
       Please do not open a public issue. Report privately here, and read
-      SECURITY.md first — the mailbox renders attacker-controlled content by
+      SECURITY.md first. The mailbox renders attacker-controlled content by
       design, and how that is contained is documented.
   - name: Ask a question
     url: https://github.com/ebbbang/laravel-mailroom/discussions
