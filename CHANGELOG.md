@@ -9,7 +9,7 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
-## [0.7.0] - 2026-08-23
+## [0.7.0] - 2026-08-31
 
 ### Added
 
