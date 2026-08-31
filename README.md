@@ -370,6 +370,8 @@ If blobs do go missing the mailbox says so explicitly, rather than quietly hidin
 
 The same applies to any ephemeral or multi-replica setup: containers without a shared volume, autoscaling groups, `/tmp`-backed disks.
 
+**A queue worker is the most common way to meet this without thinking of yourself as ephemeral.** Mail dispatched to the queue is captured by the worker, so the worker writes the `.eml` and attachment bytes that the web process later reads back. Run those as two containers on one server with a `local` disk and neither can see the other's files: the message appears in the mailbox with its body intact and its attachments missing. Point `MAILROOM_DISK` at storage both processes share.
+
 ### Laravel Octane
 
 Supported, and tested against a sandbox modelled on Octane's own `CurrentApplication::set()`.
