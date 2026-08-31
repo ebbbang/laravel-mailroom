@@ -124,7 +124,7 @@
         display: inline-flex;
         align-items: center;
         gap: 9px;
-        font-weight: 590;
+        font-weight: 600;
         font-size: 14.5px;
         letter-spacing: -0.02em;
         white-space: nowrap;
@@ -340,7 +340,7 @@
     .mr-item-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
 
     .mr-item-subject {
-        font-weight: 560;
+        font-weight: 600;
         font-size: 13.5px;
         letter-spacing: -0.012em;
         overflow: hidden;
@@ -402,7 +402,7 @@
     .mr-subject {
         margin: 0 0 14px;
         font-size: 19px;
-        font-weight: 620;
+        font-weight: 600;
         letter-spacing: -0.026em;
         line-height: 1.3;
         word-break: break-word;
@@ -469,10 +469,10 @@
     }
 
     .mr-tab:hover { color: var(--mr-ink); }
-    .mr-tab[aria-selected="true"] { color: var(--mr-ink); font-weight: 590; }
+    .mr-tab[aria-selected="true"] { color: var(--mr-ink); font-weight: 600; }
     .mr-tab[aria-selected="true"]::after { transform: scaleX(1); }
 
-    .mr-tab-count { color: var(--mr-ink-faint); font-variant-numeric: tabular-nums; font-weight: 450; }
+    .mr-tab-count { color: var(--mr-ink-faint); font-variant-numeric: tabular-nums; font-weight: 400; }
 
     /* Preview width switch, pushed to the far end of the tab row */
 
@@ -850,7 +850,7 @@
         color: var(--mr-ink-faint);
     }
 
-    .mr-empty-title { font-size: 14.5px; font-weight: 580; color: var(--mr-ink); letter-spacing: -0.015em; }
+    .mr-empty-title { font-size: 14.5px; font-weight: 600; color: var(--mr-ink); letter-spacing: -0.015em; }
 
     .mr-scope code.mr-code {
         font-family: var(--mr-mono);
@@ -914,7 +914,7 @@
         color: var(--mr-ink-mute);
     }
 
-    .mr-file-name { font-weight: 520; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .mr-file-name { font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .mr-file-meta { font-size: 11.5px; color: var(--mr-ink-faint); margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
     /*
@@ -1014,7 +1014,7 @@
         border-bottom: 1px solid rgba(255, 255, 255, .1);
     }
 
-    .mr-lightbox-title { font-size: 13.5px; font-weight: 560; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mr-lightbox-title { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .mr-lightbox-sub { font-size: 12px; opacity: .72; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .mr-lightbox-tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 
