@@ -9,6 +9,12 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Small text that failed WCAG AA contrast**, the preview line under every
+  subject in the message list included. It now clears the minimum for its size,
+  which is most of why the list was harder to read than it looked.
+
 ## [0.6.0] - 2026-08-23
 
 ### Added

@@ -351,7 +351,7 @@
 
     .mr-item-time {
         font-size: 11.5px;
-        color: var(--mr-ink-faint);
+        color: var(--mr-ink-mute);
         flex-shrink: 0;
         font-variant-numeric: tabular-nums;
     }
@@ -367,7 +367,10 @@
 
     .mr-item-preview {
         font-size: 12.5px;
-        color: var(--mr-ink-faint);
+        /* Not --mr-ink-faint. This is the line that fills most of the list, and
+           faint measures 3.3:1 against the panel, under the 4.5:1 WCAG AA asks
+           of text this size. Mute clears it at 5.4:1. */
+        color: var(--mr-ink-mute);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -411,7 +414,8 @@
     .mr-fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; align-items: baseline; }
 
     .mr-field-label {
-        color: var(--mr-ink-faint);
+        /* Same reason as .mr-item-preview: faint is under AA at this size. */
+        color: var(--mr-ink-mute);
         text-align: right;
         white-space: nowrap;
         font-size: 12px;
