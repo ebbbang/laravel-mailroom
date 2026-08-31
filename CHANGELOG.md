@@ -9,6 +9,32 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-23
+
+### Added
+
+- **A Details disclosure in the message header.** Cc, Bcc, Reply-To, tags and
+  metadata sit behind it, with the full labelled list of every address. Whether
+  it is open is remembered between messages.
+
+### Changed
+
+- **The message header is about half as tall, and now the same height for every
+  message.** It used to be three stacked blocks, so one carrying Cc, Bcc and
+  Reply-To pushed the email much further down the pane than a plain one, and the
+  body shifted as you moved through the list.
+
+  It is two rows now: subject and actions, then who it came from, who it went to
+  and when. Opening Details replaces that line rather than repeating it, so
+  every address appears once and in full. Nothing was dropped, and the Headers
+  tab still lists every recorded header.
+
+- The README names queue workers as the usual cause of missing attachment bytes.
+  A worker captures the mail and writes the files the web process reads back, so
+  running them as separate containers on a `local` disk breaks downloads the same
+  way an ephemeral platform does. It was documented only under Laravel Cloud
+  before, where nobody on a single server would think to look.
+
 ### Fixed
 
 - **Small text that failed WCAG AA contrast**, the preview line under every
@@ -218,7 +244,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.3.2...v0.4.0

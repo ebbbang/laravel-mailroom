@@ -9,97 +9,165 @@
 
     // Inline parts alone are enough to warrant the pane -- see the tab below.
     $hasAttachmentsPane = $files->isNotEmpty() || $inline->isNotEmpty();
+
+    // Shown twice: abbreviated in the summary line, in full in the grid below.
+    $sentAt = $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString();
 @endphp
 
 <div class="mr-detail-head">
-    <h1 class="mr-subject">{{ $message->displaySubject() }}</h1>
+    <div class="mr-head-top">
+        <h1 class="mr-subject">{{ $message->displaySubject() }}</h1>
+        <div class="mr-actions">
+            @if ($message->hasRaw())
+                <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'eml']) }}" class="mr-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                    </svg>
+                    .eml
+                </a>
+            @endif
 
-    <div class="mr-fields">
-        <span class="mr-field-label">From</span>
-        <span class="mr-field-value">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
+            @if ($hasHtml)
+                <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'html']) }}" class="mr-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                    </svg>
+                    .html
+                </a>
+            @endif
 
-        <span class="mr-field-label">To</span>
-        <span class="mr-field-value">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
+            {{-- Always rendered. Nobody discovers a feature whose only trace is a
+                 line in the README, so the button is what teaches you forwarding
+                 exists; the dialog explains how to switch it on. The route itself
+                 is still absent until a mailer is configured, so this reveals the
+                 feature without opening a way to use it. --}}
+            <button type="button" class="mr-btn" id="mr-forward-open" aria-haspopup="dialog">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m14 8 4 4-4 4M18 12H6" />
+                </svg>
+                Forward
+            </button>
 
-        @if (filled($message->cc))
-            <span class="mr-field-label">Cc</span>
-            <span class="mr-field-value">{{ Msg::formatAddressList($message->cc) }}</span>
-        @endif
+            <form
+                method="POST"
+                action="{{ route('mailroom.destroy', $message) }}"
+                class="mr-inline-form mr-actions-end"
+                onsubmit="return confirm('Delete this message?');"
+            >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="mr-btn mr-btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
 
-        @if (filled($message->bcc))
-            <span class="mr-field-label">Bcc</span>
-            <span class="mr-field-value">{{ Msg::formatAddressList($message->bcc) }}</span>
-        @endif
+    {{--
+        A native disclosure rather than a scripted toggle. There is no `hidden`
+        attribute here for an author `display` rule to beat, and no conditional
+        `@push('scripts')` to forget to guard, which are the two traps this UI
+        has fallen into before. Keyboard support and screen reader announcement
+        come free, and it still opens with scripting turned off.
+    --}}
+    <details class="mr-meta" id="mr-meta">
+        {{--
+            Who, to whom, and when. The mailer and size badges are left to the
+            grid below: neither is something anyone scans a mailbox for, the
+            mailer is already on every row of the list, and dropping them buys
+            the addresses room before they have to truncate.
 
-        @if (filled($message->reply_to))
-            <span class="mr-field-label">Reply-To</span>
-            <span class="mr-field-value">{{ Msg::formatAddressList($message->reply_to) }}</span>
-        @endif
-
-        <span class="mr-field-label">Sent</span>
-        <span class="mr-field-value">
-            {{ $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString() }}
-            <span class="mr-badge" style="margin-left: 6px">{{ $message->mailer }}</span>
-            <span class="mr-badge">{{ $message->humanSize() }}</span>
-        </span>
-
-        @if (filled($message->tags) || filled($message->metadata))
-            <span class="mr-field-label">Tags</span>
-            <span class="mr-field-value">
-                @foreach ($message->tags ?? [] as $tag)
-                    <span class="mr-badge mr-badge-accent">{{ $tag }}</span>
-                @endforeach
-
-                @foreach ($message->metadata ?? [] as $key => $value)
-                    <span class="mr-badge">{{ $key }}: {{ $value }}</span>
-                @endforeach
+            The line is hidden once that grid is showing, since open it would
+            only repeat From, To and Sent from it, in a truncated form.
+        --}}
+        <summary class="mr-meta-line">
+            <span class="mr-meta-inline">
+                <span class="mr-meta-party">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
+                <span class="mr-meta-arrow" aria-hidden="true">&rarr;</span>
+                <span class="mr-meta-party">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
+                <span class="mr-meta-date">{{ $sentAt }}</span>
             </span>
-        @endif
-    </div>
 
-    <div class="mr-actions">
-        @if ($message->hasRaw())
-            <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'eml']) }}" class="mr-btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+            <span class="mr-btn mr-meta-toggle">
+                <span class="mr-meta-toggle-label">Details</span>
+                <svg class="mr-meta-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
                 </svg>
-                .eml
-            </a>
-        @endif
+            </span>
+        </summary>
 
-        @if ($hasHtml)
-            <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'html']) }}" class="mr-btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                </svg>
-                .html
-            </a>
-        @endif
+        <div class="mr-fields">
+            <span class="mr-field-label">From</span>
+            <span class="mr-field-value">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
 
-        {{-- Always rendered. Nobody discovers a feature whose only trace is a
-             line in the README, so the button is what teaches you forwarding
-             exists; the dialog explains how to switch it on. The route itself
-             is still absent until a mailer is configured, so this reveals the
-             feature without opening a way to use it. --}}
-        <button type="button" class="mr-btn" id="mr-forward-open" aria-haspopup="dialog">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m14 8 4 4-4 4M18 12H6" />
-            </svg>
-            Forward
-        </button>
+            <span class="mr-field-label">To</span>
+            <span class="mr-field-value">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
 
-        <form
-            method="POST"
-            action="{{ route('mailroom.destroy', $message) }}"
-            class="mr-inline-form"
-            style="margin-left: auto"
-            onsubmit="return confirm('Delete this message?');"
-        >
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="mr-btn mr-btn-danger">Delete</button>
-        </form>
-    </div>
+            @if (filled($message->cc))
+                <span class="mr-field-label">Cc</span>
+                <span class="mr-field-value">{{ Msg::formatAddressList($message->cc) }}</span>
+            @endif
+
+            @if (filled($message->bcc))
+                <span class="mr-field-label">Bcc</span>
+                <span class="mr-field-value">{{ Msg::formatAddressList($message->bcc) }}</span>
+            @endif
+
+            @if (filled($message->reply_to))
+                <span class="mr-field-label">Reply-To</span>
+                <span class="mr-field-value">{{ Msg::formatAddressList($message->reply_to) }}</span>
+            @endif
+
+            <span class="mr-field-label">Sent</span>
+            <span class="mr-field-value">
+                {{ $sentAt }}
+                <span class="mr-badge" style="margin-left: 6px">{{ $message->mailer }}</span>
+                <span class="mr-badge">{{ $message->humanSize() }}</span>
+            </span>
+
+            @if (filled($message->tags) || filled($message->metadata))
+                <span class="mr-field-label">Tags</span>
+                <span class="mr-field-value">
+                    @foreach ($message->tags ?? [] as $tag)
+                        <span class="mr-badge mr-badge-accent">{{ $tag }}</span>
+                    @endforeach
+
+                    @foreach ($message->metadata ?? [] as $key => $value)
+                        <span class="mr-badge">{{ $key }}: {{ $value }}</span>
+                    @endforeach
+                </span>
+            @endif
+        </div>
+    </details>
+
+    {{--
+        Inline rather than in @push('scripts'). An inline script runs while the
+        document is still parsing, so a header the reader chose to expand is
+        already open at first paint; from the stack it would run afterwards and
+        the header would visibly jump. layout.blade.php does the same thing with
+        the theme, for the same reason.
+    --}}
+    <script>
+        (function () {
+            var meta = document.getElementById('mr-meta');
+
+            if (!meta) {
+                return;
+            }
+
+            try {
+                meta.open = localStorage.getItem('mr-meta') === 'open';
+            } catch (e) {
+                /* not fatal -- the header simply stays collapsed */
+            }
+
+            meta.addEventListener('toggle', function () {
+                try {
+                    meta.open ? localStorage.setItem('mr-meta', 'open') : localStorage.removeItem('mr-meta');
+                } catch (e) {
+                    /* ignore */
+                }
+            });
+        })();
+    </script>
 </div>
 
 @php

@@ -400,18 +400,128 @@
 
     .mr-detail { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--mr-bg); }
 
-    .mr-detail-head { padding: 20px 24px 16px; background: var(--mr-panel); border-bottom: 1px solid var(--mr-line); }
+    .mr-detail-head { padding: 16px 24px; background: var(--mr-panel); border-bottom: 1px solid var(--mr-line); }
+
+    /*
+        Subject and actions share the top row so the head stays two rows tall
+        whatever the message carries. align-items: flex-start keeps the buttons
+        pinned to the first line when a very long subject wraps -- the subject
+        is the one field worth letting grow, so it is not truncated.
+    */
+    .mr-head-top { display: flex; align-items: flex-start; gap: 16px; }
 
     .mr-subject {
-        margin: 0 0 14px;
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        /* Nudged down rather than given a loose line-height, so a subject that
+           wraps stays tight while its first line still sits level with the
+           buttons beside it. */
+        padding-top: 3px;
         font-size: 19px;
         font-weight: 600;
         letter-spacing: -0.026em;
-        line-height: 1.3;
+        line-height: 1.35;
         word-break: break-word;
     }
 
-    .mr-fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; align-items: baseline; }
+    /*
+        The collapsed summary: who, to whom, when, and how big. Everything else
+        lives in the grid below it, and in the Headers tab, which is what lets
+        this line stay one line.
+    */
+
+    .mr-meta { margin-top: 10px; font-size: 13px; }
+
+    .mr-meta-line {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        list-style: none;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        color: var(--mr-ink-soft);
+    }
+
+    .mr-meta-line:hover { color: var(--mr-ink); }
+
+    /* Safari ignores list-style on a summary and draws its own triangle. */
+    .mr-meta-line::-webkit-details-marker { display: none; }
+
+    /*
+        This wrapper is what .mr-meta-party truncates against, so its min-width
+        and overflow are load-bearing rather than tidiness.
+    */
+    .mr-meta-inline {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    /*
+        Open, the summary stops being a row of its own: the details become a two
+        column grid, so the button sits level with the From line rather than
+        stranded above it. The abbreviated line goes away with it, since it
+        would only repeat From, To and Sent from the grid, truncated.
+
+        Scoped to [open] deliberately. Closed, .mr-meta stays a plain block and
+        the browser's own disclosure behaviour is untouched.
+    */
+    .mr-meta[open] {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 16px;
+    }
+
+    .mr-meta[open] .mr-meta-inline { display: none; }
+    .mr-meta[open] .mr-meta-line { grid-column: 2; grid-row: 1; align-self: start; }
+
+    /*
+        The padding is half the difference between the button's 32px and a line
+        of field text, and it is what stops the first row jumping when the
+        disclosure opens: collapsed, the abbreviated line is centred inside the
+        row the button makes; open, the grid would otherwise start flush at the
+        top, six pixels higher.
+    */
+    .mr-meta[open] .mr-fields { grid-column: 1; grid-row: 1; margin-top: 0; padding-top: 6px; }
+
+    /* Each party truncates on its own, so a crowded To list cannot push the
+       date and badges off the end of the line. */
+    .mr-meta-party { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+    .mr-meta-arrow,
+    .mr-meta-date,
+    .mr-meta-toggle { flex-shrink: 0; }
+
+    .mr-meta-arrow { color: var(--mr-ink-faint); }
+    .mr-meta-date { color: var(--mr-ink-mute); margin-left: 3px; }
+
+    /*
+        A real button rather than a bare glyph. On its own at the end of the
+        line the chevron read as decoration: nothing about it said the row
+        opened, or what it would reveal.
+
+        It takes .mr-btn unmodified, so it is the same size and weight as the
+        .eml, .html and Forward buttons directly above it rather than a smaller
+        cousin of them. The only thing added here is the push to the right.
+    */
+    .mr-meta-toggle { margin-left: auto; }
+
+    /* The whole row is the hit area, not just the button, so the button lights
+       up wherever along it the pointer happens to be. Keyboard focus is left to
+       the global :focus-visible rule, which rings the summary itself: that is
+       the element that actually takes focus. */
+    .mr-meta-line:hover .mr-meta-toggle { background: var(--mr-raised); border-color: var(--mr-ink-faint); }
+
+    /* No colour of its own: it inherits the button's ink through currentColor,
+       the way the icons in .eml, .html and Forward do. */
+    .mr-meta-chevron { display: block; transition: transform .18s var(--mr-ease); }
+    .mr-meta[open] .mr-meta-chevron { transform: rotate(180deg); }
+
+    .mr-fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; align-items: baseline; margin-top: 12px; }
 
     .mr-field-label {
         /* Same reason as .mr-item-preview: faint is under AA at this size. */
@@ -424,7 +534,10 @@
 
     .mr-field-value { color: var(--mr-ink-soft); word-break: break-word; min-width: 0; }
 
-    .mr-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+    .mr-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+
+    /* Sets Delete apart from the three that only read the message. */
+    .mr-actions-end { margin-left: 8px; }
 
     /*
     |----------------------------------------------------------------------
@@ -1221,5 +1334,7 @@
     @media (max-width: 620px) {
         .mr-viewport button { padding: 0 6px; }
         .mr-viewport-label { display: none; }
+        .mr-meta-toggle { padding: 0 8px; }
+        .mr-meta-toggle-label { display: none; }
     }
 </style>
