@@ -99,6 +99,27 @@ class Mailroom
     }
 
     /**
+     * Who is reading, or null when nobody is signed in.
+     *
+     * Read state is personal: two testers sharing a staging mailbox each need
+     * their own, and there is nobody to attribute a read to without an
+     * authenticated user. Marking mail read for everyone at once would be
+     * worse than not tracking it at all, so with no user the feature is simply
+     * off, markers and controls included.
+     *
+     * The identifier is stringified rather than assumed to be an integer, since
+     * an application using HasUuids or HasUlids returns a string here. This is
+     * the one place that decides, so nothing else has to know how identity is
+     * shaped.
+     */
+    public static function readerFor(Request $request): ?string
+    {
+        $reader = $request->user()?->getAuthIdentifier();
+
+        return blank($reader) ? null : (string) $reader;
+    }
+
+    /**
      * Forget any custom auth callback. Mainly useful between tests.
      */
     public static function flushState(): void

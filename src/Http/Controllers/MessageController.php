@@ -2,9 +2,12 @@
 
 namespace Ebbbang\Mailroom\Http\Controllers;
 
+use Ebbbang\Mailroom\Mailroom;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Models\MailroomRead;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,14 +19,36 @@ class MessageController
         $search = $request->query('search');
         $mailer = $request->query('mailer');
 
-        $messages = MailroomMessage::query()
+        // Null when nobody is signed in, which switches read state off
+        // wholesale: no marking, no markers, no count.
+        $reader = Mailroom::readerFor($request);
+
+        $selected = $message?->exists ? $message->load('attachments') : null;
+
+        /*
+         * Opening a message marks it read, and it happens before the list is
+         * built so the row you just clicked renders in its new state rather
+         * than one page load behind.
+         *
+         * A GET with a side effect is deliberate here, as it is in any mail
+         * client: reading is the act. Polling for new mail hits /recent, which
+         * touches none of this, so nothing is ever marked in the background.
+         */
+        if ($selected !== null && $reader !== null) {
+            MailroomRead::markRead([$selected->getKey()], $reader);
+        }
+
+        $query = MailroomMessage::query()
             ->search(is_string($search) ? $search : null)
-            ->forMailer(is_string($mailer) ? $mailer : null)
+            ->forMailer(is_string($mailer) ? $mailer : null);
+
+        $messages = (clone $query)
+            ->when($reader !== null, fn (Builder $builder): Builder => $builder->withExists([
+                'reads as is_read' => fn (Builder $reads): Builder => $reads->where('reader_id', $reader),
+            ]))
             ->latest('id')
             ->paginate((int) config('mailroom.ui.per_page', 25))
             ->withQueryString();
-
-        $selected = $message?->exists ? $message->load('attachments') : null;
 
         return view('mailroom::index', [
             'messages' => $messages,
@@ -31,6 +56,12 @@ class MessageController
             'search' => $search,
             'mailer' => $mailer,
             'mailers' => $this->availableMailers(),
+            'reader' => $reader,
+
+            // Counted on the same filtered query as the list, so the two agree:
+            // a count of everything unread would contradict a filtered list.
+            'unreadCount' => $reader === null ? null : $this->unreadCount(clone $query, $reader),
+
             'pollInterval' => config('mailroom.ui.poll_interval'),
 
             /*
@@ -61,6 +92,13 @@ class MessageController
         $latest = MailroomMessage::query()->max('id');
 
         return $latest === null ? null : (int) $latest;
+    }
+
+    protected function unreadCount(Builder $query, string $reader): int
+    {
+        return $query
+            ->whereDoesntHave('reads', fn (Builder $reads): Builder => $reads->where('reader_id', $reader))
+            ->count();
     }
 
     public function destroy(MailroomMessage $message): RedirectResponse

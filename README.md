@@ -61,7 +61,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.7` while this is 0.x.** Composer treats `^0.7` as `0.7.*` only, so moving to a 0.8 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.8` while this is 0.x.** Composer treats `^0.8` as `0.8.*` only, so moving to a 0.9 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -103,6 +103,12 @@ Most of the mail an application sends is read on a phone, so the rendered body c
 - **Mobile**: 375px
 
 An iframe carries its own viewport, so the message's own media queries fire at the chosen width: what you see is what a client that size would lay out, not a scaled picture of it. The choice is kept in your browser and applies to every message you open, since someone checking a staging run at phone width is usually checking all of it.
+
+### Read and unread
+
+Where the mailbox sits behind a login, it keeps track of what each person has read. Opening a message marks it read, unread rows keep the bolder subject and carry a dot, and the header counts what is still unread under whatever filter is applied. **Mark unread** puts one back, and a whole page can be marked either way at once.
+
+It is per person, so two testers working through the same staging mailbox never clear each other's mail. With nobody signed in there is nobody to attribute a read to, so the markers, the controls and the count are all absent.
 
 ### Exporting
 
@@ -265,6 +271,7 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `database.connection` | default | Keep captured mail off your main database |
 | `database.messages_table` | `mailroom_messages` | |
 | `database.attachments_table` | `mailroom_attachments` | |
+| `database.reads_table` | `mailroom_reads` | |
 | `forward.mailer` | `null` | Mailer the Forward button sends through; `null` leaves it explaining the setup |
 | `forward.require_authenticated_user` | `true` | Outside `local`, forwarding needs a signed-in user |
 | `forward.allowed` | `[]` | Addresses or `@domain` entries a forward may target; empty means anywhere |

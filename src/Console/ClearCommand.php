@@ -4,6 +4,7 @@ namespace Ebbbang\Mailroom\Console;
 
 use Ebbbang\Mailroom\Models\MailroomAttachment;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Models\MailroomRead;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
@@ -26,11 +27,13 @@ class ClearCommand extends Command
 
         /*
          * A mass delete skips model events, so nothing here can rely on the
-         * per-model cleanup hook. Attachment rows are removed explicitly (in
-         * case the consumer published the migration and dropped the foreign
-         * key) and the storage directory is wiped in a single call.
+         * per-model cleanup hook. Every child table is emptied explicitly,
+         * rather than left to the foreign key, so a driver that ignores the
+         * cascade cannot leave rows behind. The storage directory then goes in
+         * a single call.
          */
         MailroomAttachment::query()->delete();
+        MailroomRead::query()->delete();
         MailroomMessage::query()->delete();
         $store->flush();
 

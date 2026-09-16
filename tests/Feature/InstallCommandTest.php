@@ -100,12 +100,14 @@ class InstallCommandTest extends Orchestra
     {
         $this->assertFalse(Schema::hasTable('mailroom_messages'));
         $this->assertFalse(Schema::hasTable('mailroom_attachments'));
+        $this->assertFalse(Schema::hasTable('mailroom_reads'));
 
         $this->artisan('mailroom:install', $this->unattended(['--no-config' => true, '--migrate' => true]))
             ->assertSuccessful();
 
         $this->assertTrue(Schema::hasTable('mailroom_messages'));
         $this->assertTrue(Schema::hasTable('mailroom_attachments'));
+        $this->assertTrue(Schema::hasTable('mailroom_reads'));
     }
 
     #[Test]

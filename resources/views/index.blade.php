@@ -18,6 +18,12 @@
             {{ number_format($messages->total()) }} {{ Str::plural('message', $messages->total()) }}
         </span>
 
+        {{-- Its own chip rather than a clause appended to the count, so the
+             divider that separates it comes from the existing style. --}}
+        @if ($reader !== null && $unreadCount > 0)
+            <span class="mr-count mr-count-unread">{{ number_format($unreadCount) }} unread</span>
+        @endif
+
         <button type="button" class="mr-poll" id="mr-poll">
             <span class="mr-dot"></span>
             New mail

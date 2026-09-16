@@ -6,6 +6,7 @@ use Ebbbang\Mailroom\Http\Controllers\ContentController;
 use Ebbbang\Mailroom\Http\Controllers\ExportController;
 use Ebbbang\Mailroom\Http\Controllers\ForwardController;
 use Ebbbang\Mailroom\Http\Controllers\MessageController;
+use Ebbbang\Mailroom\Http\Controllers\ReadController;
 use Ebbbang\Mailroom\Mailroom;
 use Illuminate\Support\Facades\Route;
 
@@ -16,9 +17,20 @@ Route::delete('/', [MessageController::class, 'clear'])->name('clear');
 // so this can never be swallowed by the wildcard.
 Route::get('/recent', [MessageController::class, 'recent'])->name('recent');
 
+// Page-wide marking, taking the ids on screen. Declared before the wildcard
+// group for the same reason /recent is.
+Route::post('/read', [ReadController::class, 'storeMany'])->name('read.page');
+Route::delete('/read', [ReadController::class, 'destroyMany'])->name('unread.page');
+
 Route::middleware([])->whereNumber('message')->group(function (): void {
     Route::get('/{message}', [MessageController::class, 'index'])->name('show');
     Route::delete('/{message}', [MessageController::class, 'destroy'])->name('destroy');
+
+    // Read state is per signed-in reader, so these refuse with a 403 when there
+    // is nobody to attribute the mark to. The routes themselves always exist,
+    // since whether a reader is present is a per-request question.
+    Route::post('/{message}/read', [ReadController::class, 'store'])->name('read');
+    Route::delete('/{message}/read', [ReadController::class, 'destroy'])->name('unread');
 
     Route::get('/{message}/content/{format}', ContentController::class)
         ->whereIn('format', ['html', 'text', 'raw'])

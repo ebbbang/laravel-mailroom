@@ -81,6 +81,17 @@ php artisan demo:seed --fresh      # wipe and reseed
 php artisan demo:seed --filler=0   # scenarios only, no padding
 ```
 
+### Signing in
+
+Read state belongs to a person, so the demo app carries throwaway sign-in routes:
+
+```
+/login/rachel    # or sam, dara, kit, yuki: any of the seeded people
+/logout
+```
+
+The seeder marks a handful of messages read for Rachel, so switching between two people shows two different mailboxes rather than two identical unread lists. Signed out, the mailbox has no read state at all. The package ships no login of its own and defers to the host application's, which here is the demo app.
+
 Every attachment is generated at runtime, so no binaries are committed. The one exception is a 1.6 KB MP4 held as base64. A valid video file cannot be assembled in code the way the PDF and WAV fixtures are, and shelling out to ffmpeg would mean the video scenario vanished on machines without it.
 
 If you add a UI state, add a scenario for it. The seeder is the only way a reviewer can see your change without composing mail by hand.

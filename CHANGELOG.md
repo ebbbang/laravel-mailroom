@@ -9,6 +9,23 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-16
+
+**Run `php artisan migrate` after upgrading.** The mailbox needs the new table
+before it can track what has been read.
+
+### Added
+
+- **Read and unread, for signed-in users.** Opening a message marks it read.
+  Unread rows keep the bolder subject and carry a dot, and the header counts
+  what is still unread, following whatever filter is applied. A message can go
+  back on the pile with **Mark unread**, and a whole page can be marked either
+  way at once.
+
+  It is per person, so two testers sharing a staging mailbox never clear each
+  other's mail. Where nobody is signed in there are no markers, no controls and
+  no count, so a local mailbox with no login looks exactly as it did.
+
 ## [0.7.0] - 2026-08-31
 
 ### Added
@@ -244,7 +261,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.4.0...v0.5.0

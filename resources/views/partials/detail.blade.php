@@ -48,6 +48,27 @@
                 Forward
             </button>
 
+            {{-- Only one direction is offered here: opening this message is
+                 what marked it read, so a "Mark read" button would have nothing
+                 to do. It lands back on the list, since returning here would
+                 mark it read again on arrival. --}}
+            @if ($reader !== null)
+                <form method="POST" action="{{ route('mailroom.unread', $message) }}" class="mr-inline-form">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="search" value="{{ $search }}" />
+                    <input type="hidden" name="mailer" value="{{ $mailer }}" />
+                    <input type="hidden" name="page" value="{{ request('page') }}" />
+                    <button type="submit" class="mr-btn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                        </svg>
+                        Mark unread
+                    </button>
+                </form>
+            @endif
+
             <form
                 method="POST"
                 action="{{ route('mailroom.destroy', $message) }}"

@@ -349,6 +349,24 @@
         min-width: 0;
     }
 
+    /*
+        Read rows step down a weight rather than greying out, so the list still
+        reads as a list. The 600 stays the default, which is what a mailbox with
+        nobody signed in keeps showing: read state is the only thing that ever
+        lightens a row.
+    */
+    .mr-item-read .mr-item-subject { font-weight: 500; }
+
+    .mr-unread-dot {
+        display: inline-block;
+        vertical-align: middle;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: var(--mr-accent);
+    }
+
     .mr-item-time {
         font-size: 11.5px;
         color: var(--mr-ink-mute);
@@ -378,6 +396,26 @@
     }
 
     .mr-item-meta { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+
+    .mr-count-unread { color: var(--mr-accent); }
+
+    .mr-list-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+        padding: 8px 14px;
+        border-top: 1px solid var(--mr-line-soft);
+        background: var(--mr-panel);
+    }
+
+    .mr-list-actions .mr-btn { height: 28px; padding: 0 10px; font-size: 12px; }
+
+    /*
+        The pager claims the free space when it is alone at the bottom. With the
+        marking row above it, that row does instead, or the two auto margins
+        would split the gap between them and leave the pair floating apart.
+    */
+    .mr-list-actions + .mr-pager { margin-top: 0; }
 
     .mr-pager {
         display: flex;

@@ -3,9 +3,12 @@
 namespace Workbench\App\Console\Commands;
 
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Models\MailroomRead;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Console\Command;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Header\MetadataHeader;
@@ -71,6 +74,7 @@ class SeedMailboxCommand extends Command
 
         $this->components->task('scenario messages', fn () => $this->scenarios($store));
         $this->components->task('filler messages', fn () => $this->filler((int) $this->option('filler')));
+        $this->components->task('demo readers', $this->readers(...));
 
         $this->newLine();
         $this->components->info(sprintf('Seeded %d messages.', MailroomMessage::query()->count()));
@@ -78,6 +82,7 @@ class SeedMailboxCommand extends Command
             'Visit /'.config('mailroom.path', 'mailroom').' to browse them.',
             'Subjects are prefixed with the scenario they demonstrate.',
             'Ages span 45 days, so `mailroom:prune --days=7` and `--days=30` both do something.',
+            'Sign in at /login/rachel or /login/sam to see read state, and /logout to leave.',
         ]);
 
         return self::SUCCESS;
@@ -93,6 +98,41 @@ class SeedMailboxCommand extends Command
         $this->attachmentEdgeCases();
         $this->brokenStates($store);
         $this->otherMailers();
+    }
+
+    /**
+     * The demo people as sign-in accounts, and some mail already read by one of
+     * them.
+     *
+     * Without the reads, signing in as two different people would show two
+     * identical all-unread lists, which demonstrates nothing: that the state
+     * differs per person is the whole point of it.
+     */
+    protected function readers(): void
+    {
+        // Hashed once rather than per person: bcrypt is deliberately slow, and
+        // this password is never typed. The demo signs people in by visiting a
+        // URL, and the column will not take a null.
+        $password = Hash::make('mailroom');
+
+        foreach ($this->people as $person) {
+            if (User::query()->where('email', $person['email'])->exists()) {
+                continue;
+            }
+
+            User::forceCreate([
+                'name' => $person['name'],
+                'email' => $person['email'],
+                'password' => $password,
+            ]);
+        }
+
+        $rachel = User::query()->where('email', 'rachel@example.test')->sole();
+
+        MailroomRead::markRead(
+            MailroomMessage::query()->latest('id')->take(8)->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+            (string) $rachel->getAuthIdentifier()
+        );
     }
 
     /**

@@ -34,6 +34,7 @@ use Illuminate\Support\Str;
  * @property int $attachment_count
  * @property Carbon|null $sent_at
  * @property \Illuminate\Database\Eloquent\Collection<int, MailroomAttachment> $attachments
+ * @property \Illuminate\Database\Eloquent\Collection<int, MailroomRead> $reads
  */
 class MailroomMessage extends Model
 {
@@ -82,6 +83,7 @@ class MailroomMessage extends Model
             // still holds if the consumer publishes the migration and drops
             // the foreign key, or uses a driver that ignores it.
             $message->attachments()->delete();
+            $message->reads()->delete();
 
             resolve(RawMessageStore::class)->deleteMessage($message->uuid);
         });
@@ -90,6 +92,11 @@ class MailroomMessage extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(MailroomAttachment::class, 'mailroom_message_id');
+    }
+
+    public function reads(): HasMany
+    {
+        return $this->hasMany(MailroomRead::class, 'mailroom_message_id');
     }
 
     public function prunable(): Builder

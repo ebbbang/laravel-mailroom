@@ -66,6 +66,7 @@ Metadata and bodies live in the database so the list stays fast; raw MIME and at
 **Every delete must go through model events**, because that is what removes the blobs alongside the row. Consequences already baked in, and worth preserving:
 
 - `MailroomMessage` uses `Prunable`, deliberately not `MassPrunable`.
+- Child rows (attachments, reads) are deleted explicitly in `MailroomMessage::booted()` as well as by the foreign key cascade, so a missing constraint or a driver that ignores one cannot orphan them. A new child table follows the same pattern.
 - `MessageController::clear()` chunks and calls `delete()` per model, then sweeps the directory.
 - `migrate:fresh` fires no model events, so `FlushStorageOnDatabaseRefresh` listens for `DatabaseRefreshed`, and only flushes when the refreshed connection matches `mailroom.database.connection`.
 - That listener is **not registered during tests**: `RefreshDatabase` runs `migrate:fresh` before a test can call `Storage::fake()`, so it would delete the developer's real captured mail.
@@ -84,6 +85,14 @@ Metadata and bodies live in the database so the list stays fast; raw MIME and at
 ### Access control
 
 `Mailroom::check()` has three escalating levers in precedence order: `Mailroom::auth()` callback → `Gate::has('viewMailroom')` → `local` environment only. The `Authorize` middleware just calls it. Forwarding is a *separate* privilege (`canForwardFrom()`), requiring an authenticated user outside `local`.
+
+### Read state
+
+Per person, and only for a signed-in one. `Mailroom::readerFor()` is the single seam: it stringifies `getAuthIdentifier()` and returns null when nobody is signed in, which switches the feature off entirely (no marking, no markers, no count, and the read routes 403). Everything downstream branches on that one value rather than consulting the guard itself.
+
+`mailroom_reads` holds a plain string `reader_id` with **no foreign key**: captured mail may live on its own connection where the application's users table is not visible, and the identifier is a UUID or ULID on anything using `HasUuids` / `HasUlids`.
+
+Two behaviours that look like bugs and are not. Opening a message marks it read on a **GET**, which is what reading is in any mail client; the poll endpoint is separate, so background polling can never mark anything. And **Mark unread redirects to the list, not the message**, because arriving back on the message would mark it read again.
 
 ### The mailbox UI
 

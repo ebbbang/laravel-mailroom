@@ -1,9 +1,13 @@
 <?php
 
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Workbench\App\Mail\DemoOrderShipped;
 use Workbench\App\Support\Fixtures;
 
@@ -20,6 +24,37 @@ use Workbench\App\Support\Fixtures;
 */
 
 Route::get('/', fn (): Redirector|RedirectResponse => redirect('/mailroom'));
+
+/*
+ * Sign-in for the demo, so read state has somebody to belong to: /login/rachel,
+ * /login/sam, and so on for any seeded person, then /logout.
+ *
+ * The package ships no login of its own and defers to the host application's.
+ * This is that application, and it is the only place a password appears.
+ *
+ * Both are GET because the demo is driven by typing URLs and has no page to
+ * hang a form on. That would be the wrong shape for a real application, and it
+ * never reaches one: workbench is export-ignored.
+ */
+Route::get('/login/{person}', function (string $person): Redirector|RedirectResponse {
+    $email = $person.'@example.test';
+
+    $user = User::query()->firstWhere('email', $email) ?? User::forceCreate([
+        'name' => Str::headline($person),
+        'email' => $email,
+        'password' => Hash::make('mailroom'),
+    ]);
+
+    Auth::login($user);
+
+    return redirect('/mailroom');
+});
+
+Route::get('/logout', function (): Redirector|RedirectResponse {
+    Auth::logout();
+
+    return redirect('/mailroom');
+});
 
 Route::get('/send', function (): Redirector|RedirectResponse {
     $invoice = "INVOICE\n=======\n\nOrder A-1001\nTotal: 49.00\n";

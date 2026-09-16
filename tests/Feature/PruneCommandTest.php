@@ -4,9 +4,11 @@ namespace Ebbbang\Mailroom\Tests\Feature;
 
 use Ebbbang\Mailroom\Models\MailroomAttachment;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Models\MailroomRead;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
 use Ebbbang\Mailroom\Tests\TestCase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -101,8 +103,12 @@ class PruneCommandTest extends TestCase
     #[Test]
     public function clear_removes_every_message_and_wipes_storage(): void
     {
-        $this->captureAged(1, 'A-1');
+        $first = $this->captureAged(1, 'A-1');
         $this->captureAged(1, 'A-2');
+
+        MailroomRead::markRead([$first->id], 'tester');
+
+        DB::enableQueryLog();
 
         $this->artisan('mailroom:clear', ['--force' => true])
             ->expectsOutputToContain('Cleared 2 captured message')
@@ -110,6 +116,24 @@ class PruneCommandTest extends TestCase
 
         $this->assertSame(0, MailroomMessage::query()->count());
         $this->assertSame(0, MailroomAttachment::query()->count());
+
+        /*
+         * This command deletes in bulk, so no model event fires to tidy up
+         * after it and every child table has to be named in the command itself.
+         * Counting what is left would prove nothing: the foreign key cascade
+         * empties the table either way, and SQLite cannot turn that off inside
+         * the transaction each test runs in. So this watches for the delete the
+         * command issues on its own.
+         */
+        $this->assertTrue(
+            collect(DB::getQueryLog())->contains(
+                fn (array $entry): bool => str_starts_with($entry['query'], 'delete from "'.(new MailroomRead)->getTable().'"')
+            ),
+            'mailroom:clear left read rows to the foreign key cascade.'
+        );
+
+        $this->assertSame(0, MailroomRead::query()->count());
+
         Storage::disk('local')->assertDirectoryEmpty('mailroom');
     }
 

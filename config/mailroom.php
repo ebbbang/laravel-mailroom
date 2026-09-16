@@ -71,6 +71,7 @@ return [
         'connection' => env('MAILROOM_DB_CONNECTION'),
         'messages_table' => 'mailroom_messages',
         'attachments_table' => 'mailroom_attachments',
+        'reads_table' => 'mailroom_reads',
     ],
 
     /*

@@ -6,11 +6,19 @@
             {{-- "page" belongs here too, or opening a message from page two
                  sends the list back to page one and loses your place. --}}
             href="{{ route('mailroom.show', ['message' => $item->id] + request()->only('search', 'mailer', 'page')) }}"
-            class="mr-item"
+            @class(['mr-item', 'mr-item-read' => $reader !== null && $item->is_read])
             aria-current="{{ $selected && $selected->is($item) ? 'true' : 'false' }}"
         >
             <div class="mr-item-top">
-                <span class="mr-item-subject">{{ $item->displaySubject() }}</span>
+                <span class="mr-item-subject">
+                    @if ($reader !== null && ! $item->is_read)
+                        {{-- Announced rather than decorative: the dot is the
+                             only thing saying this one has not been read. --}}
+                        <span class="mr-unread-dot" role="img" aria-label="Unread"></span>
+                    @endif
+
+                    {{ $item->displaySubject() }}
+                </span>
                 <span class="mr-item-time" title="{{ $item->created_at?->toDayDateTimeString() }}">
                     {{ $item->created_at?->diffForHumans(short: true, syntax: \Carbon\CarbonInterface::DIFF_ABSOLUTE) }}
                 </span>
@@ -61,6 +69,28 @@
             @endif
         </div>
     @endforelse
+
+    {{--
+        Marking what is on screen, as plain forms. One form carries the ids
+        once, and the second button spoofs DELETE rather than repeating a page
+        of hidden fields, which is the same mechanism the Delete button uses.
+    --}}
+    @if ($reader !== null && $messages->isNotEmpty())
+        <form method="POST" action="{{ route('mailroom.read.page') }}" class="mr-list-actions">
+            @csrf
+
+            @foreach ($messages as $item)
+                <input type="hidden" name="ids[]" value="{{ $item->id }}" />
+            @endforeach
+
+            <input type="hidden" name="search" value="{{ $search }}" />
+            <input type="hidden" name="mailer" value="{{ $mailer }}" />
+            <input type="hidden" name="page" value="{{ request('page') }}" />
+
+            <button type="submit" class="mr-btn">Mark page read</button>
+            <button type="submit" class="mr-btn" name="_method" value="DELETE">Mark page unread</button>
+        </form>
+    @endif
 
     @if ($messages->hasPages())
         <div class="mr-pager">
