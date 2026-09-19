@@ -104,7 +104,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           coverage: none
 
       - name: Cache composer
@@ -157,3 +157,53 @@ jobs:
 
       - name: Pint
         run: composer pint:check
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, sqlite3, pdo_sqlite, gd
+          # pcov rather than xdebug: it records line hits and nothing else,
+          # which is all a coverage report needs, and it is several times
+          # faster for it.
+          coverage: pcov
+
+      - name: Cache composer
+        uses: actions/cache@v6
+        with:
+          path: ~/.composer/cache/files
+          key: composer-coverage-${{ runner.os }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-coverage-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      # phpunit in a single process, so the publishes-files group can run with
+      # everything else without corrupting the shared testbench skeleton.
+      # Without --colors=never the report is written to the file with ANSI
+      # escapes in it, which the job summary renders as noise.
+      - name: Run tests with coverage
+        run: vendor/bin/phpunit --colors=never --coverage-text=coverage.txt
+
+      # Reported, never enforced. A threshold that fails the build makes
+      # coverage a target, and lines can be executed by a test that asserts
+      # nothing. The standard this package holds to is in CONTRIBUTING: a new
+      # test must fail without its fix.
+      # tee, so the numbers land in the run's summary and in the job log. The
+      # summary is the readable one; the log is what you get from the CLI.
+      - name: Publish the report
+        run: |
+          {
+            echo '### Coverage'
+            echo
+            echo '```'
+            cat coverage.txt
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"

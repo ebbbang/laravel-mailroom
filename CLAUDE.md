@@ -15,6 +15,7 @@ composer test          # test:parallel then test:isolated -- the full suite
 composer test:parallel # everything except the publishes-files group, via paratest
 composer test:isolated # just that group, single process
 composer test:serial   # the whole suite through phpunit, when parallel output is hard to read
+composer test:coverage # the same, with a line coverage report; needs a coverage driver installed
 
 composer lint          # rector then pint -- rewrites files
 composer lint:check    # both in dry-run; this is what CI runs
@@ -157,6 +158,6 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 
 - On a **minor**, bump the README's `Pin with ^0.x` note and the `SECURITY.md` supported-versions table. A patch leaves both alone.
 - **Never rewrite a published changelog entry**, including its section order, because the GitHub release notes were generated from that text. Correct forward in a later entry instead.
-- Push, wait for the eleven cells, *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
+- Push, wait for CI (the eleven cells, plus the lint and coverage jobs), *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
 - `.github/workflows/release.yml` turns the tag into a GitHub Release using that version's changelog section, and fails the job rather than publishing empty notes if the section is missing.
 - **When `HEAD` is ahead of what you are tagging, name the commit:** `git tag v0.3.2 cfbbc74`. A bare tag would publish the wrong tree under that version.

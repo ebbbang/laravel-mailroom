@@ -81,7 +81,8 @@
         ],
         "test:parallel": "@php vendor/bin/paratest --colors=always --exclude-group=publishes-files",
         "test:isolated": "@php vendor/bin/phpunit --colors=always --group=publishes-files",
-        "test:serial": "@php vendor/bin/phpunit --colors=always"
+        "test:serial": "@php vendor/bin/phpunit --colors=always",
+        "test:coverage": "@php vendor/bin/phpunit --colors=always --coverage-text"
     },
     "extra": {
         "laravel": {

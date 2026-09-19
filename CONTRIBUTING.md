@@ -27,6 +27,16 @@ Run `composer lint` before opening a pull request. CI runs `lint:check`, which f
 
 Both tools cache into `build/`, so repeat runs are fast and the directory is git-ignored.
 
+### Coverage
+
+With a coverage driver installed:
+
+```bash
+composer test:coverage
+```
+
+CI runs the same thing on every push and writes the report into that run's summary. Nothing fails on a threshold.
+
 ### Blade formatting needs Node
 
 Pint formats Blade through prettier, so the first `composer lint` will ask to install a few npm packages. That is a contributor-only requirement. The package itself still ships no assets and needs no build step.
@@ -121,6 +131,8 @@ Eleven combinations, so a change that only works on your PHP version will be cau
 | Plus | one `--prefer-lowest` run on PHP 8.2 × Laravel 12 |
 
 Testbench majors track Laravel majors and cap the usable PHPUnit version, so the workflow pins both together. Constraining the framework alone lets testbench drag in a newer Laravel than the cell intends.
+
+Two jobs run beside the matrix: `rector & pint`, which fails on any diff either tool would make, and `coverage`, which reports line coverage into the run's summary without failing on it.
 
 ## Pull requests
 
