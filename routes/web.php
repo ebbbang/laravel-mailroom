@@ -7,6 +7,7 @@ use Ebbbang\Mailroom\Http\Controllers\ExportController;
 use Ebbbang\Mailroom\Http\Controllers\ForwardController;
 use Ebbbang\Mailroom\Http\Controllers\MessageController;
 use Ebbbang\Mailroom\Http\Controllers\ReadController;
+use Ebbbang\Mailroom\Http\Controllers\SpamCheckController;
 use Ebbbang\Mailroom\Mailroom;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,14 @@ Route::middleware([])->whereNumber('message')->group(function (): void {
         Route::post('/{message}/forward', ForwardController::class)
             ->middleware('throttle:mailroom-forward')
             ->name('forward');
+    }
+
+    // Same shape, for the same reason: with no driver there is no route, so
+    // nothing can send a captured message to a third party by accident.
+    if (Mailroom::canSpamCheck()) {
+        Route::post('/{message}/spam-check', SpamCheckController::class)
+            ->middleware('throttle:mailroom-spam')
+            ->name('spam-check');
     }
 
     // Kept separate from the download route above, which forces

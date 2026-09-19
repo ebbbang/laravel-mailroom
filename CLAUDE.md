@@ -98,6 +98,8 @@ Two behaviours that look like bugs and are not. Opening a message marks it read 
 
 Server-rendered Blade in `resources/views/`, with styles in `partials/styles.blade.php` and small vanilla scripts inlined via `@push('scripts')`. **The package ships no assets and needs no build step.** Keep it that way; consumers get working styles with zero setup and no stale-asset failure mode.
 
+Counts are written one way: `.mr-badge`, the pill the message list uses, in the detail pane's tab row as well. A second style for numbers is how one fact (an attachment count) came to look like two different things.
+
 Formatting them is a different matter: `pint.json` enables `Pint/laravel_blade`, which shells out to prettier, so `composer lint` needs `npm install` locally and the CI lint job installs it. Pint errors rather than installing on demand.
 
 **Prettier reflows whitespace.** That is correct for HTML and wrong for anything rendered as `text/plain` or markdown, where a blank line between paragraphs *is* the content. It will silently join short paragraphs onto one line, depending on print width. Mark those templates with `{{-- prettier-ignore --}}`, as `tests/Fixtures/views/order-shipped-text.blade.php` does; the comment is stripped at render time and leaves the body byte-identical. Nothing catches this automatically: a collapsed paragraph in a text email fails no test.
@@ -116,6 +118,14 @@ Message bodies are attacker-controlled, so they are served from their own route 
 ### Forwarding
 
 `MessageForwarder` replays the *stored bytes*. Unchanged destination → byte-identical send; changed → `RawHeaderRewriter` retargets `To`/`Cc` and preserves the originals as `X-Mailroom-Original-*`. The route is not registered at all unless `forward.mailer` is set, and a mailroom transport is refused as the destination.
+
+### Spam check
+
+`Spam\SpamChecker` posts the stored bytes to Postmark's SpamCheck API and reports what comes back. **Mailroom scores nothing itself**, and that is the decision to preserve: SpamAssassin's weights are perceptron-trained against a corpus we do not have, so a rule set of our own would produce a number that looked like theirs and meant far less. Every comparable tool (Mailpit, HELO, Mailtrap) passes SpamAssassin through the same way.
+
+The accuracy ceiling comes from where capture sits, not from effort. We see the message before the relay signs and sends it, so SPF, DKIM and DMARC results, the `Received` chain, and anything attached to a sending IP or domain are absent, and no driver can recover them. Content and headers are what get scored, and the docs say so rather than implying a delivery prediction.
+
+It is **the only place captured mail leaves the application**, so it is shaped like forwarding: no driver means no route; a signed-in user is required outside `local`; a named rate limiter bounds it; and nothing is sent without a click. The result is stored on the message rather than refetched, since a round trip costs several seconds.
 
 ### Octane
 

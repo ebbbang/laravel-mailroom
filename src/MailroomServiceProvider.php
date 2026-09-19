@@ -77,6 +77,27 @@ class MailroomServiceProvider extends ServiceProvider
                     'That is a lot of forwarding in one minute. Give it a moment and try again.'
                 ));
         });
+
+        // Same shape, and the same reasoning about the key. The ceiling here is
+        // mostly courtesy: each check occupies a free service for several
+        // seconds, and one person holding the button down should not be able to
+        // spend the whole team's welcome.
+        RateLimiter::for('mailroom-spam', function (Request $request): Limit {
+            $perMinute = config('mailroom.spam.rate_limit');
+
+            if (blank($perMinute) || (int) $perMinute < 1) {
+                return Limit::none();
+            }
+
+            $identifier = $request->user()?->getAuthIdentifier();
+
+            return Limit::perMinute((int) $perMinute)
+                ->by($identifier === null ? 'ip:'.$request->ip() : 'user:'.$identifier)
+                ->response(fn (): RedirectResponse => back()->with(
+                    'mailroom.error',
+                    'That is a lot of spam checks in one minute. Give it a moment and try again.'
+                ));
+        });
     }
 
     /**

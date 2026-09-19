@@ -21,6 +21,7 @@ A mail driver that stores outgoing mail in your database, plus a mailbox at `/ma
 - [The mailbox](#the-mailbox)
 - [Access control](#access-control)
 - [Forwarding a message](#forwarding-a-message)
+- [Spam check](#spam-check)
 - [Staging and QA](#staging-and-qa)
 - [Configuration](#configuration)
 - [Production](#production)
@@ -218,9 +219,37 @@ MAILROOM_FORWARD_ALLOWED=@yourcompany.com
 MAILROOM_FORWARD_RATE_LIMIT=10
 ```
 
+## Spam check
+
+Each message has a **Spam Check** pane. Set a driver and it will score the message with SpamAssassin, showing the rules that fired and what each one cost:
+
+```dotenv
+MAILROOM_SPAM_DRIVER=postmark
+```
+
+The scoring is done by [Postmark's SpamCheck API](https://spamcheck.postmarkapp.com/), which is free and needs no account. Mailroom scores nothing itself: SpamAssassin's weights come from a corpus it was trained against, and a number invented here would look like theirs while meaning much less.
+
+### What leaves your application
+
+This is the one feature that sends captured mail anywhere. A check posts the **whole message, attachments included**, to Postmark.
+
+So it is off until you set a driver, and until then the route that would send it does not exist. Once on, nothing is sent until somebody opens a message and clicks the button, the same way forwarding works. Outside `local`, checking needs a signed-in user; set `MAILROOM_SPAM_REQUIRE_AUTH=false` to let anyone who can open the mailbox check messages. `MAILROOM_SPAM_RATE_LIMIT` caps checks per minute, counted per signed-in user and otherwise per IP.
+
+The result is kept on the message, so coming back to it costs nothing. Checking again replaces it.
+
+### What the score can and cannot see
+
+Worth knowing before you act on a number:
+
+- The score is **SpamAssassin's**, computed by Postmark, on the message as captured. Its own default treats 5 and over as spam. That is a convention, not a verdict from Gmail or anyone else.
+- It **cannot** include SPF, DKIM or DMARC results, or anything about your sending IP or domain. Mailroom captures at the transport, before your relay signs and sends, so none of that exists yet.
+- Some rules read delivery rather than content, and a message that has not been delivered can trip them. A missing `Received` chain is the usual one.
+
+What it does see is the content and the headers, which is where most of what you can actually fix lives: a missing text part, an image-heavy body, an absent `List-Unsubscribe`, a subject that reads like a promotion.
+
 ## Staging and QA
 
-Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser: no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure.
+Mailroom is as useful on a shared staging environment as it is on your laptop. Testers get a mailbox they can read in the browser: no third-party catcher to sign up for, no inbox credentials to share around, and the mail stays inside your own infrastructure. The one exception is the [spam check](#spam-check), which is off unless you turn it on, and even then sends a message only when somebody clicks.
 
 Captured mail stays captured, so your staging fixtures can use whatever addresses make the test realistic.
 
@@ -276,6 +305,11 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `forward.require_authenticated_user` | `true` | Outside `local`, forwarding needs a signed-in user |
 | `forward.allowed` | `[]` | Addresses or `@domain` entries a forward may target; empty means anywhere |
 | `forward.rate_limit` | `10` | Forwards a minute, per user then per IP; `null` removes the limit |
+| `spam.driver` | `null` | `postmark` adds the spam check; `null` leaves the pane explaining the setup |
+| `spam.endpoint` | Postmark's API | Where a check is posted |
+| `spam.require_authenticated_user` | `true` | Outside `local`, checking needs a signed-in user |
+| `spam.rate_limit` | `10` | Checks a minute, per user then per IP; `null` removes the limit |
+| `spam.timeout` | `15` | Seconds to wait for a score |
 | `prune.retention_days` | `7` | Default age cutoff for `mailroom:prune` |
 | `prune.schedule` | `null` | Cron expression or frequency name to auto-schedule pruning |
 | `ui.per_page` | `25` | Messages per page |
@@ -298,6 +332,11 @@ Every environment variable Mailroom reads:
 | `MAILROOM_FORWARD_REQUIRE_AUTH` | `forward.require_authenticated_user` | `true` |
 | `MAILROOM_FORWARD_ALLOWED` | `forward.allowed` | empty |
 | `MAILROOM_FORWARD_RATE_LIMIT` | `forward.rate_limit` | `10` |
+| `MAILROOM_SPAM_DRIVER` | `spam.driver` | `null` |
+| `MAILROOM_SPAM_ENDPOINT` | `spam.endpoint` | Postmark's SpamCheck API |
+| `MAILROOM_SPAM_REQUIRE_AUTH` | `spam.require_authenticated_user` | `true` |
+| `MAILROOM_SPAM_RATE_LIMIT` | `spam.rate_limit` | `10` |
+| `MAILROOM_SPAM_TIMEOUT` | `spam.timeout` | `15` |
 | `MAILROOM_RETENTION_DAYS` | `prune.retention_days` | `7` |
 | `MAILROOM_PRUNE_SCHEDULE` | `prune.schedule` | `null` |
 | `MAILROOM_PREVIEW` | `preview.enabled` | `true` |

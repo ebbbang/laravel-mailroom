@@ -353,7 +353,7 @@
         <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="files">
             Attachments
             @if ($files->isNotEmpty())
-                <span class="mr-tab-count">{{ $files->count() }}</span>
+                <span class="mr-badge">{{ $files->count() }}</span>
             @endif
         </button>
     @endif
@@ -371,6 +371,20 @@
     @if ($message->hasRaw())
         <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="raw">Raw</button>
     @endif
+
+    {{-- Present whether or not a driver is configured, so the pane can explain
+         what the check does. Only the score is worth carrying in the tab: a
+         reader scanning messages wants to know which one scored badly. --}}
+    <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="spam">
+        Spam Check
+        @if ($message->hasSpamResult())
+            {{-- Accent past SpamAssassin's threshold, so a bad score is visible
+                 from the tab rather than only inside the pane. --}}
+            <span @class(['mr-badge', 'mr-badge-accent' => $message->spam_score >= 5])>
+                {{ number_format($message->spam_score, 1) }}
+            </span>
+        @endif
+    </button>
 
     {{--
         Sits in the tab row rather than beside the message actions, because it
@@ -464,6 +478,10 @@
         ></iframe>
     </div>
 @endif
+
+<div class="mr-panel" data-mr-pane="spam" hidden>
+    @include('mailroom::partials.spam', ['message' => $message])
+</div>
 
 @push('scripts')
     <script>

@@ -84,6 +84,33 @@ The forwarded copy is the stored MIME, so it carries whatever the original
 did. Treat the destination as you would the mailbox itself: it receives real
 message contents, password reset links included.
 
+**The spam check hands a message to a third party.** Once
+`MAILROOM_SPAM_DRIVER=postmark` is set, anyone who can both reach the mailbox
+and satisfy the spam check guard can post a captured message, attachments
+included, to Postmark's SpamCheck API. It is the only path by which captured
+mail leaves your infrastructure. Five things bound it:
+
+- With no driver configured the route is never registered, so the default
+  install has no such surface at all.
+- Browsing sends nothing. Capture, opening a message and the poll endpoint all
+  leave the message where it is; only a click on that message's own button
+  sends it, and it sends that message alone.
+- Outside `local`, a check requires an authenticated user, on the same
+  reasoning as forwarding: reading the mailbox and sending its contents
+  elsewhere are separate privileges. Setting
+  `spam.require_authenticated_user` to `false` accepts that anyone who can open
+  the mailbox can hand mail to the service.
+- `MAILROOM_SPAM_RATE_LIMIT` caps checks a minute, counted per signed-in user
+  and otherwise per IP.
+- `MAILROOM_SPAM_ENDPOINT` decides where a check is posted. Treat it as you
+  would any outbound destination, because whatever it names receives the whole
+  message.
+
+What Postmark do with a submitted message, and for how long, is governed by
+their terms rather than by anything here. If your captured mail is too
+sensitive to hand to anyone else, leave the driver unset and the feature has no
+way to run.
+
 ## Two things that are your responsibility
 
 **Access control.** With nothing configured the mailbox is reachable in the

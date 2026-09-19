@@ -125,6 +125,54 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Spam check
+    |--------------------------------------------------------------------------
+    |
+    | A captured message can be scored by SpamAssassin, which Postmark runs as
+    | a free JSON API. Mailroom scores nothing itself: the rules and weights
+    | are SpamAssassin's, tuned against a corpus we do not have, and a
+    | home-made number would look like theirs while meaning far less.
+    |
+    | This is the one feature that sends captured mail out of your application.
+    | The whole message goes, attachments included, so it stays off until you
+    | name a driver, the route is not registered until then, and nothing is
+    | sent without someone clicking the button on that message.
+    |
+    | What the score can see is worth knowing before trusting it. Mailroom
+    | captures before the relay signs and sends, so SPF, DKIM and DMARC
+    | results, the Received chain, and any reputation attached to your sending
+    | IP or domain are all absent. Rules that read the body and the headers
+    | apply; rules that read delivery cannot.
+    |
+    | "endpoint" is configurable because Postmark say the service may be
+    | changed or removed at any time.
+    |
+    | "require_authenticated_user" refuses outside the local environment unless
+    | the request carries an authenticated user, as forwarding does. Reaching
+    | the mailbox is enough to read it; handing its contents to a third party
+    | should take more.
+    |
+    | "rate_limit" is how many checks one person may run a minute, counted per
+    | authenticated user and otherwise per IP. Null removes the limit. Each
+    | check takes several seconds at the far end, so this is as much about
+    | being a good guest on a free service as about protecting anything here.
+    |
+    */
+
+    'spam' => [
+        'driver' => env('MAILROOM_SPAM_DRIVER'),
+
+        'endpoint' => env('MAILROOM_SPAM_ENDPOINT', 'https://spamcheck.postmarkapp.com/filter'),
+
+        'require_authenticated_user' => env('MAILROOM_SPAM_REQUIRE_AUTH', true),
+
+        'rate_limit' => env('MAILROOM_SPAM_RATE_LIMIT', 10),
+
+        'timeout' => env('MAILROOM_SPAM_TIMEOUT', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pruning
     |--------------------------------------------------------------------------
     |

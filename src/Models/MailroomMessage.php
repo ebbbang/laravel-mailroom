@@ -33,6 +33,9 @@ use Illuminate\Support\Str;
  * @property int $size
  * @property int $attachment_count
  * @property Carbon|null $sent_at
+ * @property float|null $spam_score
+ * @property array|null $spam_rules
+ * @property Carbon|null $spam_checked_at
  * @property \Illuminate\Database\Eloquent\Collection<int, MailroomAttachment> $attachments
  * @property \Illuminate\Database\Eloquent\Collection<int, MailroomRead> $reads
  */
@@ -73,6 +76,9 @@ class MailroomMessage extends Model
             'size' => 'integer',
             'attachment_count' => 'integer',
             'sent_at' => 'datetime',
+            'spam_score' => 'float',
+            'spam_rules' => 'array',
+            'spam_checked_at' => 'datetime',
         ];
     }
 
@@ -151,6 +157,21 @@ class MailroomMessage extends Model
     public function inlineAttachments(): Collection
     {
         return $this->attachments->filter->isInline()->values();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spam check
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Whether this message has been scored. The timestamp answers it rather
+     * than the score, since a clean message legitimately scores zero.
+     */
+    public function hasSpamResult(): bool
+    {
+        return $this->spam_checked_at !== null;
     }
 
     /*

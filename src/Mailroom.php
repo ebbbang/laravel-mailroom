@@ -99,6 +99,43 @@ class Mailroom
     }
 
     /**
+     * Is there anywhere to send a message for scoring?
+     *
+     * Without a driver the feature is inert: the route is never registered, so
+     * nothing can leave, while the pane still explains what it would do and how
+     * to switch it on.
+     */
+    public static function canSpamCheck(): bool
+    {
+        return static::enabled() && filled(config('mailroom.spam.driver'));
+    }
+
+    /**
+     * May this request send a captured message away to be scored?
+     *
+     * Reading the mailbox and handing its contents to a third party are
+     * different privileges, exactly as reading and forwarding are. A permissive
+     * auth callback grants the first, and outside local development this asks
+     * for a genuine authenticated user before the second.
+     */
+    public static function canSpamCheckFrom(Request $request): bool
+    {
+        if (! static::canSpamCheck()) {
+            return false;
+        }
+
+        if (! config('mailroom.spam.require_authenticated_user', true)) {
+            return true;
+        }
+
+        if (app()->environment('local')) {
+            return true;
+        }
+
+        return $request->user() !== null;
+    }
+
+    /**
      * Who is reading, or null when nobody is signed in.
      *
      * Read state is personal: two testers sharing a staging mailbox each need

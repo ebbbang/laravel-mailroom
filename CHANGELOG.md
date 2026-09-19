@@ -9,6 +9,35 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+**Run `php artisan migrate` after upgrading.** The spam check keeps its result
+on the message, which needs three new columns.
+
+### Added
+
+- **A spam check, through Postmark's SpamCheck API.** A message can be scored by
+  SpamAssassin from its own pane, which shows the score, the rules that fired,
+  and what each one cost. Set `MAILROOM_SPAM_DRIVER=postmark` to switch it on,
+  then check a message whenever you want, and check it again after you change
+  the template.
+
+  This is the one feature that sends captured mail out of your application: the
+  whole message goes, attachments included. So the route does not exist without
+  a driver, checking needs a signed-in user outside `local`, the pane says what
+  it sends before it sends it, and nothing leaves on anything but a click.
+
+  The score is SpamAssassin's rather than ours, and it is blind to
+  authentication and reputation. Mailroom captures before your relay signs and
+  sends, so there is no SPF, DKIM or DMARC result to read, no Received chain,
+  and no sending IP or domain to look up. The content and the headers are what
+  get scored.
+
+### Changed
+
+- Counts in the tab row are badges now, the same ones the message list uses for
+  an attachment count. One fact was being written two ways, faintly beside a tab
+  and as a pill in the list. This is what the attachment count looks like as
+  well, and a spam score over the threshold takes the accent colour.
+
 ## [0.8.0] - 2026-09-16
 
 **Run `php artisan migrate` after upgrading.** The mailbox needs the new table

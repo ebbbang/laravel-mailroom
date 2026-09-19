@@ -75,6 +75,7 @@ class SeedMailboxCommand extends Command
         $this->components->task('scenario messages', fn () => $this->scenarios($store));
         $this->components->task('filler messages', fn () => $this->filler((int) $this->option('filler')));
         $this->components->task('demo readers', $this->readers(...));
+        $this->components->task('demo spam result', $this->spamResult(...));
 
         $this->newLine();
         $this->components->info(sprintf('Seeded %d messages.', MailroomMessage::query()->count()));
@@ -133,6 +134,51 @@ class SeedMailboxCommand extends Command
             MailroomMessage::query()->latest('id')->take(8)->pluck('id')->map(fn ($id): int => (int) $id)->all(),
             (string) $rachel->getAuthIdentifier()
         );
+    }
+
+    /**
+     * Two fabricated spam results, one either side of SpamAssassin's threshold.
+     *
+     * The seeder sends nothing to Postmark. Both pane states have to be visible
+     * to someone reviewing offline, and stamping plausible numbers is the only
+     * way to reach them without a network call. The rule names are real ones;
+     * the scores are made up, which is why they live here rather than in any
+     * documentation.
+     */
+    protected function spamResult(): void
+    {
+        $this->stampSpamResult('[html only]%', 2.8, [
+            ['name' => 'MIME_HTML_ONLY', 'score' => 0.1, 'description' => 'Message only has text/html MIME parts'],
+            ['name' => 'MISSING_HEADERS', 'score' => 1.2, 'description' => 'Missing To: header'],
+            ['name' => 'T_REMOTE_IMAGE', 'score' => 0.5, 'description' => 'Message contains an external image'],
+            ['name' => 'URI_NOVOWEL', 'score' => 1.0, 'description' => 'URI hostname has long non-vowel sequence'],
+        ]);
+
+        // Deliberately not the [all kinds] message: that one is what the README
+        // screenshots show, and a fabricated score does not belong in the shop
+        // window. These rules suit an image-heavy message anyway.
+        $this->stampSpamResult('[inline only]%', 6.3, [
+            ['name' => 'HTML_IMAGE_ONLY_28', 'score' => 1.9, 'description' => 'HTML with little text and a large image'],
+            ['name' => 'MISSING_HEADERS', 'score' => 1.2, 'description' => 'Missing To: header'],
+            ['name' => 'MPART_ALT_DIFF', 'score' => 0.8, 'description' => 'HTML and text parts differ'],
+            ['name' => 'TVD_SPACE_RATIO', 'score' => 2.4, 'description' => 'Suspicious ratio of spaces to text'],
+        ]);
+    }
+
+    /**
+     * @param  array<int, array{name: string, score: float, description: string}>  $rules
+     */
+    protected function stampSpamResult(string $subjectLike, float $score, array $rules): void
+    {
+        MailroomMessage::query()
+            ->where('subject', 'like', $subjectLike)
+            ->latest('id')
+            ->first()
+            ?->forceFill([
+                'spam_score' => $score,
+                'spam_rules' => $rules,
+                'spam_checked_at' => Date::now()->subMinutes(12),
+            ])->save();
     }
 
     /**

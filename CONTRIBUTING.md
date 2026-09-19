@@ -92,6 +92,19 @@ Read state belongs to a person, so the demo app carries throwaway sign-in routes
 
 The seeder marks a handful of messages read for Rachel, so switching between two people shows two different mailboxes rather than two identical unread lists. Signed out, the mailbox has no read state at all. The package ships no login of its own and defers to the host application's, which here is the demo app.
 
+### Trying the spam check
+
+The demo ships with no spam driver, which is what a fresh install looks like, so the Spam Check pane explains how to switch it on rather than offering a button. To see it working:
+
+```bash
+export MAILROOM_SPAM_DRIVER=postmark
+composer serve
+```
+
+Clicking **Check with Postmark** then really does post that message to Postmark, so it is a genuine outbound request. The seeded mail is fabricated, so there is nothing sensitive in it.
+
+The seeder also stamps two made-up results onto scenario messages, one either side of SpamAssassin's threshold of 5, so both sides of the pane can be reviewed without sending anything at all.
+
 Every attachment is generated at runtime, so no binaries are committed. The one exception is a 1.6 KB MP4 held as base64. A valid video file cannot be assembled in code the way the PDF and WAV fixtures are, and shelling out to ffmpeg would mean the video scenario vanished on machines without it.
 
 If you add a UI state, add a scenario for it. The seeder is the only way a reviewer can see your change without composing mail by hand.

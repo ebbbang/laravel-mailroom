@@ -598,6 +598,9 @@
 
     .mr-tab {
         position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font: inherit;
         font-size: 13px;
         font-weight: 500;
@@ -627,7 +630,12 @@
     .mr-tab[aria-selected="true"] { color: var(--mr-ink); font-weight: 600; }
     .mr-tab[aria-selected="true"]::after { transform: scaleX(1); }
 
-    .mr-tab-count { color: var(--mr-ink-faint); font-variant-numeric: tabular-nums; font-weight: 400; }
+    /*
+        Counts in the tab row are the same badges the message list uses, rather
+        than a second way of writing a number. The list says an attachment count
+        in a pill; saying it faintly here made one fact look like two things.
+    */
+    .mr-tab .mr-badge { font-variant-numeric: tabular-nums; }
 
     /* Preview width switch, pushed to the far end of the tab row */
 
@@ -1344,6 +1352,66 @@
         border: 3px solid var(--mr-panel);
     }
     .mr-scope ::-webkit-scrollbar-thumb:hover { background: var(--mr-ink-faint); }
+
+    /*
+    |----------------------------------------------------------------------
+    | Spam check
+    |----------------------------------------------------------------------
+    */
+
+    .mr-spam {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px 20px;
+        overflow-y: auto;
+    }
+
+    .mr-spam-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+    .mr-spam-score {
+        display: grid;
+        place-items: center;
+        min-width: 58px;
+        height: 58px;
+        padding: 0 10px;
+        border: 1px solid var(--mr-line-strong);
+        border-radius: var(--mr-r-md);
+        background: var(--mr-raised);
+        font-size: 20px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /*
+        Over SpamAssassin's own threshold. The accent rather than the danger
+        colour on purpose: a high score is worth looking at, and it is still a
+        third party's estimate of a message that has not been delivered yet.
+    */
+    .mr-spam-score-over {
+        border-color: var(--mr-accent-line);
+        background: var(--mr-accent-wash);
+        color: var(--mr-accent);
+    }
+
+    .mr-spam-said {
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        color: var(--mr-ink-soft);
+    }
+
+    .mr-spam-note {
+        margin: 0;
+        font-size: 13px;
+        color: var(--mr-ink-soft);
+    }
+
+    .mr-spam-rule-score {
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
 
     /*
     |----------------------------------------------------------------------
