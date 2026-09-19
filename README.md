@@ -62,7 +62,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.8` while this is 0.x.** Composer treats `^0.8` as `0.8.*` only, so moving to a 0.9 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.9` while this is 0.x.** Composer treats `^0.9` as `0.9.*` only, so moving to a 0.10 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
@@ -89,7 +89,7 @@ Everything Laravel's mail layer can produce. Mailroom hooks in as a Symfony tran
 
 ## The mailbox
 
-`/mailroom` is a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw tabs. Light, dark and system themes.
+`/mailroom` is a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw / spam check tabs. Light, dark and system themes.
 
 Each message opens on a two-line header: subject and actions, then who it went to and when. Cc, Bcc, Reply-To and tags sit behind **Details**, so the header stays the same height whether a message carries two addresses or seven, and the email itself starts near the top of the pane.
 
