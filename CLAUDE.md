@@ -147,7 +147,8 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 ## Before opening a PR
 
 - `composer lint` (CI fails on any diff either tool would make).
-- **A new test must fail without its fix.** Revert and check, don't just watch it pass.
+- **A new test must fail without its fix.** Revert and check, don't just watch it pass. **The Blade view cache can make that check lie:** a restored file keeps measuring as failing until `vendor/orchestra/testbench-core/laravel/storage/framework/views` is cleared, and the symptom looks exactly like a test that is still correctly failing.
+- **Assert on the markup, not the page.** The stylesheet is inlined, so every page carries every class name in the package. `assertDontSee('mr-unread-dot')` fails with no dot on screen. Scope to the element (`<nav class="mr-list">`) or assert on something only the markup has, like `aria-label="Unread"`.
 - Add a `CHANGELOG.md` entry under `## [Unreleased]`, using only Keep a Changelog's headings in its order (Added, Changed, Deprecated, Removed, Fixed, Security). Tagging publishes that section verbatim as the GitHub release notes.
 - If you add a UI state, add a scenario to `workbench/app/Console/Commands/SeedMailboxCommand.php`. The seeder aims at one message per branch of the UI, and it is the only way a reviewer sees your change without composing mail by hand.
 - CI is eleven cells (PHP 8.2–8.5 × Laravel 11–13, plus one `--prefer-lowest`). The lowest-dependency run uses phpunit directly because paratest pins narrow PHPUnit ranges.
@@ -156,6 +157,8 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 
 **Minor for new functionality, patch for fixes only.** The changelog entry tells you which: anything with an `### Added` section is a minor. Getting this backwards once meant renumbering a release before it shipped, because `^0.3` resolves to `0.3.*`. Ship a fix as a minor and the people who need it never receive it.
 
+- **`composer update laravel/pint` before running the suite.** No `composer.lock` is committed, so CI always resolves the newest Pint. A local copy that lags passes a lint that CI then fails, and force pushing is blocked by the ruleset.
+- **`git archive HEAD | wc -c`** before tagging, to confirm no development file leaked into the dist past `.gitattributes`.
 - On a **minor**, bump the README's `Pin with ^0.x` note and the `SECURITY.md` supported-versions table. A patch leaves both alone.
 - **Never rewrite a published changelog entry**, including its section order, because the GitHub release notes were generated from that text. Correct forward in a later entry instead.
 - Push, wait for CI (the eleven cells, plus the lint and coverage jobs), *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
