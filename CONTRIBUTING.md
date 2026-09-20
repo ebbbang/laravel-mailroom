@@ -134,6 +134,44 @@ Testbench majors track Laravel majors and cap the usable PHPUnit version, so the
 
 Two jobs run beside the matrix: `rector & pint`, which fails on any diff either tool would make, and `coverage`, which reports line coverage into the run's summary without failing on it.
 
+## Ideas worth building
+
+None of these is scheduled, and none is being worked on. They are here because each has been thought through, or partly built, far enough that the notes save whoever picks one up from finding the same things out again. A pull request for any of them is welcome, and so is the argument that one of them is a bad fit.
+
+### Forward history
+
+A message does not record that it has already been forwarded, so two testers can send the same mail to the same inbox without either knowing. A `mailroom_forwards` table would fix it: message id, destination, who sent it, which mailer, and when. A `MailroomForward` model and a `forwards()` relation on `MailroomMessage`, surfaced on the message itself so it is visible where the decision to forward is made.
+
+Two things to know going in. Migrations load from the package and are deliberately not publishable, so an existing install picks a new table up with a plain `migrate` and there is no publish step to document. And a new child table follows the deletion invariant: delete it explicitly in `MailroomMessage::booted()` as well as leaving it to the foreign key cascade, the way attachments and reads already do.
+
+### Filter by recipient
+
+Beside the mailer filter, so "what did we send Kit?" is one select rather than a search. The notes below come from a working implementation that was not kept, so they are findings rather than guesses:
+
+**Do not query the JSON columns.** The recipient columns hold arrays of `{address, name}` objects. On SQLite, Laravel compiles `whereJsonContains` to a scalar comparison of each array element, so filtering for an address matches none of that person's messages. MySQL and Postgres match them all, which means the bug only appears on the driver the suite runs on. Hand-written JSON SQL forks three ways (`json_each`, `json_array_elements`, `JSON_TABLE`), and SQLite cannot index array membership at all.
+
+**A `mailroom_recipients` table works.** One row per message and lowercased address drawn from To, Cc and Bcc, unique on the pair, filled by the recorder after create and backfilled in the migration. Filtering becomes an indexed seek, and building the select's address list becomes a covering-index scan.
+
+One layout note: a third select takes the header past the 900px stacking breakpoint, so the filter controls need `min-width: 0` to be allowed to shrink and `.mr-filters` needs to wrap below it.
+
+### A local spamd driver
+
+The spam check posts to Postmark, which means the message leaves your network. A team that would rather it did not could run SpamAssassin themselves and get the same scores from a local daemon. `SpamChecker` already branches on `mailroom.spam.driver`, and the result shape and the pane that renders it already exist, so this is a driver and little else. Mailpit talks to SpamAssassin 3 and 4 over its own protocol and is worth reading for the wire format.
+
+It needs a daemon running, which most Laravel developers do not have. That is the only reason Postmark came first.
+
+### A link checker
+
+Verify that the links in a message actually resolve. Of everything on this list it is the one that is *fully* verifiable: a broken link is a fact, where a spam score is an estimate. The thing worth catching is a staging URL that escaped into production mail, which no amount of template review reliably finds.
+
+It would make the mailbox fetch URLs taken from captured content, and captured content is attacker-controlled. So it wants the spam check's shape exactly: off unless configured, nothing sent without a deliberate click, and a bound on how much it will fetch. Worth settling up front whether it follows redirects, and what it does with `mailto:` links and the tracking URLs that expect to be clicked once.
+
+### What produced the message
+
+The mailable class, the Blade view, and the variables passed to it, shown beside the rendered result. It answers the question the rendered message cannot: not what went out, but which branch produced it.
+
+This one is a real architectural change rather than a feature bolted on. The transport sees only the finished Symfony message, deliberately, and that is what makes capture complete and framework-version-proof: it works for anything that reaches a mailer, however Laravel built it. Reaching the mailable and its view data means hooking `MessageSending` and `MessageSent` as well, and correlating the two with whatever the transport recorded. Worth prototyping before anyone commits to it.
+
 ## Pull requests
 
 - **One concern per pull request.** A refactor bundled with a fix is hard to review and harder to revert.
