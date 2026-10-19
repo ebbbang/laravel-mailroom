@@ -9,7 +9,7 @@
         "images": "node scripts/compress-images.mjs"
     },
     "devDependencies": {
-        "prettier": "^3.9.6",
+        "prettier": "^3.9.10",
         "prettier-plugin-blade": "^3.3.3",
         "prettier-plugin-tailwindcss": "^0.8.1",
         "sharp": "^0.35.5",
