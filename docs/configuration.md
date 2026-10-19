@@ -1,6 +1,8 @@
 # Configuration
 
-Defaults are merged from the package, so everything below works without publishing anything. Publish only what you mean to change. The config, to `config/mailroom.php`:
+Every setting and environment variable Mailroom reads. The defaults come from the package, so all of it works without publishing anything.
+
+Publish only what you mean to change. The config, to `config/mailroom.php`:
 
 ```bash
 php artisan vendor:publish --tag=mailroom-config

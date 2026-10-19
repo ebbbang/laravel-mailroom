@@ -1,6 +1,8 @@
 # Spam check
 
-Each message has a **Spam Check** pane. Set a driver and it will score the message with SpamAssassin, showing the rules that fired and what each one cost:
+Score a captured message with SpamAssassin through Postmark's free API, and see every rule that fired and what each one cost.
+
+Each message has a **Spam Check** pane. Set a driver to turn it on:
 
 ```dotenv
 MAILROOM_SPAM_DRIVER=postmark

@@ -1,6 +1,8 @@
 # Reading mail
 
-`/mailroom` is a mail client for what your application sent: a sidebar of mailboxes and people, the message list, and the message itself with HTML / text / attachments / headers / raw / spam check tabs. Light, dark and system themes.
+`/mailroom` is a mail client for what your application sent: mailboxes and people, search, the keyboard, and every message in full.
+
+The sidebar holds the mailboxes and people, then comes the message list, then the message itself with HTML, text, attachments, headers, raw and spam check tabs. Light, dark and system themes.
 
 Each message opens on a compact header: the subject and a toolbar, then the sender, who it went to, and when. The line naming the recipients opens a panel with every address (To, Cc, Bcc, Reply-To), the size, the mailer and the tags, so the header stays the same height whether a message carries two addresses or seven, and the email itself starts near the top of the pane.
 

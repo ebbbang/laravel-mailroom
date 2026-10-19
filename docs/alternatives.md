@@ -1,5 +1,7 @@
 # Alternatives
 
+How Mailroom compares with packages that log mail to the database, SMTP catchers such as Mailpit and Helo, and template previewers.
+
 A few packages already log mail to the database, [`shvetsgroup/laravel-email-database-log`](https://packagist.org/packages/shvetsgroup/laravel-email-database-log) and [`stackkit/laravel-database-emails`](https://packagist.org/packages/stackkit/laravel-database-emails) among them, and [`spatie/laravel-database-mail-templates`](https://packagist.org/packages/spatie/laravel-database-mail-templates) stores templates rather than sent mail.
 
 Mailroom is a **development tool** rather than a logging or queueing layer: it exists to be *read*. That means the mailbox UI, attachment previews and `.eml` export, and a package that refuses to run in production unless you explicitly opt in.

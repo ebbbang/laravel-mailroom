@@ -1,6 +1,6 @@
 # Introduction
 
-Mailroom is a mail driver that stores outgoing mail in your database, plus a mailbox at `/mailroom` to read it.
+Mailroom is a Laravel mail driver that stores outgoing mail in your database, plus a mailbox at `/mailroom` to read it.
 
 `MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. Mailroom keeps the whole thing: full MIME, attachments, embedded images, tags, metadata, custom headers. And it gives you somewhere to look at it.
 

@@ -1,5 +1,7 @@
 # Production
 
+Mailroom stays off in production unless you opt in, and old mail is pruned on whatever schedule you choose.
+
 Disabled in production by default. The `mailroom` transport refuses to be constructed and the routes are never registered, so `/mailroom` 404s rather than 403s.
 
 If you select the mailer anyway, it **throws** rather than silently accepting the message. Quietly swallowing production mail while looking like successful delivery is the worst possible failure here.

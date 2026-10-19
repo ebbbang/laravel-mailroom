@@ -5,7 +5,9 @@
 [![Downloads](https://img.shields.io/packagist/dt/ebbbang/laravel-mailroom.svg?style=flat-square)](https://packagist.org/packages/ebbbang/laravel-mailroom)
 [![License](https://img.shields.io/packagist/l/ebbbang/laravel-mailroom.svg?style=flat-square)](LICENSE)
 
-A mail driver that stores outgoing mail in your database, plus a mailbox at `/mailroom` to read it.
+**Keep every email your app sends. Read it in a real mailbox.**
+
+A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it.
 
 `MAIL_MAILER=log` flattens a message into a log line and throws away the attachments. `MAIL_MAILER=array` forgets everything at the end of the request. Mailroom keeps the whole thing: full MIME, attachments, embedded images, tags, metadata, custom headers. And it gives you somewhere to look at it.
 

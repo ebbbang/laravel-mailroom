@@ -1,6 +1,6 @@
 {
     "name": "ebbbang/laravel-mailroom",
-    "description": "A Laravel mail driver that stores outgoing mail in your database, with an auth-gated mailbox UI, attachment support, and .eml/.html export.",
+    "description": "A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it.",
     "keywords": ["laravel", "mail", "mailer", "transport", "testing", "development", "mailbox", "eml", "spam", "spamassassin", "mailtrap", "mailpit"],
     "license": "MIT",
     "homepage": "https://github.com/ebbbang/laravel-mailroom",

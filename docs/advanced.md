@@ -1,5 +1,7 @@
 # Events and platforms
 
+The `MessageStored` event and the address API, running on Laravel Cloud and other ephemeral platforms, Octane, and two caveats.
+
 ## Events
 
 ```php

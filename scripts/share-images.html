@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+    The source of the docs site's share card and touch icon.
+
+    Open this file in a browser and screenshot each element at a device scale
+    factor of 1, then run `npm run images`:
+
+      #card -> docs/public/social-card.png       (1200x630, every page's og:image)
+      #icon -> docs/public/apple-touch-icon.png  (180x180, square: iOS rounds it)
+
+    The screenshot comes from docs/images, so retaking that and re-rendering
+    this keeps the card current. The wording is the tagline and description
+    used everywhere else; change them together.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Laravel Mailroom share images</title>
+<style>
+    body {
+        margin: 0;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 40px;
+        background: #e5e5e5;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    #card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #ffffff;
+        color: #1b1b1f;
+    }
+
+    #card .shot {
+        position: absolute;
+        left: 520px;
+        top: 300px;
+        width: 1000px;
+        height: auto;
+        border-radius: 16px;
+        border: 1px solid #e2e2e3;
+        box-shadow: 0 -20px 80px -10px rgba(245, 48, 3, 0.2);
+    }
+
+    #card .top {
+        position: absolute;
+        left: 72px;
+        top: 72px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    #card .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 30px;
+        font-weight: 650;
+    }
+
+    #card h1 {
+        margin: 0;
+        width: 760px;
+        font-size: 60px;
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+        font-weight: 750;
+    }
+
+    #card h1 span {
+        color: #d92b02;
+    }
+
+    #card .description {
+        position: absolute;
+        left: 72px;
+        top: 400px;
+        width: 400px;
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.4;
+        color: #3c3c43;
+    }
+
+    #card .address {
+        position: absolute;
+        left: 72px;
+        bottom: 56px;
+        font-size: 20px;
+        color: #5f5f66;
+    }
+
+    #icon {
+        display: block;
+        width: 180px;
+        height: 180px;
+    }
+</style>
+</head>
+<body>
+    <div id="card">
+        <img class="shot" src="../docs/images/mailbox-light.png" alt="">
+
+        <div class="top">
+            <div class="brand">
+                <svg width="56" height="56" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#f53003"/><g transform="translate(6.5 6.5) scale(0.625)" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></g></svg>
+                Laravel Mailroom
+            </div>
+            <h1>Keep every email your app sends. <span>Read it in a real mailbox.</span></h1>
+        </div>
+
+        <p class="description">A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it.</p>
+        <span class="address">ebbbang.github.io/laravel-mailroom</span>
+    </div>
+
+    <svg id="icon" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#f53003"/><g transform="translate(6.5 6.5) scale(0.625)" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></g></svg>
+</body>
+</html>

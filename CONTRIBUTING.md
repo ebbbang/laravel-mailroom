@@ -53,7 +53,7 @@ npm run docs:build     # the production build; fails on a dead link
 npm run docs:preview   # serves that build as Pages will
 ```
 
-Keep the pages to Markdown that GitHub renders too: relative links between pages (`./forwarding.md#keeping-it-safe`), GitHub alerts (`> [!NOTE]`) for notes, and no front matter or VitePress containers. New pages go in the sidebar in `docs/.vitepress/config.mts` and in the list in `docs/README.md`. Pushing to `main` deploys the site.
+Keep the pages to Markdown that GitHub renders too: relative links between pages (`./forwarding.md#keeping-it-safe`), GitHub alerts (`> [!NOTE]`) for notes, and no front matter or VitePress containers. Open each page with a sentence or two, at most 160 characters, saying what it covers: that paragraph is what a shared link or a search result shows. New pages go in the sidebar in `docs/.vitepress/config.mts` and in the list in `docs/README.md`. The build fails, naming the page, if one is missing from the sidebar or opens any other way. Pushing to `main` deploys the site.
 
 ### Screenshots
 
@@ -64,6 +64,8 @@ npm run images
 ```
 
 That gives every PNG a 256-colour palette, which cuts a screenshot of the mailbox to about a third of its size with no visible difference. Images it has already compressed are left alone, so it is safe to run over the whole set.
+
+The card a shared link shows, and the touch icon, are rendered from `scripts/share-images.html` into `docs/public/`; the comment at the top of that file says how. Rendering them again after retaking the screenshot keeps the card current.
 
 ### Why `composer test` runs two passes
 

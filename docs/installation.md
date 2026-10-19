@@ -1,5 +1,7 @@
 # Installation
 
+Install Mailroom with Composer and its installer, or by hand in two steps. It needs PHP 8.2 or later and Laravel 12 or 13.
+
 Require the package as a development dependency:
 
 ```bash

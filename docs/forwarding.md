@@ -1,5 +1,7 @@
 # Forwarding a message
 
+Send a captured message to a real inbox to see how Gmail or Outlook renders it, with limits on where it can go and how often.
+
 The one thing a mailbox cannot show you is how Gmail or Outlook will actually render a message. Name a mailer that can deliver, and each message gains a **Forward** button:
 
 ```dotenv

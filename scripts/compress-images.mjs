@@ -1,4 +1,5 @@
-// Compresses the screenshots in docs/images/ in place.
+// Compresses the PNGs in docs/images/ and docs/public/ in place: the
+// screenshots, and the share card and touch icon.
 //
 //   npm run images
 //
@@ -14,7 +15,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
 
-const directories = ['docs/images'];
+const directories = ['docs/images', 'docs/public'];
 const minimumSaving = 0.02;
 
 async function pngsIn(directory) {

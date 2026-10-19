@@ -1,6 +1,6 @@
 # Access control
 
-Mailroom ships **no login page**. Access is decided in three escalating steps.
+Mailroom ships **no login page**. Who can open the mailbox is decided in three escalating steps: the environment, a gate, then a callback.
 
 **1. Nothing configured.** The mailbox is reachable in the `local` environment only.
 
