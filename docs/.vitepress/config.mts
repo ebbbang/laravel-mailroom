@@ -46,6 +46,10 @@ const sidebar = [
             { text: 'Alternatives', link: '/alternatives' },
         ],
     },
+    {
+        text: 'Project',
+        items: [{ text: 'Changelog', link: '/changelog' }],
+    },
 ];
 
 // The pages that describe themselves: every Markdown file but the landing page
@@ -123,13 +127,18 @@ export default defineConfig({
     ],
 
     transformPageData(pageData) {
-        if (pages().includes(pageData.relativePath)) {
-            const description = opening(pageData.relativePath);
-
-            if (description) {
-                return { description };
-            }
+        if (!pages().includes(pageData.relativePath)) {
+            return;
         }
+
+        const description = opening(pageData.relativePath);
+
+        // Every release repeats Added, Changed and Fixed, so the changelog's
+        // outline lists the releases alone. Set here rather than in front
+        // matter, which GitHub would show at the top of the page.
+        const frontmatter = pageData.relativePath === 'changelog.md' ? { ...pageData.frontmatter, outline: 2 } : pageData.frontmatter;
+
+        return { ...(description ? { description } : {}), frontmatter };
     },
 
     // What changes from page to page: the title, the description and the
@@ -180,8 +189,8 @@ export default defineConfig({
         siteTitle: 'Mailroom',
 
         nav: [
-            { text: 'Docs', link: '/introduction', activeMatch: '^/(?!$)' },
-            { text: 'Changelog', link: `${repository}/blob/main/CHANGELOG.md` },
+            { text: 'Docs', link: '/introduction', activeMatch: '^/(?!$|changelog)' },
+            { text: 'Changelog', link: '/changelog' },
             { text: 'Packagist', link: 'https://packagist.org/packages/ebbbang/laravel-mailroom' },
             ...(version ? [{ text: `v${version}`, link: `${repository}/releases/tag/v${version}` }] : []),
         ],

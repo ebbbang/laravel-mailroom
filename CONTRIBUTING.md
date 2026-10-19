@@ -160,13 +160,13 @@ Two jobs run beside the matrix: `rector & pint`, which fails on any diff either 
 
 ## Ideas worth building
 
-None of these is scheduled, and none is being worked on. They are here because each has been thought through, or partly built, far enough that the notes save whoever picks one up from finding the same things out again. A pull request for any of them is welcome, and so is the argument that one of them is a bad fit.
+None of these is scheduled, and none is being worked on. They are here because each has been thought through, or partly built, far enough that the notes save whoever picks one up from finding the same things out again. A pull request for any of them is welcome, and so is the argument that one of them is a bad fit, best made in the [Ideas discussions](https://github.com/ebbbang/laravel-mailroom/discussions/categories/ideas).
 
 ### Forward history
 
 A message does not record that it has already been forwarded, so two testers can send the same mail to the same inbox without either knowing. A `mailroom_forwards` table would fix it: message id, destination, who sent it, which mailer, and when. A `MailroomForward` model and a `forwards()` relation on `MailroomMessage`, surfaced on the message itself so it is visible where the decision to forward is made.
 
-Two things to know going in. Migrations load from the package and are deliberately not publishable, so an existing install picks a new table up with a plain `migrate` and there is no publish step to document. And a new child table follows the deletion invariant: delete it explicitly in `MailroomMessage::booted()` as well as leaving it to the foreign key cascade, the way attachments and reads already do.
+Two things to know going in. Migrations load from the package and are deliberately not publishable, so an existing install picks a new table up with a plain `migrate` and there is no publish step to document. And a new child table follows the deletion invariant: delete it explicitly in `MailroomMessage::booted()` as well as leaving it to the foreign key cascade, the way attachments, reads and addresses already do.
 
 ### A local spamd driver
 

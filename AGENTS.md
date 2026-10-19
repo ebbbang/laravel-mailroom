@@ -168,6 +168,7 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 - Notes are GitHub alerts (`> [!NOTE]`, `> [!IMPORTANT]`), which VitePress renders as well. No front matter and no `::: tip` containers on doc pages: GitHub shows both as stray text. `docs/index.md` is the one exception, since it is the site's landing page (`.vitepress/theme/Home.vue`) and nobody reads it on GitHub.
 - A new page goes in the sidebar in `.vitepress/config.mts` and in the list in `docs/README.md`, which is what GitHub shows for the folder (the site build excludes it).
 - `npm run docs:build` before pushing a docs change; `npm run docs:dev` to look at it.
+- The site's Changelog page is `CHANGELOG.md` itself: `docs/changelog.md` pulls in everything between `<!-- #region releases -->` and `<!-- #endregion releases -->`. Keep both markers where they are, the first just above `## [Unreleased]` and the second at the very end, so every release section falls between them and none of `release.yml`'s extracted notes contains one.
 
 **The tagline and description are written one way everywhere.** Tagline: "Keep every email your app sends. Read it in a real mailbox." Description: "A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it." They appear in the README's opening, `composer.json` (Packagist shows it), the GitHub repository's description, the landing page (`Home.vue`), the site's `description` in `.vitepress/config.mts`, and the share card. Change one, change them all.
 

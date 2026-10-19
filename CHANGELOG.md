@@ -5,8 +5,10 @@ All notable changes to `ebbbang/laravel-mailroom` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html),
 with the caveat that **while the version is below 1.0, breaking changes may
-land in minor releases** — see the pinning note in the README.
+land in minor releases** — see the [pinning note](https://ebbbang.github.io/laravel-mailroom/installation)
+in the installation docs.
 
+<!-- #region releases -->
 ## [Unreleased]
 
 ### Added
@@ -391,3 +393,5 @@ First release.
 [0.3.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ebbbang/laravel-mailroom/releases/tag/v0.1.0
+
+<!-- #endregion releases -->

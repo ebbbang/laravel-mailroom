@@ -27,3 +27,7 @@ These pages are also published at [ebbbang.github.io/laravel-mailroom](https://e
 
 - [Events and platforms](./advanced.md)
 - [Alternatives](./alternatives.md)
+
+**Project**
+
+- [Changelog](./changelog.md)
