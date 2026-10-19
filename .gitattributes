@@ -3,6 +3,7 @@
 
 # Keep development-only files out of the dist archive Composer downloads, so a
 # consumer's vendor directory holds the package and nothing else.
+/.editorconfig      export-ignore
 /.github            export-ignore
 /.gitattributes     export-ignore
 /.gitignore         export-ignore

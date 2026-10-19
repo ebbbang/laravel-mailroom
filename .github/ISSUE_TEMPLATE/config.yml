@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Read the documentation
+    url: https://ebbbang.github.io/laravel-mailroom/
+    about: Installation, every setting, access control, forwarding, the spam check and running it on staging.
   - name: Report a security vulnerability
     url: https://github.com/ebbbang/laravel-mailroom/security/advisories/new
     about: >
@@ -7,5 +10,5 @@ contact_links:
       SECURITY.md first. The mailbox renders attacker-controlled content by
       design, and how that is contained is documented.
   - name: Ask a question
-    url: https://github.com/ebbbang/laravel-mailroom/discussions
+    url: https://github.com/ebbbang/laravel-mailroom/discussions/new?category=q-a
     about: For usage questions and ideas that are not yet a bug report.
