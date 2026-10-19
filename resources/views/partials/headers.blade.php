@@ -1,3 +1,10 @@
+@php
+    use Ebbbang\Mailroom\Support\AddressRole;
+
+    $bcc = $message->addressesFor(AddressRole::Bcc);
+    $envelopeTo = $message->addressesFor(AddressRole::EnvelopeTo);
+@endphp
+
 <table class="mr-table">
     <tbody>
         @forelse ($message->headers ?? [] as $name => $value)
@@ -7,18 +14,16 @@
             </tr>
         @empty
             <tr>
-                <td colspan="2" style="font-family: inherit; color: var(--mr-text-faint)">
-                    No headers were recorded for this message.
-                </td>
+                <td colspan="2"><span class="mr-note">No headers were recorded for this message.</span></td>
             </tr>
         @endforelse
 
-        @if (filled($message->bcc))
+        @if ($bcc->isNotEmpty())
             <tr>
                 <td>Bcc</td>
                 <td>
-                    {{ \Ebbbang\Mailroom\Models\MailroomMessage::formatAddressList($message->bcc) }}
-                    <div style="font-family: inherit; color: var(--mr-text-faint); margin-top: 3px">
+                    {{ $bcc->display() }}
+                    <div class="mr-note">
                         Recorded separately, because a Bcc header is stripped before a message is sent, so it will not
                         appear in the .eml export.
                     </div>
@@ -26,19 +31,17 @@
             </tr>
         @endif
 
-        @if ($message->envelope_sender)
+        @if ($message->envelopeSender())
             <tr>
                 <td>Envelope-Sender</td>
-                <td>{{ $message->envelope_sender }}</td>
+                <td>{{ $message->envelopeSender()->address }}</td>
             </tr>
         @endif
 
-        @if (filled($message->envelope_recipients))
+        @if ($envelopeTo->isNotEmpty())
             <tr>
                 <td>Envelope-To</td>
-                <td>
-                    {{ \Ebbbang\Mailroom\Models\MailroomMessage::formatAddressList($message->envelope_recipients) }}
-                </td>
+                <td>{{ $envelopeTo->display() }}</td>
             </tr>
         @endif
     </tbody>

@@ -4,6 +4,7 @@ namespace Ebbbang\Mailroom\Tests\Feature;
 
 use Ebbbang\Mailroom\Events\MessageStored;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\AddressRole;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
 use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Support\Facades\Event;
@@ -27,8 +28,8 @@ class CapturesMailTest extends TestCase
         $captured = MailroomMessage::sole();
 
         $this->assertSame('A raw message', $captured->subject);
-        $this->assertSame('rachel@example.test', $captured->to[0]['address']);
-        $this->assertSame('app@example.test', $captured->from[0]['address']);
+        $this->assertSame(['rachel@example.test'], $captured->addressesFor(AddressRole::To)->emails());
+        $this->assertSame('app@example.test', $captured->sender()?->address);
         $this->assertStringContainsString('Hello from the raw helper.', (string) $captured->text_body);
         $this->assertSame('mailroom', $captured->mailer);
     }
@@ -55,18 +56,15 @@ class CapturesMailTest extends TestCase
 
         $captured = MailroomMessage::sole();
 
-        $this->assertSame('cc@example.test', $captured->cc[0]['address']);
-        $this->assertSame('hidden@example.test', $captured->bcc[0]['address']);
-        $this->assertSame('support@example.test', $captured->reply_to[0]['address']);
+        $this->assertSame(['cc@example.test'], $captured->addressesFor(AddressRole::Cc)->emails());
+        $this->assertSame(['hidden@example.test'], $captured->addressesFor(AddressRole::Bcc)->emails());
+        $this->assertSame(['support@example.test'], $captured->addressesFor(AddressRole::ReplyTo)->emails());
 
         // Symfony strips Bcc when rendering, so it must not reach the file --
         // but the envelope still had to deliver there.
         $raw = $captured->raw();
         $this->assertStringNotContainsString('hidden@example.test', (string) $raw);
-        $this->assertContains(
-            'hidden@example.test',
-            array_column($captured->envelope_recipients, 'address')
-        );
+        $this->assertTrue($captured->addressesFor(AddressRole::EnvelopeTo)->includes('hidden@example.test'));
     }
 
     #[Test]
@@ -122,9 +120,9 @@ class CapturesMailTest extends TestCase
         // alwaysTo rewrites the message's own To header and forgets cc/bcc
         // rather than only redirecting the envelope, so the captured message
         // records the redirect and no divergence exists to report.
-        $this->assertSame('redirected@example.test', $captured->to[0]['address']);
-        $this->assertSame([], $captured->cc);
-        $this->assertSame('redirected@example.test', $captured->envelope_recipients[0]['address']);
+        $this->assertSame(['redirected@example.test'], $captured->addressesFor(AddressRole::To)->emails());
+        $this->assertSame([], $captured->addressesFor(AddressRole::Cc)->emails());
+        $this->assertSame(['redirected@example.test'], $captured->addressesFor(AddressRole::EnvelopeTo)->emails());
         $this->assertFalse($captured->envelopeDivergesFromHeaders());
     }
 
@@ -147,8 +145,8 @@ class CapturesMailTest extends TestCase
 
         $captured = MailroomMessage::sole();
 
-        $this->assertSame('rachel@example.test', $captured->to[0]['address']);
-        $this->assertSame('elsewhere@example.test', $captured->envelope_recipients[0]['address']);
+        $this->assertSame(['rachel@example.test'], $captured->addressesFor(AddressRole::To)->emails());
+        $this->assertSame(['elsewhere@example.test'], $captured->addressesFor(AddressRole::EnvelopeTo)->emails());
         $this->assertTrue($captured->envelopeDivergesFromHeaders());
     }
 

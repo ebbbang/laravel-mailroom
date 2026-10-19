@@ -3,8 +3,10 @@
 namespace Ebbbang\Mailroom\Recording;
 
 use DateTimeInterface;
+use Ebbbang\Mailroom\Models\MailroomAddress;
 use Ebbbang\Mailroom\Models\MailroomMessage;
 use Ebbbang\Mailroom\Storage\RawMessageStore;
+use Ebbbang\Mailroom\Support\AddressRole;
 use Illuminate\Support\Str;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Header\MetadataHeader;
@@ -52,38 +54,59 @@ class MessageRecorder
 
         $payload = $this->payload($message, $envelope, $mailer, $preparedHeaders);
 
-        $model = MailroomMessage::create([
-            'uuid' => $uuid,
-            'mailer' => $payload->mailer,
-            'subject' => $payload->subject,
-            'message_id' => $payload->messageId,
-            'from' => $payload->from,
-            'to' => $payload->to,
-            'cc' => $payload->cc,
-            'bcc' => $payload->bcc,
-            'reply_to' => $payload->replyTo,
-            'envelope_recipients' => $payload->envelopeRecipients,
-            'envelope_sender' => $payload->envelopeSender,
-            'html_body' => $payload->htmlBody,
-            'text_body' => $payload->textBody,
-            'headers' => $payload->headers,
-            'tags' => $payload->tags,
-            'metadata' => $payload->metadata,
-            'raw_path' => $rawPath,
-            'size' => $size,
-            // Real files only. Inline parts are embedded images belonging to
-            // the body, and counting them here would contradict the
-            // attachments tab, which lists files alone.
-            'attachment_count' => count(array_filter(
-                $payload->parts,
-                fn (AttachmentPayload $part): bool => ! $part->isInline()
-            )),
-            'sent_at' => $payload->sentAt ?? now(),
-        ]);
+        /*
+         * The row and its addresses land together or not at all. Anything
+         * listening for MessageStored reads the addresses, and a message
+         * without them would show in the list addressed to nobody.
+         */
+        $model = (new MailroomMessage)->getConnection()->transaction(function () use ($uuid, $payload, $rawPath, $size): MailroomMessage {
+            $model = MailroomMessage::create([
+                'uuid' => $uuid,
+                'mailer' => $payload->mailer,
+                'subject' => $payload->subject,
+                'message_id' => $payload->messageId,
+                'html_body' => $payload->htmlBody,
+                'text_body' => $payload->textBody,
+                'headers' => $payload->headers,
+                'tags' => $payload->tags,
+                'metadata' => $payload->metadata,
+                'raw_path' => $rawPath,
+                'size' => $size,
+                // Real files only. Inline parts are embedded images belonging to
+                // the body, and counting them here would contradict the
+                // attachments tab, which lists files alone.
+                'attachment_count' => count(array_filter(
+                    $payload->parts,
+                    fn (AttachmentPayload $part): bool => ! $part->isInline()
+                )),
+                'sent_at' => $payload->sentAt ?? now(),
+            ]);
+
+            $this->storeAddresses($model, $payload->addresses);
+
+            return $model;
+        });
 
         $this->storeParts($model, $uuid, $payload->parts);
 
         return $model;
+    }
+
+    /**
+     * @param  array<int, AddressPayload>  $addresses
+     */
+    protected function storeAddresses(MailroomMessage $model, array $addresses): void
+    {
+        $rows = array_map(
+            fn (AddressPayload $address): array => ['mailroom_message_id' => $model->getKey(), ...$address->toRow()],
+            $addresses,
+        );
+
+        // Batched because a bulk send can name thousands of recipients, and
+        // SQLite caps the parameters one statement may bind.
+        foreach (array_chunk($rows, 100) as $batch) {
+            MailroomAddress::query()->insert($batch);
+        }
     }
 
     /**
@@ -108,11 +131,13 @@ class MessageRecorder
 
     protected function payload(RawMessage $message, Envelope $envelope, string $mailer, ?Headers $preparedHeaders): MessagePayload
     {
-        $envelopeRecipients = $this->addresses($envelope->getRecipients());
-        $envelopeSender = $envelope->getSender()->getAddress();
+        $envelopeAddresses = [
+            ...$this->addresses(AddressRole::EnvelopeFrom, [$envelope->getSender()]),
+            ...$this->addresses(AddressRole::EnvelopeTo, $envelope->getRecipients()),
+        ];
 
         if (! $message instanceof Email) {
-            return $this->payloadForRawMessage($message, $mailer, $envelopeRecipients, $envelopeSender, $preparedHeaders);
+            return $this->payloadForRawMessage($message, $mailer, $envelopeAddresses, $preparedHeaders);
         }
 
         $headers = $preparedHeaders ?? $message->getHeaders();
@@ -121,16 +146,17 @@ class MessageRecorder
             mailer: $mailer,
             subject: $message->getSubject(),
             messageId: $this->messageId($headers),
-            from: $this->addresses($message->getFrom()),
-            to: $this->addresses($message->getTo()),
-            cc: $this->addresses($message->getCc()),
-            // Read BCC from the Email itself: getPreparedHeaders() strips the
-            // Bcc header, because it must never appear in the sent message.
-            // That means the exported .eml legitimately will not show it.
-            bcc: $this->addresses($message->getBcc()),
-            replyTo: $this->addresses($message->getReplyTo()),
-            envelopeRecipients: $envelopeRecipients,
-            envelopeSender: $envelopeSender,
+            addresses: [
+                ...$this->addresses(AddressRole::From, $message->getFrom()),
+                ...$this->addresses(AddressRole::To, $message->getTo()),
+                ...$this->addresses(AddressRole::Cc, $message->getCc()),
+                // Read BCC from the Email itself: getPreparedHeaders() strips the
+                // Bcc header, because it must never appear in the sent message.
+                // That means the exported .eml legitimately will not show it.
+                ...$this->addresses(AddressRole::Bcc, $message->getBcc()),
+                ...$this->addresses(AddressRole::ReplyTo, $message->getReplyTo()),
+                ...$envelopeAddresses,
+            ],
             htmlBody: $this->stringify($message->getHtmlBody()),
             textBody: $this->stringify($message->getTextBody()),
             headers: $this->headers($headers),
@@ -145,9 +171,9 @@ class MessageRecorder
      * A message that never went through Laravel's Mailer -- we only have raw
      * MIME to work with, so record what the headers give us and no more.
      *
-     * @param  array<int, array{address: string, name: string|null}>  $envelopeRecipients
+     * @param  array<int, AddressPayload>  $envelopeAddresses
      */
-    protected function payloadForRawMessage(RawMessage $message, string $mailer, array $envelopeRecipients, string $envelopeSender, ?Headers $preparedHeaders): MessagePayload
+    protected function payloadForRawMessage(RawMessage $message, string $mailer, array $envelopeAddresses, ?Headers $preparedHeaders): MessagePayload
     {
         $headers = $preparedHeaders ?? ($message instanceof Message ? $message->getHeaders() : null);
 
@@ -155,13 +181,7 @@ class MessageRecorder
             mailer: $mailer,
             subject: $headers?->get('Subject')?->getBodyAsString(),
             messageId: $headers instanceof Headers ? $this->messageId($headers) : null,
-            from: [],
-            to: [],
-            cc: [],
-            bcc: [],
-            replyTo: [],
-            envelopeRecipients: $envelopeRecipients,
-            envelopeSender: $envelopeSender,
+            addresses: $envelopeAddresses,
             htmlBody: null,
             textBody: null,
             headers: $headers instanceof Headers ? $this->headers($headers) : [],
@@ -256,14 +276,16 @@ class MessageRecorder
 
     /**
      * @param  array<int, Address>  $addresses
-     * @return array<int, array{address: string, name: string|null}>
+     * @return array<int, AddressPayload>
      */
-    protected function addresses(array $addresses): array
+    protected function addresses(AddressRole $role, array $addresses): array
     {
-        return array_map(fn (Address $address): array => [
-            'address' => $address->getAddress(),
-            'name' => $address->getName() !== '' ? $address->getName() : null,
-        ], array_values($addresses));
+        return array_map(fn (Address $address, int $position): AddressPayload => new AddressPayload(
+            role: $role,
+            position: $position,
+            address: $address->getAddress(),
+            name: $role->isEnvelope() || $address->getName() === '' ? null : $address->getName(),
+        ), array_values($addresses), array_keys(array_values($addresses)));
     }
 
     protected function messageId(Headers $headers): ?string

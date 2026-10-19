@@ -88,15 +88,12 @@ class ReadController
      * Opening a message marks it read, so a "Mark unread" that returned you to
      * it would undo itself on arrival.
      *
-     * Only the keys the list is built from are carried across, and blank ones
-     * are dropped so the URL stays clean. Taking a redirect target from the
-     * form instead would let a hand-made one bounce someone elsewhere.
+     * Only the keys the list is built from are carried across. Taking a
+     * redirect target from the form instead would let a hand-made one bounce
+     * someone elsewhere.
      */
     protected function backToList(Request $request): RedirectResponse
     {
-        return to_route('mailroom.index', array_filter(
-            $request->only('search', 'mailer', 'page'),
-            filled(...)
-        ));
+        return to_route('mailroom.index', Mailroom::listState($request));
     }
 }

@@ -36,9 +36,9 @@ class DetailHeaderTest extends TestCase
      */
     protected function summary(string $html): string
     {
-        $this->assertMatchesRegularExpression('#<summary\b.*?</summary>#s', $html);
+        $this->assertMatchesRegularExpression('#<summary class="mr-meta-line".*?</summary>#s', $html);
 
-        preg_match('#<summary\b.*?</summary>#s', $html, $found);
+        preg_match('#<summary class="mr-meta-line".*?</summary>#s', $html, $found);
 
         return $found[0];
     }
@@ -53,57 +53,59 @@ class DetailHeaderTest extends TestCase
      */
     protected function fields(string $html): string
     {
-        $this->assertMatchesRegularExpression('#</summary>.*?</details>#s', $html);
+        $this->assertMatchesRegularExpression('#<summary class="mr-meta-line".*?</summary>(.*?)</details>#s', $html);
 
-        preg_match('#</summary>.*?</details>#s', $html, $found);
+        preg_match('#<summary class="mr-meta-line".*?</summary>(.*?)</details>#s', $html, $found);
 
-        return $found[0];
+        return $found[1];
     }
 
     #[Test]
-    public function the_summary_line_carries_who_to_whom_and_when(): void
+    public function the_summary_line_names_who_the_message_went_to(): void
+    {
+        Mail::to('rachel@example.test', 'Rachel Okonkwo')->cc('dara@example.test')->send(new OrderShipped);
+
+        $summary = $this->summary($this->pageForLatest()->getContent());
+
+        // Names where there are names, addresses where there are not.
+        $this->assertStringContainsString('to Rachel Okonkwo, cc dara@example.test', $summary);
+        $this->assertStringNotContainsString('rachel@example.test', $summary);
+    }
+
+    #[Test]
+    public function the_date_sits_beside_the_summary_and_the_size_inside_it(): void
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
         $message = MailroomMessage::query()->latest('id')->firstOrFail();
         $html = $this->pageForLatest()->getContent();
-        $summary = $this->summary($html);
+        $sent = $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString();
 
-        $this->assertStringContainsString('rachel@example.test', $summary);
-        $this->assertStringContainsString(
-            $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString(),
-            $summary
-        );
+        $this->assertMatchesRegularExpression('#<div class="mr-when">\s*'.preg_quote((string) $sent, '#').'\s*</div>#', $html);
 
         /*
-         * And no further. The size is reference data rather than something
-         * anyone scans a mailbox for, so it belongs to the grid; the mailer is
-         * already on every row of the list. Keeping them off this line is what
-         * leaves the addresses room before they truncate.
+         * The size is reference data rather than something anyone scans a
+         * mailbox for, so it belongs to the grid. Keeping it off the line is
+         * what leaves the recipients room before they truncate.
          */
-        $this->assertStringNotContainsString($message->humanSize(), $summary);
+        $this->assertStringNotContainsString($message->humanSize(), $this->summary($html));
         $this->assertStringContainsString($message->humanSize(), $this->fields($html));
     }
 
     #[Test]
-    public function the_abbreviated_line_is_wrapped_so_it_can_truncate_and_be_swapped_out(): void
+    public function the_recipients_are_wrapped_so_they_can_truncate(): void
     {
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
         $summary = $this->summary($this->pageForLatest()->getContent());
 
         /*
-         * The addresses sit inside .mr-meta-inline rather than loose in the
-         * summary, and that wrapper does two jobs: it is what they truncate
-         * against, and it is what CSS hides once the grid below is showing.
-         * Move them out and the ellipsis quietly stops working while the open
-         * state starts repeating itself, neither of which anything else here
-         * would catch.
+         * .mr-meta-to is what the recipients truncate against. Move them out
+         * of it and a long recipient list wraps the header onto a second line
+         * instead of ending in an ellipsis, which nothing else here would
+         * catch.
          */
-        preg_match('#<span class="mr-meta-inline">.*?</span>\s*</span>#s', $summary, $inline);
-
-        $this->assertNotEmpty($inline, 'The summary should wrap its meta spans in .mr-meta-inline.');
-        $this->assertStringContainsString('rachel@example.test', $inline[0]);
+        $this->assertMatchesRegularExpression('#<span class="mr-meta-to">[^<]*rachel@example\.test[^<]*</span>#', $summary);
     }
 
     #[Test]
@@ -117,7 +119,7 @@ class DetailHeaderTest extends TestCase
     }
 
     #[Test]
-    public function the_crowded_fields_move_behind_the_disclosure_rather_than_away(): void
+    public function bcc_and_reply_to_wait_behind_the_disclosure(): void
     {
         Mail::to('rachel@example.test')
             ->cc('accounts@example.test')
@@ -128,13 +130,11 @@ class DetailHeaderTest extends TestCase
         $summary = $this->summary($html);
         $fields = $this->fields($html);
 
-        foreach (['accounts@example.test', 'audit@example.test', 'support@example.test'] as $address) {
-            // Still in the header, which is the half that says nothing was
-            // dropped on the way behind the disclosure.
+        foreach (['rachel@example.test', 'accounts@example.test', 'audit@example.test', 'support@example.test'] as $address) {
             $this->assertStringContainsString($address, $fields, "{$address} should be inside the disclosure.");
+        }
 
-            // And not on the collapsed line, which is the half that says the
-            // header stays one row tall however many addresses a message has.
+        foreach (['audit@example.test', 'support@example.test'] as $address) {
             $this->assertStringNotContainsString($address, $summary, "{$address} should not be on the summary line.");
         }
     }

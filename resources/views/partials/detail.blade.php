@@ -1,5 +1,22 @@
 @php
-    use Ebbbang\Mailroom\Models\MailroomMessage as Msg;
+    use Ebbbang\Mailroom\Spam\SpamResult;
+    use Ebbbang\Mailroom\Support\AddressRole;
+    use Ebbbang\Mailroom\Support\Avatar;
+
+    $sender = $message->sender() ?? $message->envelopeSender();
+    $senderAvatar = Avatar::for($sender?->address, $sender?->name);
+
+    $to = $message->addressesFor(AddressRole::To);
+    $cc = $message->addressesFor(AddressRole::Cc);
+    $bcc = $message->addressesFor(AddressRole::Bcc);
+    $replyTo = $message->addressesFor(AddressRole::ReplyTo);
+
+    // Names where there are names: the summary is for recognising who a
+    // message went to, and the full addresses are one click away below it.
+    $short = fn ($list): string => $list->map(fn ($address): string => $address->name ?: $address->address)->implode(', ');
+
+    $recipients = 'to '.($to->isNotEmpty() ? $short($to) : '(no recipient)')
+        .($cc->isNotEmpty() ? ', cc '.$short($cc) : '');
 
     $files = $message->fileAttachments();
     $inline = $message->inlineAttachments();
@@ -10,154 +27,197 @@
     // Inline parts alone are enough to warrant the pane -- see the tab below.
     $hasAttachmentsPane = $files->isNotEmpty() || $inline->isNotEmpty();
 
-    // Shown twice: abbreviated in the summary line, in full in the grid below.
-    $sentAt = $message->sent_at?->toDayDateTimeString() ?? $message->created_at?->toDayDateTimeString();
+    $sentAt = $message->sent_at ?? $message->created_at;
 @endphp
 
 <div class="mr-detail-head">
     <div class="mr-head-top">
         <h1 class="mr-subject">{{ $message->displaySubject() }}</h1>
+
+        {{--
+            Icons with tooltips on a wide screen, labelled buttons on a phone.
+            The labels are always in the DOM (.mr-tool-label), which is what
+            gives each button its accessible name either way.
+        --}}
         <div class="mr-actions">
-            @if ($message->hasRaw())
-                <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'eml']) }}" class="mr-btn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+            <div class="mr-tool-group">
+                @if ($message->hasRaw())
+                    <a
+                        href="{{ route('mailroom.download', ['message' => $message, 'format' => 'eml']) }}"
+                        class="mr-tool"
+                        title="Download .eml"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                        </svg>
+                        <span class="mr-tool-label">.eml</span>
+                    </a>
+                @endif
+
+                @if ($hasHtml)
+                    <a
+                        href="{{ route('mailroom.download', ['message' => $message, 'format' => 'html']) }}"
+                        class="mr-tool"
+                        title="Download .html"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+                        </svg>
+                        <span class="mr-tool-label">.html</span>
+                    </a>
+                @endif
+
+                {{-- Always rendered. Nobody discovers a feature whose only trace is a
+                     line in the README, so the button is what teaches you forwarding
+                     exists; the dialog explains how to switch it on. The route itself
+                     is still absent until a mailer is configured, so this reveals the
+                     feature without opening a way to use it. --}}
+                <button type="button" class="mr-tool" id="mr-forward-open" aria-haspopup="dialog" title="Forward">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m15 17 5-5-5-5" />
+                        <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
                     </svg>
-                    .eml
-                </a>
-            @endif
+                    <span class="mr-tool-label">Forward</span>
+                </button>
 
-            @if ($hasHtml)
-                <a href="{{ route('mailroom.download', ['message' => $message, 'format' => 'html']) }}" class="mr-btn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                    </svg>
-                    .html
-                </a>
-            @endif
+                {{-- Only one direction is offered here: opening this message is
+                     what marked it read, so a "Mark read" button would have nothing
+                     to do. It lands back on the list, since returning here would
+                     mark it read again on arrival. --}}
+                @if ($reader !== null)
+                    <form method="POST" action="{{ route('mailroom.unread', $message) }}" class="mr-inline-form">
+                        @csrf
+                        @method('DELETE')
+                        @include('mailroom::partials.list-state-inputs')
+                        <button type="submit" class="mr-tool" title="Mark unread">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10" />
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                                <circle cx="19" cy="17" r="3" />
+                            </svg>
+                            <span class="mr-tool-label">Mark unread</span>
+                        </button>
+                    </form>
+                @endif
+            </div>
 
-            {{-- Always rendered. Nobody discovers a feature whose only trace is a
-                 line in the README, so the button is what teaches you forwarding
-                 exists; the dialog explains how to switch it on. The route itself
-                 is still absent until a mailer is configured, so this reveals the
-                 feature without opening a way to use it. --}}
-            <button type="button" class="mr-btn" id="mr-forward-open" aria-haspopup="dialog">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m14 8 4 4-4 4M18 12H6" />
-                </svg>
-                Forward
-            </button>
-
-            {{-- Only one direction is offered here: opening this message is
-                 what marked it read, so a "Mark read" button would have nothing
-                 to do. It lands back on the list, since returning here would
-                 mark it read again on arrival. --}}
-            @if ($reader !== null)
-                <form method="POST" action="{{ route('mailroom.unread', $message) }}" class="mr-inline-form">
+            {{-- Set apart from the ones that only read the message. --}}
+            <div class="mr-tool-group">
+                <form
+                    method="POST"
+                    action="{{ route('mailroom.destroy', $message) }}"
+                    class="mr-inline-form"
+                    data-mr-confirm="mr-confirm-delete"
+                >
                     @csrf
                     @method('DELETE')
-                    <input type="hidden" name="search" value="{{ $search }}" />
-                    <input type="hidden" name="mailer" value="{{ $mailer }}" />
-                    <input type="hidden" name="page" value="{{ request('page') }}" />
-                    <button type="submit" class="mr-btn">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="2" y="4" width="20" height="16" rx="2" />
-                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    @include('mailroom::partials.list-state-inputs')
+                    <button type="submit" class="mr-tool mr-tool-danger" title="Delete">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         </svg>
-                        Mark unread
+                        <span class="mr-tool-label">Delete</span>
                     </button>
                 </form>
-            @endif
 
-            <form
-                method="POST"
-                action="{{ route('mailroom.destroy', $message) }}"
-                class="mr-inline-form mr-actions-end"
-                onsubmit="return confirm('Delete this message?');"
-            >
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="mr-btn mr-btn-danger">Delete</button>
-            </form>
+                {{-- The subject is quoted so it reads as a name, even when it reads like a sentence of its own. --}}
+                <template id="mr-confirm-delete">
+                    <span data-mr-confirm-title>Delete this message?</span>
+                    <span data-mr-confirm-body>
+                        The message
+                        <strong>&ldquo;{{ $message->displaySubject() }}&rdquo;</strong>
+                        {{ $message->attachments->isNotEmpty() ? 'and its attachments' : '' }} will be removed for good.
+                    </span>
+                    <span data-mr-confirm-action>Delete</span>
+                </template>
+            </div>
         </div>
     </div>
 
-    {{--
-        A native disclosure rather than a scripted toggle. There is no `hidden`
-        attribute here for an author `display` rule to beat, and no conditional
-        `@push('scripts')` to forget to guard, which are the two traps this UI
-        has fallen into before. Keyboard support and screen reader announcement
-        come free, and it still opens with scripting turned off.
-    --}}
-    <details class="mr-meta" id="mr-meta">
-        {{--
-            Who, to whom, and when. The mailer and size badges are left to the
-            grid below: neither is something anyone scans a mailbox for, the
-            mailer is already on every row of the list, and dropping them buys
-            the addresses room before they have to truncate.
+    <div class="mr-sender">
+        <span
+            class="mr-avatar mr-avatar-lg mr-tone-{{ $senderAvatar->tone }}"
+            aria-hidden="true"
+        >{{ $senderAvatar->initials }}</span>
 
-            The line is hidden once that grid is showing, since open it would
-            only repeat From, To and Sent from it, in a truncated form.
-        --}}
-        <summary class="mr-meta-line">
-            <span class="mr-meta-inline">
-                <span class="mr-meta-party">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
-                <span class="mr-meta-arrow" aria-hidden="true">&rarr;</span>
-                <span class="mr-meta-party">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
-                <span class="mr-meta-date">{{ $sentAt }}</span>
-            </span>
+        <div class="mr-who">
+            <div class="mr-who-name">
+                {{ $sender?->name ?: $sender?->address ?: '(no sender)' }}
+                @if ($sender?->name)
+                    <span class="mr-who-address">{{ $sender->address }}</span>
+                @endif
+                <span class="mr-who-time">{{ $sentAt?->isToday() ? $sentAt->format('g:i A') : $sentAt?->format('M j') }}</span>
+            </div>
 
-            <span class="mr-btn mr-meta-toggle">
-                <span class="mr-meta-toggle-label">Details</span>
-                <svg class="mr-meta-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="m6 9 6 6 6-6" />
-                </svg>
-            </span>
-        </summary>
+            {{--
+                A native disclosure rather than a scripted toggle. There is no
+                `hidden` attribute here for an author `display` rule to beat, and
+                no conditional `@push('scripts')` to forget to guard, which are the
+                two traps this UI has fallen into before. Keyboard support and
+                screen reader announcement come free, and it still opens with
+                scripting turned off.
 
-        <div class="mr-fields">
-            <span class="mr-field-label">From</span>
-            <span class="mr-field-value">{{ Msg::formatAddressList($message->from) ?: '-' }}</span>
+                The summary is the recipients line itself, To and Cc by name,
+                and it truncates rather than wraps, so the header is the same
+                height however many people a message went to. Bcc, Reply-To, the
+                size and the tags wait inside.
+            --}}
+            <details class="mr-meta" id="mr-meta">
+                <summary class="mr-meta-line">
+                    <span class="mr-meta-to">{{ $recipients }}</span>
+                    <svg class="mr-meta-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                    <span class="mr-sr">Show all addresses and details</span>
+                </summary>
 
-            <span class="mr-field-label">To</span>
-            <span class="mr-field-value">{{ Msg::formatAddressList($message->to) ?: '-' }}</span>
+                <dl class="mr-fields">
+                    <dt>From</dt>
+                    <dd>{{ $message->addressesFor(AddressRole::From)->display() ?: '-' }}</dd>
 
-            @if (filled($message->cc))
-                <span class="mr-field-label">Cc</span>
-                <span class="mr-field-value">{{ Msg::formatAddressList($message->cc) }}</span>
-            @endif
+                    <dt>To</dt>
+                    <dd>{{ $to->display() ?: '-' }}</dd>
 
-            @if (filled($message->bcc))
-                <span class="mr-field-label">Bcc</span>
-                <span class="mr-field-value">{{ Msg::formatAddressList($message->bcc) }}</span>
-            @endif
+                    @if ($cc->isNotEmpty())
+                        <dt>Cc</dt>
+                        <dd>{{ $cc->display() }}</dd>
+                    @endif
 
-            @if (filled($message->reply_to))
-                <span class="mr-field-label">Reply-To</span>
-                <span class="mr-field-value">{{ Msg::formatAddressList($message->reply_to) }}</span>
-            @endif
+                    @if ($bcc->isNotEmpty())
+                        <dt>Bcc</dt>
+                        <dd>{{ $bcc->display() }}</dd>
+                    @endif
 
-            <span class="mr-field-label">Sent</span>
-            <span class="mr-field-value">
-                {{ $sentAt }}
-                <span class="mr-badge" style="margin-left: 6px">{{ $message->mailer }}</span>
-                <span class="mr-badge">{{ $message->humanSize() }}</span>
-            </span>
+                    @if ($replyTo->isNotEmpty())
+                        <dt>Reply-To</dt>
+                        <dd>{{ $replyTo->display() }}</dd>
+                    @endif
 
-            @if (filled($message->tags) || filled($message->metadata))
-                <span class="mr-field-label">Tags</span>
-                <span class="mr-field-value">
-                    @foreach ($message->tags ?? [] as $tag)
-                        <span class="mr-badge mr-badge-accent">{{ $tag }}</span>
-                    @endforeach
+                    <dt>Sent</dt>
+                    <dd>
+                        {{ $sentAt?->toDayDateTimeString() }}
+                        <span class="mr-badge">{{ $message->mailer }}</span>
+                        <span class="mr-badge">{{ $message->humanSize() }}</span>
+                    </dd>
 
-                    @foreach ($message->metadata ?? [] as $key => $value)
-                        <span class="mr-badge">{{ $key }}: {{ $value }}</span>
-                    @endforeach
-                </span>
-            @endif
+                    @if (filled($message->tags) || filled($message->metadata))
+                        <dt>Tags</dt>
+                        <dd>
+                            @foreach ($message->tags ?? [] as $tag)
+                                <span class="mr-badge mr-badge-accent">{{ $tag }}</span>
+                            @endforeach
+
+                            @foreach ($message->metadata ?? [] as $key => $value)
+                                <span class="mr-badge">{{ $key }}: {{ $value }}</span>
+                            @endforeach
+                        </dd>
+                    @endif
+                </dl>
+            </details>
         </div>
-    </details>
+
+        <div class="mr-when">{{ $sentAt?->toDayDateTimeString() }}</div>
+    </div>
 
     {{--
         Inline rather than in @push('scripts'). An inline script runs while the
@@ -194,7 +254,7 @@
 @php
     $forwardMailer = config('mailroom.forward.mailer');
     $canForward = \Ebbbang\Mailroom\Mailroom::canForwardFrom(request());
-    $originalRecipient = $message->to[0]['address'] ?? '';
+    $originalRecipient = $to->first()?->address ?? '';
     $forwardError = session('mailroom.error') ?: $errors->first('to');
 @endphp
 
@@ -215,7 +275,7 @@
             <h2 class="mr-modal-title" id="mr-forward-title">Forward this message</h2>
             <button
                 type="button"
-                class="mr-btn mr-btn-ghost"
+                class="mr-icon-btn mr-modal-close"
                 id="mr-forward-close"
                 aria-label="Close"
                 title="Close (Esc)"
@@ -257,7 +317,7 @@
         @else
             <form
                 method="POST"
-                action="{{ route('mailroom.forward', ['message' => $message, ...request()->only('search', 'mailer', 'page')]) }}"
+                action="{{ route('mailroom.forward', ['message' => $message, ...$state]) }}"
                 id="mr-forward-form"
             >
                 @csrf
@@ -279,10 +339,22 @@
                     only this address receives a copy, and the message stored here is not altered.
                 </p>
 
+                <p class="mr-forward-check" id="mr-forward-check" role="status" hidden>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                    </svg>
+                    <span>
+                        This leaves the application for a real mailbox. Press Send again to deliver a copy to
+                        <strong id="mr-forward-check-to"></strong>.
+                    </span>
+                </p>
+
                 <div class="mr-modal-foot">
                     <span class="mr-modal-meta">via <code>{{ $forwardMailer }}</code></span>
                     <button type="button" class="mr-btn" data-mr-forward-cancel>Cancel</button>
-                    <button type="submit" class="mr-btn mr-btn-primary">Send</button>
+                    <button type="submit" class="mr-btn mr-btn-primary" id="mr-forward-send">
+                        <span class="mr-btn-label">Send</span>
+                    </button>
                 </div>
             </form>
         @endif
@@ -290,8 +362,8 @@
 </div>
 
 @if ($message->hasMissingFiles())
-    <div class="mr-notice">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <div class="mr-notice" role="note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         </svg>
         <span>
@@ -305,86 +377,89 @@
 @endif
 
 @if ($message->envelopeDivergesFromHeaders())
-    <div class="mr-notice">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <div class="mr-notice" role="note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         </svg>
         <span>
             <strong>Envelope differs from headers.</strong>
-            This was delivered to <strong>{{ Msg::formatAddressList($message->envelope_recipients) }}</strong>, which is
-            not what the message is addressed to. Something supplied a custom envelope, so the recipients above are not
-            who actually received it.
+            This was delivered to <strong>{{ $message->addressesFor(AddressRole::EnvelopeTo)->display() }}</strong>,
+            which is not what the message is addressed to. Something supplied a custom envelope, so the recipients above
+            are not who actually received it.
         </span>
     </div>
 @endif
 
-<div class="mr-tabs" role="tablist">
-    @if ($hasHtml)
-        <button
-            type="button"
-            class="mr-tab"
-            role="tab"
-            aria-selected="{{ $firstPane === 'html' ? 'true' : 'false' }}"
-            data-mr-tab="html"
-        >
-            HTML
-        </button>
-    @endif
-
-    @if ($hasText)
-        <button
-            type="button"
-            class="mr-tab"
-            role="tab"
-            aria-selected="{{ $firstPane === 'text' ? 'true' : 'false' }}"
-            data-mr-tab="text"
-        >
-            Text
-        </button>
-    @endif
-
-    {{--
-        Inline parts count towards showing this tab even though they are not
-        files. Without that, a message whose only attachments are embedded
-        images has no tab at all, and the "plus N inline images" note inside
-        the pane can never be reached.
-    --}}
-    @if ($hasAttachmentsPane)
-        <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="files">
-            Attachments
-            @if ($files->isNotEmpty())
-                <span class="mr-badge">{{ $files->count() }}</span>
+<div class="mr-tabs">
+    <div class="mr-tablist-wrap">
+        <div class="mr-seg" role="tablist" aria-label="Views of this message">
+            @if ($hasHtml)
+                <button
+                    type="button"
+                    class="mr-tab"
+                    role="tab"
+                    aria-selected="{{ $firstPane === 'html' ? 'true' : 'false' }}"
+                    data-mr-tab="html"
+                >
+                    HTML
+                </button>
             @endif
-        </button>
-    @endif
 
-    <button
-        type="button"
-        class="mr-tab"
-        role="tab"
-        aria-selected="{{ $firstPane === 'headers' ? 'true' : 'false' }}"
-        data-mr-tab="headers"
-    >
-        Headers
-    </button>
+            @if ($hasText)
+                <button
+                    type="button"
+                    class="mr-tab"
+                    role="tab"
+                    aria-selected="{{ $firstPane === 'text' ? 'true' : 'false' }}"
+                    data-mr-tab="text"
+                >
+                    Text
+                </button>
+            @endif
 
-    @if ($message->hasRaw())
-        <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="raw">Raw</button>
-    @endif
+            {{--
+                Inline parts count towards showing this tab even though they are not
+                files. Without that, a message whose only attachments are embedded
+                images has no tab at all, and the "plus N inline images" note inside
+                the pane can never be reached.
+            --}}
+            @if ($hasAttachmentsPane)
+                <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="files">
+                    Attachments
+                    @if ($files->isNotEmpty())
+                        <span class="mr-badge mr-badge-info">{{ $files->count() }}</span>
+                    @endif
+                </button>
+            @endif
 
-    {{-- Present whether or not a driver is configured, so the pane can explain
-         what the check does. Only the score is worth carrying in the tab: a
-         reader scanning messages wants to know which one scored badly. --}}
-    <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="spam">
-        Spam Check
-        @if ($message->hasSpamResult())
-            {{-- Accent past SpamAssassin's threshold, so a bad score is visible
-                 from the tab rather than only inside the pane. --}}
-            <span @class(['mr-badge', 'mr-badge-accent' => $message->spam_score >= 5])>
-                {{ number_format($message->spam_score, 1) }}
-            </span>
-        @endif
-    </button>
+            <button
+                type="button"
+                class="mr-tab"
+                role="tab"
+                aria-selected="{{ $firstPane === 'headers' ? 'true' : 'false' }}"
+                data-mr-tab="headers"
+            >
+                Headers
+            </button>
+
+            @if ($message->hasRaw())
+                <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="raw">Raw</button>
+            @endif
+
+            {{-- Present whether or not a driver is configured, so the pane can explain
+                 what the check does. Only the score is worth carrying in the tab: a
+                 reader scanning messages wants to know which one scored badly, and the
+                 band colour says so before the number is read. --}}
+            <button type="button" class="mr-tab" role="tab" aria-selected="false" data-mr-tab="spam">
+                Spam Check
+                @if ($message->hasSpamResult())
+                    <span class="mr-badge mr-badge-{{ SpamResult::band($message->spam_score) }}">
+                        {{ number_format($message->spam_score, 1) }}
+                    </span>
+                @endif
+            </button>
+        </div>
+    </div>
 
     {{--
         Sits in the tab row rather than beside the message actions, because it
@@ -393,7 +468,7 @@
         whenever another pane is showing.
     --}}
     @if ($hasHtml)
-        <div class="mr-viewport" id="mr-viewport" role="group" aria-label="Preview width">
+        <div class="mr-seg mr-viewport" id="mr-viewport" role="group" aria-label="Preview width">
             {{--
                 The label is the accessible name, so there is no aria-label to
                 override it. The title carries the width, which is the part
@@ -601,7 +676,43 @@
 
             function dismiss() {
                 modal.hidden = true;
+                disarm();
                 open.focus();
+            }
+
+            var form = document.getElementById('mr-forward-form');
+            var check = document.getElementById('mr-forward-check');
+            var send = document.getElementById('mr-forward-send');
+            var armed = false;
+
+            function disarm() {
+                if (!form) {
+                    return;
+                }
+
+                armed = false;
+                check.hidden = true;
+                send.firstElementChild.textContent = 'Send';
+            }
+
+            // The field is pre-filled with the real recipient, so a stray
+            // Enter would email an actual customer. The first Send names the
+            // address and asks again; changing the address starts over.
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (armed) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    armed = true;
+                    document.getElementById('mr-forward-check-to').textContent = field.value;
+                    check.hidden = false;
+                    send.firstElementChild.textContent = 'Send to ' + field.value;
+                    send.focus();
+                });
+
+                field.addEventListener('input', disarm);
             }
 
             open.addEventListener('click', show);
@@ -639,19 +750,6 @@
                     dismiss();
                 }
             });
-
-            var form = document.getElementById('mr-forward-form');
-
-            // The field is pre-filled with the real recipient, so a stray
-            // Enter would email an actual customer. Naming the address in the
-            // prompt makes that visible before it happens.
-            if (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!window.confirm('Forward this message to ' + field.value + '?')) {
-                        event.preventDefault();
-                    }
-                });
-            }
         })();
     </script>
 @endpush

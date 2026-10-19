@@ -3,7 +3,9 @@
 namespace Ebbbang\Mailroom\Forwarding;
 
 use Ebbbang\Mailroom\Exceptions\CannotForwardException;
+use Ebbbang\Mailroom\Models\MailroomAddress;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\AddressRole;
 use Illuminate\Mail\MailManager;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Transport\TransportInterface;
@@ -56,15 +58,7 @@ class MessageForwarder
      */
     protected function addressedTo(MailroomMessage $message, string $address): bool
     {
-        $address = mb_strtolower(trim($address));
-
-        foreach ($message->to ?? [] as $recipient) {
-            if (mb_strtolower((string) ($recipient['address'] ?? '')) === $address) {
-                return true;
-            }
-        }
-
-        return false;
+        return $message->addressesFor(AddressRole::To)->includes($address);
     }
 
     /**
@@ -98,10 +92,10 @@ class MessageForwarder
      */
     protected function sender(MailroomMessage $message): string
     {
-        $sender = $message->envelope_sender ?: ($message->from[0]['address'] ?? null);
+        $sender = $message->envelopeSender() ?? $message->sender();
 
-        throw_if(blank($sender), CannotForwardException::noSender());
+        throw_if(! $sender instanceof MailroomAddress, CannotForwardException::noSender());
 
-        return (string) $sender;
+        return $sender->address;
     }
 }

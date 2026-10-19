@@ -89,11 +89,35 @@ Everything Laravel's mail layer can produce. Mailroom hooks in as a Symfony tran
 
 ## The mailbox
 
-`/mailroom` is a two-pane reader: search, filter by mailer, and per-message HTML / text / attachments / headers / raw / spam check tabs. Light, dark and system themes.
+`/mailroom` is a mail client for what your application sent: a sidebar of mailboxes and people, the message list, and the message itself with HTML / text / attachments / headers / raw / spam check tabs. Light, dark and system themes.
 
-Each message opens on a two-line header: subject and actions, then who it went to and when. Cc, Bcc, Reply-To and tags sit behind **Details**, so the header stays the same height whether a message carries two addresses or seven, and the email itself starts near the top of the pane.
+Each message opens on a compact header: the subject and a toolbar, then the sender, who it went to, and when. The line naming the recipients opens a panel with every address (To, Cc, Bcc, Reply-To), the size, the mailer and the tags, so the header stays the same height whether a message carries two addresses or seven, and the email itself starts near the top of the pane.
 
 No build step, no npm, no published assets. The styles are inlined, so it works offline and behind a strict CSP.
+
+### Mailboxes and people
+
+The sidebar filters the list:
+
+- **Inbox**: everything captured, newest first.
+- **Unread**: what you have not opened yet. It appears only when someone is signed in; see [Read and unread](#read-and-unread).
+- **Spam checked**: every message that has been through the [spam check](#spam-check), highest score first, so the one worth looking at is at the top.
+- **People**: the ten addresses that appear on the most messages, as sender, recipient, Cc or Bcc, with a count of the rest. Clicking one lists every message it is on. The box above them finds anyone else by address or name, as you type.
+- **Mailers**: one entry per mailer that captured mail. It appears only when there is more than one, which happens when an application sends through named mailers of its own.
+
+The sidebar shows one view at a time, the way folders do: choosing a mailbox, a person or a mailer replaces the previous choice, and Inbox always means all mail. Search narrows whichever view is showing. The counts in the sidebar cover the whole mailbox; the heading above the list counts what the list is showing.
+
+Row counts are coloured so they read at a glance: attachments in blue, and a spam score green below 2, amber from 2, and red from SpamAssassin's own threshold of 5.
+
+### Keyboard
+
+- `j` / `k` open the next and previous message in the list.
+- `/` jumps to the search box.
+- `Esc` in a search box clears it.
+
+Nothing else is bound, so a stray key can at worst open a different message. Shortcuts are ignored while you are typing in a field and while the forward dialog or an attachment preview is open.
+
+Both search boxes update as you type, a moment after you stop. The message search keeps the address bar in step, so a refresh or a shared link shows the same results, and matches are highlighted in the list. With scripting off, pressing Enter searches instead.
 
 ### Desktop, tablet and mobile
 
@@ -105,9 +129,11 @@ Most of the mail an application sends is read on a phone, so the rendered body c
 
 An iframe carries its own viewport, so the message's own media queries fire at the chosen width: what you see is what a client that size would lay out, not a scaled picture of it. The choice is kept in your browser and applies to every message you open, since someone checking a staging run at phone width is usually checking all of it.
 
+The mailbox itself adapts too. On a tablet the sidebar narrows to a rail of icons and avatars. On a phone the list and the message are separate screens, with a link back to the list, and the message toolbar spells out its buttons, since there is no hover to show a tooltip.
+
 ### Read and unread
 
-Where the mailbox sits behind a login, it keeps track of what each person has read. Opening a message marks it read, unread rows keep the bolder subject and carry a dot, and the header counts what is still unread under whatever filter is applied. **Mark unread** puts one back, and a whole page can be marked either way at once.
+Where the mailbox sits behind a login, it keeps track of what each person has read. Opening a message marks it read, unread rows keep the bolder subject and carry a dot, and the **Unread** mailbox lists and counts what is still waiting. **Mark unread** puts one back, and a whole page can be marked either way at once.
 
 It is per person, so two testers working through the same staging mailbox never clear each other's mail. With nobody signed in there is nobody to attribute a read to, so the markers, the controls and the count are all absent.
 
@@ -301,6 +327,7 @@ php artisan vendor:publish --tag=mailroom-views    # resources/views/vendor/mail
 | `database.messages_table` | `mailroom_messages` | |
 | `database.attachments_table` | `mailroom_attachments` | |
 | `database.reads_table` | `mailroom_reads` | |
+| `database.addresses_table` | `mailroom_addresses` | Every address on every message, one row per role |
 | `forward.mailer` | `null` | Mailer the Forward button sends through; `null` leaves it explaining the setup |
 | `forward.require_authenticated_user` | `true` | Outside `local`, forwarding needs a signed-in user |
 | `forward.allowed` | `[]` | Addresses or `@domain` entries a forward may target; empty means anywhere |
@@ -397,6 +424,28 @@ Event::listen(function (MessageStored $event) {
 ```
 
 Laravel's own `MessageSent` carries no reference to the stored row, so this is how you get hold of it.
+
+Addresses are rows in `mailroom_addresses`, one per address and role, read through the message:
+
+```php
+use Ebbbang\Mailroom\Support\AddressRole;
+
+$message = $event->message;
+
+$message->sender()?->address;                              // "orders@acme.test"
+$message->addressesFor(AddressRole::To)->display();        // "Rachel Okonkwo <rachel@example.test>, sam@example.test"
+$message->addressesFor(AddressRole::Cc, AddressRole::Bcc)->emails(); // every Cc, then every Bcc
+$message->addressesFor(AddressRole::To)->includes('Rachel@Example.test'); // true, case-insensitive
+$message->envelopeSender()?->address;                      // the SMTP envelope's MAIL FROM
+```
+
+The roles are `From`, `To`, `Cc`, `Bcc`, `ReplyTo`, and the SMTP envelope's `EnvelopeFrom` and `EnvelopeTo`, which include Bcc and can differ from the headers when a caller supplies an envelope of its own.
+
+These read the `addresses` relation, so eager-load it when working through many messages:
+
+```php
+MailroomMessage::query()->with('addresses')->latest()->take(50)->get();
+```
 
 ### Laravel Cloud and other ephemeral platforms
 

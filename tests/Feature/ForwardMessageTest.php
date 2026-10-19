@@ -82,6 +82,19 @@ class ForwardMessageTest extends TestCase
     }
 
     #[Test]
+    public function the_dialog_asks_twice_in_the_page_before_sending(): void
+    {
+        $message = $this->capture();
+
+        $html = $this->asUser()->get('/mailroom/'.$message->id)->assertOk()->getContent();
+
+        // The second step starts hidden, and the browser's own prompt is gone.
+        $this->assertStringContainsString('<p class="mr-forward-check" id="mr-forward-check" role="status" hidden>', $html);
+        $this->assertStringContainsString('id="mr-forward-send"', $html);
+        $this->assertStringNotContainsString('window.confirm', $html);
+    }
+
+    #[Test]
     public function it_delivers_only_to_the_chosen_address(): void
     {
         $message = $this->capture();
@@ -120,7 +133,7 @@ class ForwardMessageTest extends TestCase
         $this->asUser()->post(route('mailroom.forward', $message), ['to' => 'qa@team.test']);
 
         $this->assertSame(
-            $message->envelope_sender,
+            $message->envelopeSender()?->address,
             $this->relay->sent[0]['envelope']->getSender()->getAddress()
         );
     }
@@ -163,6 +176,17 @@ class ForwardMessageTest extends TestCase
             ->assertRedirect();
 
         $this->assertCount(1, $this->relay->sent);
+    }
+
+    #[Test]
+    public function forwarding_returns_to_the_message_in_the_same_list(): void
+    {
+        $message = $this->capture();
+        $state = ['search' => 'rachel', 'mailer' => 'mailroom', 'box' => 'spam-checked', 'person' => 'rachel@example.test', 'page' => '2'];
+
+        $this->asUser()
+            ->post(route('mailroom.forward', ['message' => $message, ...$state]), ['to' => 'qa@team.test'])
+            ->assertRedirect(route('mailroom.show', ['message' => $message, ...$state]));
     }
 
     #[Test]

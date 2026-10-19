@@ -14,6 +14,16 @@ use Illuminate\Support\Facades\Gate;
 class Mailroom
 {
     /**
+     * The query parameters the message list is built from.
+     *
+     * Opening a message is a full page load, so every link out of the list,
+     * every form that acts on it and every redirect back to it has to carry
+     * these, or the reader loses their place. They are listed once, here: a
+     * new filter is added to this list, never to a call site.
+     */
+    public const LIST_STATE = ['search', 'mailer', 'box', 'person', 'page'];
+
+    /**
      * The callback that decides who may open the mailbox.
      */
     public static ?Closure $authUsing = null;
@@ -57,6 +67,23 @@ class Mailroom
     public static function enabled(): bool
     {
         return (bool) config('mailroom.enabled');
+    }
+
+    /**
+     * The list state present on this request, blanks dropped so the URLs
+     * built from it stay clean.
+     *
+     * Only strings survive: a hand-made ?search[]=x would otherwise reach a
+     * route() call as an array.
+     *
+     * @return array<string, string>
+     */
+    public static function listState(Request $request): array
+    {
+        return array_filter(
+            $request->only(self::LIST_STATE),
+            fn (mixed $value): bool => is_string($value) && $value !== '',
+        );
     }
 
     /**

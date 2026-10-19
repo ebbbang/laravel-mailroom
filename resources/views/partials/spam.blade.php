@@ -1,4 +1,6 @@
 @php
+    use Ebbbang\Mailroom\Spam\SpamResult;
+
     $spamDriver = config('mailroom.spam.driver');
     $canSpamCheck = \Ebbbang\Mailroom\Mailroom::canSpamCheckFrom(request());
 
@@ -10,7 +12,7 @@
 <div class="mr-spam">
     @if ($message->hasSpamResult())
         <div class="mr-spam-head">
-            <div @class(['mr-spam-score', 'mr-spam-score-over' => $message->spam_score >= 5])>
+            <div class="mr-spam-score mr-badge-{{ SpamResult::band($message->spam_score) }}">
                 {{ number_format($message->spam_score, 1) }}
             </div>
 
@@ -29,17 +31,19 @@
         </div>
 
         @if ($spamRules->isNotEmpty())
-            <table class="mr-table mr-spam-rules">
-                <tbody>
-                    @foreach ($spamRules as $rule)
-                        <tr>
-                            <td>{{ $rule['name'] ?: 'unnamed' }}</td>
-                            <td>{{ $rule['description'] }}</td>
-                            <td class="mr-spam-rule-score">{{ sprintf('%+.1f', $rule['score']) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="mr-spam-rules-wrap">
+                <table class="mr-table mr-spam-rules">
+                    <tbody>
+                        @foreach ($spamRules as $rule)
+                            <tr>
+                                <td>{{ $rule['name'] ?: 'unnamed' }}</td>
+                                <td>{{ $rule['description'] }}</td>
+                                <td class="mr-spam-rule-score">{{ sprintf('%+.1f', $rule['score']) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
 
         <p class="mr-spam-note">

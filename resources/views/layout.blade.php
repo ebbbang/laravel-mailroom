@@ -7,6 +7,18 @@
     <title>@yield('title', 'Mailroom')</title>
 
     {{--
+        The sidebar's mark, so a Mailroom tab is told apart from the
+        application's own. A data URI, because the package ships no assets;
+        naming an icon also stops the browser asking for /favicon.ico, which
+        an application may not have.
+    --}}
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="data:image/svg+xml,{{ rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#f53003"/><g transform="translate(1.6 1.6) scale(1.2)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></g></svg>') }}"
+    />
+
+    {{--
         Applied before the stylesheet so the stored theme is in place on the
         very first paint. Anything later and the page flashes the system
         theme before switching.
@@ -27,9 +39,7 @@
     @include('mailroom::partials.styles')
 </head>
 <body class="mr-scope">
-    <div class="mr-shell">
-        @yield('content')
-    </div>
+    @yield('content')
 
     <script>
         (function () {

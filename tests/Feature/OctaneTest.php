@@ -5,6 +5,7 @@ namespace Ebbbang\Mailroom\Tests\Feature;
 use Ebbbang\Mailroom\Events\MessageStored;
 use Ebbbang\Mailroom\Mailroom;
 use Ebbbang\Mailroom\Models\MailroomMessage;
+use Ebbbang\Mailroom\Support\AddressRole;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
 use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Container\Container;
@@ -145,7 +146,7 @@ class OctaneTest extends TestCase
             $number = $index + 1;
 
             $this->assertSame(sprintf('Order A-%d shipped', $number), $message->subject);
-            $this->assertSame(sprintf('user%d@example.test', $number), $message->to[0]['address']);
+            $this->assertSame([sprintf('user%d@example.test', $number)], $message->addressesFor(AddressRole::To)->emails());
             $this->assertTrue($message->hasRaw());
             $this->assertStringContainsString(sprintf('Order A-%d shipped', $number), (string) $message->raw());
         }

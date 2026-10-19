@@ -33,10 +33,17 @@
                     </span>
                 @endif
 
-                <span class="mr-file-name">{{ $file->displayName() }}</span>
+                <span class="mr-file-text">
+                    <span class="mr-file-name">{{ $file->displayName() }}</span>
+                    <span class="mr-file-meta">{{ $file->mime_type }} · {{ $file->humanSize() }}</span>
+                </span>
 
                 <span class="mr-file-actions">
-                    <span class="mr-file-meta">{{ $file->mime_type }} · {{ $file->humanSize() }}</span>
+                    Preview
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
                 </span>
             </button>
         @else
@@ -45,21 +52,22 @@
                     @include('mailroom::partials.file-icon', ['kind' => PreviewKind::None])
                 </span>
 
-                <span class="mr-file-name">{{ $file->displayName() }}</span>
+                <span class="mr-file-text">
+                    <span class="mr-file-name">{{ $file->displayName() }}</span>
 
-                <span class="mr-file-actions">
                     @if ($file->wasSkipped())
                         <span class="mr-noprev">not stored, over storage.max_attachment_size</span>
                     @elseif ($file->isMissing())
                         <span class="mr-noprev">file missing from the {{ config('mailroom.storage.disk') }} disk</span>
                     @else
-                        <span class="mr-file-meta">{{ $file->humanSize() }}</span>
-                        <span class="mr-noprev">no preview for {{ $file->extensionLabel() }}</span>
+                        <span class="mr-file-meta">{{ $file->humanSize() }} · no preview for {{ $file->extensionLabel() }}</span>
                     @endif
+                </span>
 
-                    @if ($file->hasContents())
+                @if ($file->hasContents())
+                    <span class="mr-file-actions">
                         <a
-                            class="mr-download"
+                            class="mr-btn mr-btn-sm mr-download"
                             title="Download {{ $file->displayName() }}"
                             aria-label="Download {{ $file->displayName() }}"
                             href="{{ route('mailroom.attachment', ['message' => $message, 'attachment' => $file]) }}"
@@ -67,15 +75,16 @@
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
                             </svg>
+                            Download
                         </a>
-                    @endif
-                </span>
+                    </span>
+                @endif
             </div>
         @endif
     @endforeach
 
     @if ($inline->isNotEmpty())
-        <p class="mr-file-meta" style="margin:{{ $files->isEmpty() ? '0' : '6px 0 0' }}">
+        <p class="mr-inline-note">
             {{ $files->isEmpty() ? '' : 'Plus ' }}{{ $inline->count() }} inline {{ Str::plural('image', $inline->count()) }} embedded
             in the HTML body{{ $files->isEmpty() ? '; no files are attached' : '' }}.
         </p>

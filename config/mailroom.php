@@ -65,6 +65,10 @@ return [
     | (e.g. a local sqlite file) if you would rather keep captured mail out of
     | your primary database.
     |
+    | Every address on a message (From, To, Cc, Bcc, Reply-To and the SMTP
+    | envelope) is a row in the addresses table, which is what the People
+    | sidebar and search read.
+    |
     */
 
     'database' => [
@@ -72,6 +76,7 @@ return [
         'messages_table' => 'mailroom_messages',
         'attachments_table' => 'mailroom_attachments',
         'reads_table' => 'mailroom_reads',
+        'addresses_table' => 'mailroom_addresses',
     ],
 
     /*

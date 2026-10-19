@@ -58,7 +58,7 @@ class ForwardController
     {
         return redirect()->to(route('mailroom.show', [
             'message' => $message,
-            ...$request->only('search', 'mailer', 'page'),
+            ...Mailroom::listState($request),
         ]))->with($flash);
     }
 }

@@ -137,9 +137,11 @@ class SeedMailboxCommand extends Command
     }
 
     /**
-     * Two fabricated spam results, one either side of SpamAssassin's threshold.
+     * Three fabricated spam results, one in each colour band: under 2, 2 to 5,
+     * and over SpamAssassin's threshold of 5. Together they fill the Spam
+     * checked mailbox with something to sort.
      *
-     * The seeder sends nothing to Postmark. Both pane states have to be visible
+     * The seeder sends nothing to Postmark. Every pane state has to be visible
      * to someone reviewing offline, and stamping plausible numbers is the only
      * way to reach them without a network call. The rule names are real ones;
      * the scores are made up, which is why they live here rather than in any
@@ -147,6 +149,11 @@ class SeedMailboxCommand extends Command
      */
     protected function spamResult(): void
     {
+        $this->stampSpamResult('[markdown]%', 0.4, [
+            ['name' => 'HTML_MESSAGE', 'score' => 0.1, 'description' => 'HTML included in message'],
+            ['name' => 'T_REMOTE_IMAGE', 'score' => 0.3, 'description' => 'Message contains an external image'],
+        ]);
+
         $this->stampSpamResult('[html only]%', 2.8, [
             ['name' => 'MIME_HTML_ONLY', 'score' => 0.1, 'description' => 'Message only has text/html MIME parts'],
             ['name' => 'MISSING_HEADERS', 'score' => 1.2, 'description' => 'Missing To: header'],

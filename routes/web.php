@@ -18,6 +18,10 @@ Route::delete('/', [MessageController::class, 'clear'])->name('clear');
 // so this can never be swallowed by the wildcard.
 Route::get('/recent', [MessageController::class, 'recent'])->name('recent');
 
+// The sidebar's people search, fetched as it is typed into. Declared before
+// the wildcard for the same reason.
+Route::get('/people', [MessageController::class, 'people'])->name('people');
+
 // Page-wide marking, taking the ids on screen. Declared before the wildcard
 // group for the same reason /recent is.
 Route::post('/read', [ReadController::class, 'storeMany'])->name('read.page');

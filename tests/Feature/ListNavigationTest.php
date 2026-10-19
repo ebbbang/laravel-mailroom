@@ -55,9 +55,17 @@ class ListNavigationTest extends TestCase
             Mail::to('rachel@example.test')->send(new OrderShipped('A-'.$n));
         }
 
-        // A message on the second page, opened with a search and a mailer
-        // filter in place: every value the list was built from.
-        $state = ['search' => 'rachel@example.test', 'mailer' => 'mailroom', 'page' => '2'];
+        MailroomMessage::query()->update(['spam_score' => 1.0, 'spam_rules' => '[]', 'spam_checked_at' => now()]);
+
+        // A message on the second page, opened with every filter in place:
+        // each value the list was built from.
+        $state = [
+            'search' => 'rachel@example.test',
+            'mailer' => 'mailroom',
+            'box' => 'spam-checked',
+            'person' => 'rachel@example.test',
+            'page' => '2',
+        ];
 
         $selected = MailroomMessage::query()->latest('id')->skip(2)->firstOrFail();
 

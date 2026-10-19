@@ -144,11 +144,24 @@ class ReadStateTest extends TestCase
 
         // The list, not the message: returning to the message would mark it
         // read again on arrival. The list's place comes along with it.
+        $state = ['search' => 'rachel', 'box' => 'unread', 'person' => 'rachel@example.test', 'page' => '2'];
+
         $this->actingAs($reader)
-            ->delete('/mailroom/'.$message->id.'/read', ['search' => 'rachel', 'page' => '2'])
-            ->assertRedirect(route('mailroom.index', ['search' => 'rachel', 'page' => '2']));
+            ->delete('/mailroom/'.$message->id.'/read', $state)
+            ->assertRedirect(route('mailroom.index', $state));
 
         $this->assertSame(0, MailroomRead::query()->count());
+    }
+
+    #[Test]
+    public function marking_a_page_returns_to_the_same_list(): void
+    {
+        $message = $this->send();
+        $state = ['search' => 'rachel', 'mailer' => 'mailroom', 'box' => 'unread', 'person' => 'rachel@example.test', 'page' => '2'];
+
+        $this->actingAs($this->reader(7))
+            ->post('/mailroom/read', ['ids' => [$message->id], ...$state])
+            ->assertRedirect(route('mailroom.index', $state));
     }
 
     #[Test]
@@ -189,24 +202,24 @@ class ReadStateTest extends TestCase
     }
 
     #[Test]
-    public function the_unread_count_follows_the_filters(): void
+    public function the_unread_list_counts_what_it_shows_and_the_sidebar_counts_everything(): void
     {
         Mail::to('rachel@example.test')->send(new OrderShipped('A-1'));
         Mail::to('rachel@example.test')->send(new OrderShipped('A-2'));
         Mail::to('sam@example.test')->send(new OrderShipped('B-1'));
 
-        $reader = $this->reader(7);
+        $html = $this->actingAs($this->reader(7))
+            ->get('/mailroom?box=unread&search=sam@example.test')
+            ->assertOk()
+            ->getContent();
 
-        $this->assertStringContainsString(
-            '3 unread',
-            $this->actingAs($reader)->get('/mailroom')->assertOk()->getContent()
-        );
+        // The list heading counts the filtered list, so it agrees with the rows under it.
+        $this->assertMatchesRegularExpression('#<div class="mr-list-sub">\s*1 result for “sam@example.test”\s*</div>#', $html);
 
-        // Counted on the same filtered query as the list, so a count of
-        // everything cannot contradict what is on screen.
-        $this->assertStringContainsString(
-            '1 unread',
-            $this->actingAs($reader)->get('/mailroom?search=sam@example.test')->assertOk()->getContent()
+        // The sidebar counts the whole mailbox, like a mail client's folder counts.
+        $this->assertMatchesRegularExpression(
+            '#<span class="mr-nav-label">Unread</span>\s*<span class="mr-badge mr-badge-accent">\s*3\s*</span>#',
+            $html,
         );
     }
 

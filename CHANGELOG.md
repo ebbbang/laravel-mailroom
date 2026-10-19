@@ -9,6 +9,78 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+**Run `php artisan migrate` after upgrading.** Addresses move into a table of
+their own, and the migration copies every stored message's addresses across
+before dropping the old columns. It can be rolled back.
+
+### Added
+
+- **A sidebar of mailboxes.** Inbox, Unread (for a signed-in reader) and Spam
+  checked, which lists every scored message highest score first, so the one
+  worth looking at is at the top. The sidebar shows one view at a time, like
+  folders: a mailbox, a person or a mailer, with search narrowing whichever is
+  showing.
+- **People.** The sidebar lists the ten addresses on the most messages, as
+  sender, recipient, Cc or Bcc, with a count of the rest, and clicking one lists
+  everything it appears on. A search box finds anyone else by address or name.
+- **Search as you type.** The message search and the people search both update
+  a moment after you stop typing, with the matches highlighted. The message
+  search keeps the address bar in step and, as in Gmail, closes the open
+  message to show the results. An × in either box, or `Esc`, clears it.
+- **Keyboard shortcuts.** `j` and `k` open the next and previous message, and
+  `/` jumps to search. Nothing else is bound.
+- **Coloured counts.** Attachment counts are blue, and a spam score is green
+  below 2, amber from 2, and red from SpamAssassin's threshold of 5, in the
+  list, the tab row and the spam pane alike.
+- **An address API on the message.** `addressesFor(AddressRole::To)`,
+  `sender()` and `envelopeSender()` read the new `mailroom_addresses` table, and
+  the `AddressCollection` they return has `display()`, `emails()` and
+  `includes()`. The table name is `database.addresses_table`.
+- **A tab icon.** The mailbox names its own icon, inline, so its tab stands
+  apart from the application's and the browser stops asking for `/favicon.ico`.
+
+### Changed
+
+- **Confirmations are part of the page.** Delete and Clear all ask in the
+  mailbox's own dialog, naming the message or the count, with Cancel focused.
+  Forwarding asks inside its dialog: the first Send names the address, and the
+  second sends.
+- **The mailbox is redesigned.** Three columns (sidebar, list, message), the
+  message in a card with an icon toolbar, segmented tabs, and the recipients
+  line opening the full set of addresses in place of a Details button. Mailers
+  are sidebar views in place of the mailer select, and appear only when more
+  than one mailer has captured mail.
+- **Rows lead with the recipient.** In a dev mailbox the sender is nearly always
+  the application itself, so each row shows who the message went to, with an
+  avatar.
+- **Tablets and phones get layouts of their own.** The sidebar becomes a rail of
+  icons on a tablet. On a phone the list and the message are separate screens,
+  the toolbar shows its labels, and the forward dialog sits at the bottom of the
+  screen.
+- **Addresses are rows in `mailroom_addresses`**, one per address and role, with
+  the display name as it appeared on the message.
+
+### Removed
+
+- The `from`, `to`, `cc`, `bcc`, `reply_to`, `envelope_recipients` and
+  `envelope_sender` columns on `mailroom_messages`, and the model attributes of
+  the same names. Read addresses through `$message->addressesFor(AddressRole::To)`
+  and the other roles, `$message->sender()` and `$message->envelopeSender()`.
+  Anything querying those columns directly needs to query `mailroom_addresses`.
+- `MailroomMessage::formatAddressList()` and `formatAddress()`. Use
+  `addressesFor(...)->display()` for a list and `MailroomAddress::display()` for
+  one address.
+
+### Fixed
+
+- Searching for "address" or "name" no longer matches every message, and a
+  display name with non-ASCII characters, such as "Müller", can be found.
+- Searching for text containing `%` or `_`, such as "50%" or "user_id", finds
+  that text on SQLite and SQL Server, where it found nothing.
+- Search ignores case on PostgreSQL, as it does on the other databases.
+- Deleting a message returns to the list it was opened from, with its search,
+  filters and page, rather than to the first page of everything.
+
 ## [0.9.0] - 2026-09-19
 
 **Run `php artisan migrate` after upgrading.** The spam check keeps its result

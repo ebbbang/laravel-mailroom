@@ -79,7 +79,7 @@ The seeder aims at **one message per branch of the UI**, so every state can be i
 [skipped]          an attachment over storage.max_attachment_size
 [envelope]         delivered somewhere other than the To header
 [missing files]    row intact, blobs deleted
-[secondary mailer] a second mailer, so the filter appears
+[secondary mailer] a second mailer, so the sidebar's Mailers section appears
 [queued]           dispatched through the queue
 ```
 
@@ -113,7 +113,7 @@ composer serve
 
 Clicking **Check with Postmark** then really does post that message to Postmark, so it is a genuine outbound request. The seeded mail is fabricated, so there is nothing sensitive in it.
 
-The seeder also stamps two made-up results onto scenario messages, one either side of SpamAssassin's threshold of 5, so both sides of the pane can be reviewed without sending anything at all.
+The seeder also stamps three made-up results onto scenario messages, one in each colour band (under 2, 2 to 5, and over SpamAssassin's threshold of 5), so every state of the pane and the Spam checked mailbox can be reviewed without sending anything at all.
 
 Every attachment is generated at runtime, so no binaries are committed. The one exception is a 1.6 KB MP4 held as base64. A valid video file cannot be assembled in code the way the PDF and WAV fixtures are, and shelling out to ffmpeg would mean the video scenario vanished on machines without it.
 
@@ -143,16 +143,6 @@ None of these is scheduled, and none is being worked on. They are here because e
 A message does not record that it has already been forwarded, so two testers can send the same mail to the same inbox without either knowing. A `mailroom_forwards` table would fix it: message id, destination, who sent it, which mailer, and when. A `MailroomForward` model and a `forwards()` relation on `MailroomMessage`, surfaced on the message itself so it is visible where the decision to forward is made.
 
 Two things to know going in. Migrations load from the package and are deliberately not publishable, so an existing install picks a new table up with a plain `migrate` and there is no publish step to document. And a new child table follows the deletion invariant: delete it explicitly in `MailroomMessage::booted()` as well as leaving it to the foreign key cascade, the way attachments and reads already do.
-
-### Filter by recipient
-
-Beside the mailer filter, so "what did we send Kit?" is one select rather than a search. The notes below come from a working implementation that was not kept, so they are findings rather than guesses:
-
-**Do not query the JSON columns.** The recipient columns hold arrays of `{address, name}` objects. On SQLite, Laravel compiles `whereJsonContains` to a scalar comparison of each array element, so filtering for an address matches none of that person's messages. MySQL and Postgres match them all, which means the bug only appears on the driver the suite runs on. Hand-written JSON SQL forks three ways (`json_each`, `json_array_elements`, `JSON_TABLE`), and SQLite cannot index array membership at all.
-
-**A `mailroom_recipients` table works.** One row per message and lowercased address drawn from To, Cc and Bcc, unique on the pair, filled by the recorder after create and backfilled in the migration. Filtering becomes an indexed seek, and building the select's address list becomes a covering-index scan.
-
-One layout note: a third select takes the header past the 900px stacking breakpoint, so the filter controls need `min-width: 0` to be allowed to shrink and `.mr-filters` needs to wrap below it.
 
 ### A local spamd driver
 

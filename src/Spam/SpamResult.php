@@ -75,8 +75,30 @@ class SpamResult
      * configuration treats as spam. It says nothing about where a given
      * provider will actually file the message.
      */
+    public const THRESHOLD = 5.0;
+
+    /**
+     * Where the mailbox starts colouring a score amber. SpamAssassin has no
+     * such line; this one is ours, and exists so a message drifting towards
+     * the threshold is visible before it crosses it.
+     */
+    public const WARNING = 2.0;
+
     public function overThreshold(): bool
     {
-        return $this->score >= 5.0;
+        return $this->score >= self::THRESHOLD;
+    }
+
+    /**
+     * The colour band a score is shown in: "ok" below WARNING, "warn" up to
+     * THRESHOLD, "bad" at or over it.
+     */
+    public static function band(float $score): string
+    {
+        return match (true) {
+            $score >= self::THRESHOLD => 'bad',
+            $score >= self::WARNING => 'warn',
+            default => 'ok',
+        };
     }
 }
