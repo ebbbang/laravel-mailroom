@@ -62,7 +62,7 @@ php artisan mailroom:install --no-interaction --set-mailer --migrate
 php artisan mailroom:install --no-config --no-migrate    # publish nothing, touch nothing
 ```
 
-> **Pin with `^0.9` while this is 0.x.** Composer treats `^0.9` as `0.9.*` only, so moving to a 0.10 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.10` while this is 0.x.** Composer treats `^0.10` as `0.10.*` only, so moving to a 0.11 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
