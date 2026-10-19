@@ -230,7 +230,8 @@ final readonly class AttachmentPreview
 
             // Office formats and archives resolve to nothing on purpose: they
             // cannot be rendered locally without a service we are unable to
-            // reach from a mailbox on localhost. See the README.
+            // reach from a mailbox on localhost. See
+            // https://ebbbang.github.io/laravel-mailroom/mailbox#attachment-previews
             default => null,
         };
     }

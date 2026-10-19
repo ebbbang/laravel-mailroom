@@ -216,7 +216,8 @@ return [
     |
     | Images, SVG, PDF, audio, video, text, CSV, JSON, source files, calendar
     | invites and nested .eml messages are previewed in the mailbox. Office
-    | documents and archives are download-only -- see the README for why.
+    | documents and archives are download-only; the reason is at
+    | https://ebbbang.github.io/laravel-mailroom/mailbox#attachment-previews
     |
     | "max_inline_bytes" caps the text-shaped kinds, which are read and escaped
     | server-side rather than streamed. Images and media are not affected by it

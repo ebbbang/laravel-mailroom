@@ -9,6 +9,18 @@ land in minor releases** — see the pinning note in the README.
 
 ## [Unreleased]
 
+### Added
+
+- **A documentation site** at
+  [ebbbang.github.io/laravel-mailroom](https://ebbbang.github.io/laravel-mailroom/),
+  built from the Markdown in `docs/`, which also reads on GitHub as it is. The
+  README is a short overview that links into it, and the docs pages carry
+  screenshots of what they describe.
+
+### Changed
+
+- The mailbox's tab icon is drawn the same as the mark in its sidebar.
+
 ## [0.10.0] - 2026-10-19
 
 **Run `php artisan migrate` after upgrading.** Addresses move into a table of

@@ -12,6 +12,16 @@ updates:
     commit-message:
       prefix: "ci"
 
+  # The docs site and the tooling around it: VitePress, sharp for the
+  # screenshots, and prettier for Pint's Blade formatting.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "javascript"]
+    commit-message:
+      prefix: "deps"
+
   # Dev dependencies only in practice: the runtime requirements are wide
   # ranges (^11 || ^12 || ^13) that Dependabot should not be narrowing.
   - package-ecosystem: composer

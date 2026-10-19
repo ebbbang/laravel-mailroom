@@ -43,6 +43,28 @@ Pint formats Blade through prettier, so the first `composer lint` will ask to in
 
 Prettier reflows whitespace, which is right for HTML and wrong for templates rendered as plain text or markdown, where a blank line between paragraphs is content rather than layout. Mark those with `{{-- prettier-ignore --}}` on the first line; the comment disappears at render time. No test will catch it if you forget, so treat any reformatting of a mail template in your diff as a bug.
 
+### The documentation site
+
+The docs are the Markdown files in `docs/`, which read on GitHub as they are and build into the site at [ebbbang.github.io/laravel-mailroom](https://ebbbang.github.io/laravel-mailroom/) with VitePress. After `npm install`:
+
+```bash
+npm run docs:dev       # live-reloading site at http://localhost:5173/laravel-mailroom/
+npm run docs:build     # the production build; fails on a dead link
+npm run docs:preview   # serves that build as Pages will
+```
+
+Keep the pages to Markdown that GitHub renders too: relative links between pages (`./forwarding.md#keeping-it-safe`), GitHub alerts (`> [!NOTE]`) for notes, and no front matter or VitePress containers. New pages go in the sidebar in `docs/.vitepress/config.mts` and in the list in `docs/README.md`. Pushing to `main` deploys the site.
+
+### Screenshots
+
+Screenshots live in `docs/images/`, the README's included. Take them from the demo mailbox with the browser 1440 wide at a device scale factor of 2, leaving a margin of the page around anything with rounded corners. In a docs page, link them as `<img src="./images/name.png" width="…" alt="…">`, with the width set to half the file's so they show at their real size. Then compress them:
+
+```bash
+npm run images
+```
+
+That gives every PNG a 256-colour palette, which cuts a screenshot of the mailbox to about a third of its size with no visible difference. Images it has already compressed are left alone, so it is safe to run over the whole set.
+
 ### Why `composer test` runs two passes
 
 Testbench gives every worker the same skeleton application, so a test that writes into it is visible to all the others. `InstallCommandTest` does exactly that: publishing puts a `config/mailroom.php` in the directory each worker boots from, and testbench globs that directory and then requires what it found, so removing the file in teardown makes a concurrent boot fail on a path that existed a moment earlier. Its `.env` fixtures can likewise be read mid-rewrite.
@@ -166,7 +188,7 @@ This one is a real architectural change rather than a feature bolted on. The tra
 
 - **One concern per pull request.** A refactor bundled with a fix is hard to review and harder to revert.
 - **Add a test.** Anything touching capture, the mailbox or previews should fail without your change. Please check that it does, rather than only that it passes with it.
-- **Update the docs** when behaviour changes, including `config/mailroom.php` comments and the README's configuration table.
+- **Update the docs** when behaviour changes: the page in `docs/` that describes it, `config/mailroom.php` comments, and the tables in `docs/configuration.md`.
 - **Add a `CHANGELOG.md` entry** under `## [Unreleased]`. Keep sections in Keep
   a Changelog's order (Added, Changed, Deprecated, Removed, Fixed, Security)
   and use only those headings. Tagging a release publishes that section verbatim

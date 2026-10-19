@@ -285,7 +285,6 @@ class SeedMailboxCommand extends Command
             ->titled('[addressing] Cc, Bcc, Reply-To, tags and metadata')
             ->replyTo('support@example.test', 'Support')
             ->withSymfonyMessage(function (Email $email): void {
-                $email->getHeaders()->add(new TagHeader('shipping'));
                 $email->getHeaders()->add(new TagHeader('priority'));
                 $email->getHeaders()->add(new MetadataHeader('order_id', 'A-1003'));
                 $email->getHeaders()->add(new MetadataHeader('warehouse', 'LDN-2'));

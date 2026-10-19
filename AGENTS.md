@@ -160,13 +160,24 @@ It is **the only place captured mail leaves the application**, so it is shaped l
 
 The transport is built from the container that resolved `mail.manager`, not `$this->app`. Under Octane those differ, because providers boot against the base app while requests run in a sandbox clone, and following the manager into the sandbox is what keeps `MessageStored` firing on the same dispatcher as Laravel's `MessageSent`. `Mailroom::$authUsing` is the only state that outlives a request; `flushState()` clears it.
 
+## Documentation
+
+`docs/` is the reference, and the README is a short overview that links into it. The same Markdown is read two ways: on GitHub as files, and built by VitePress (`docs/.vitepress/`) into the site that `.github/workflows/docs.yml` deploys to GitHub Pages on every push to `main` that touches `docs/`. So the pages keep to Markdown both understand:
+
+- Links between pages are relative and keep the extension (`./forwarding.md#keeping-it-safe`). GitHub follows them as files; VitePress turns them into clean URLs. The build fails on a dead link, which is the check.
+- Notes are GitHub alerts (`> [!NOTE]`, `> [!IMPORTANT]`), which VitePress renders as well. No front matter and no `::: tip` containers on doc pages: GitHub shows both as stray text. `docs/index.md` is the one exception, since it is the site's landing page (`.vitepress/theme/Home.vue`) and nobody reads it on GitHub.
+- A new page goes in the sidebar in `.vitepress/config.mts` and in the list in `docs/README.md`, which is what GitHub shows for the folder (the site build excludes it).
+- `npm run docs:build` before pushing a docs change; `npm run docs:dev` to look at it.
+
+**Screenshots are taken at 2× and compressed before they are committed.** Take them from the demo mailbox (`composer serve`, 1440 wide, light theme unless the page is about dark) with a device scale factor of 2, or they look soft on any high-density display. Crop with a margin of the surrounding page around anything with rounded corners (a card, the forward dialog), so its own corners sit inside the docs' frame instead of a second radius drawn over them. In a docs page, link the image as `<img src="./images/…" width="…" alt="…">` with the width in CSS pixels, half the file's, since Markdown's own image syntax cannot set one and a 2× file would otherwise show at twice its size. Every image lives in `docs/images/`, the README's and the landing page's included (`mailbox-light.png` and `mailbox-dark.png`), so there is one folder to look in. Save them there, then run `npm run images`. It gives each PNG a 256-colour palette, about a third of the size with no visible difference, and skips any image that already has one, so it never degrades a file by quantising it twice. The README links its screenshot by its raw GitHub URL on `main`, so renaming that file breaks the README.
+
 ## Conventions
 
 - **Target the floor, not the ceiling.** `rector.php` pins `php82: true` and `UP_TO_LARAVEL_110` because the matrix still covers PHP 8.2 and Laravel 11. Do not reach for newer APIs.
 - **No `declare(strict_types=1)`.** `SafeDeclareStrictTypesRector` is skipped deliberately, to match Laravel's own packages and to avoid changing coercion for `env()`-sourced config.
 - Tests use PHPUnit attributes (`#[Test]`), extend `Ebbbang\Mailroom\Tests\TestCase`, and get `RefreshDatabase`, `Storage::fake('local')`, sqlite `:memory:` and `mail.default = mailroom` from it. Never rely on `testbench.yaml` in the suite; it configures the workbench demo only.
 - Table names and the connection are config-driven via `getTable()` / `getConnectionName()` overrides, not properties.
-- Every new setting gets an env variable, a `config/mailroom.php` entry with a comment, and a row in the README's configuration table.
+- Every new setting gets an env variable, a `config/mailroom.php` entry with a comment, and a row in both tables in `docs/configuration.md`.
 - Comments here explain *why*, often at length, and load-bearing decisions are recorded where they can be found again. Match that density rather than stripping it.
 - **Document what exists.** No sections describing what the software does not do, and no forward-looking version promises. A removal belongs in the changelog, and a plan that slips turns a promise into a lie.
 - Commit messages are one-liners, imperative, with no trailing attribution.
@@ -187,7 +198,7 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 
 - **`composer update laravel/pint` before running the suite.** No `composer.lock` is committed, so CI always resolves the newest Pint. A local copy that lags passes a lint that CI then fails, and force pushing is blocked by the ruleset.
 - **`git archive HEAD | wc -c`** before tagging, to confirm no development file leaked into the dist past `.gitattributes`.
-- On a **minor**, bump the README's `Pin with ^0.x` note and the `SECURITY.md` supported-versions table. A patch leaves both alone.
+- On a **minor**, bump the `Pin with ^0.x` note in `docs/installation.md` and the `SECURITY.md` supported-versions table. A patch leaves both alone. The version in the docs site's nav is read from the newest changelog heading, so it needs nothing.
 - **Never rewrite a published changelog entry**, including its section order, because the GitHub release notes were generated from that text. Correct forward in a later entry instead.
 - Push, wait for CI (the eleven cells, plus the lint and coverage jobs), *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
 - `.github/workflows/release.yml` turns the tag into a GitHub Release using that version's changelog section, and fails the job rather than publishing empty notes if the section is missing.

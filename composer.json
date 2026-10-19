@@ -12,6 +12,7 @@
         }
     ],
     "support": {
+        "docs": "https://ebbbang.github.io/laravel-mailroom/",
         "issues": "https://github.com/ebbbang/laravel-mailroom/issues",
         "source": "https://github.com/ebbbang/laravel-mailroom"
     },

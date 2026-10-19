@@ -2,9 +2,17 @@
     "$schema": "https://www.schemastore.org/package.json",
     "private": true,
     "type": "module",
+    "scripts": {
+        "docs:dev": "vitepress dev docs",
+        "docs:build": "vitepress build docs",
+        "docs:preview": "vitepress preview docs",
+        "images": "node scripts/compress-images.mjs"
+    },
     "devDependencies": {
         "prettier": "^3.9.6",
         "prettier-plugin-blade": "^3.3.3",
-        "prettier-plugin-tailwindcss": "^0.8.1"
+        "prettier-plugin-tailwindcss": "^0.8.1",
+        "sharp": "^0.35.5",
+        "vitepress": "^1.6.4"
     }
 }

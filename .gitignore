@@ -9,3 +9,5 @@ composer.lock
 .idea
 .vscode
 /.playwright-mcp
+/docs/.vitepress/cache
+/docs/.vitepress/dist
