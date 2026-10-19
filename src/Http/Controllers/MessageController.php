@@ -75,7 +75,7 @@ class MessageController
              */
             ->where(fn (Builder $query): Builder => $query
                 ->inBox($box, $reader)
-                ->when($box === Mailbox::Unread && $selected !== null, fn (Builder $query): Builder => $query->orWhereKey($selected->getKey())))
+                ->when($box === Mailbox::Unread && $selected !== null, fn (Builder $query): Builder => $query->orWhere($selected->getQualifiedKeyName(), $selected->getKey())))
             ->orderedFor($box)
             /*
              * Only what a row shows: its first recipient, the first envelope
