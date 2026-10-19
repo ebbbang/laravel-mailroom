@@ -11,14 +11,6 @@ in the installation docs.
 <!-- #region releases -->
 ## [Unreleased]
 
-### Added
-
-- **A documentation site** at
-  [ebbbang.github.io/laravel-mailroom](https://ebbbang.github.io/laravel-mailroom/),
-  built from the Markdown in `docs/`, which also reads on GitHub as it is. The
-  README is a short overview that links into it, and the docs pages carry
-  screenshots of what they describe.
-
 ### Changed
 
 - The mailbox's tab icon is drawn the same as the mark in its sidebar.

@@ -191,10 +191,12 @@ This one is a real architectural change rather than a feature bolted on. The tra
 - **One concern per pull request.** A refactor bundled with a fix is hard to review and harder to revert.
 - **Add a test.** Anything touching capture, the mailbox or previews should fail without your change. Please check that it does, rather than only that it passes with it.
 - **Update the docs** when behaviour changes: the page in `docs/` that describes it, `config/mailroom.php` comments, and the tables in `docs/configuration.md`.
-- **Add a `CHANGELOG.md` entry** under `## [Unreleased]`. Keep sections in Keep
-  a Changelog's order (Added, Changed, Deprecated, Removed, Fixed, Security)
-  and use only those headings. Tagging a release publishes that section verbatim
-  as the GitHub release notes, so it is read far more often than it is written.
+- **Add a `CHANGELOG.md` entry** under `## [Unreleased]` when people using the
+  package will notice the change. Keep sections in Keep a Changelog's order
+  (Added, Changed, Deprecated, Removed, Fixed, Security) and use only those
+  headings. Tagging a release publishes that section verbatim as the GitHub
+  release notes, read by someone deciding whether to upgrade, so the docs site,
+  CI, tooling, the demo workbench and repository settings stay out of it.
 - Match the surrounding style. Pint settles formatting; the comment density and naming are worth matching by eye.
 
 ## Security
