@@ -53,7 +53,8 @@ const features = [
                 <h1>Keep every email your app sends. Read it in a real mailbox.</h1>
                 <p class="mr-lede">
                     Mailroom stores outgoing mail in your database, whole: full MIME, attachments, embedded images,
-                    headers. Then it gives you a mailbox at <code>/mailroom</code> to read it.
+                    headers. Then it gives you a mailbox at <code>/mailroom</code> to read it. Nothing else to run: no
+                    Docker container, no SMTP catcher, no account with a hosted inbox.
                 </p>
                 <div class="mr-actions">
                     <a class="mr-button mr-button-brand" :href="withBase('/introduction')">Get started</a>
@@ -119,7 +120,8 @@ const features = [
                     <h2>Made for shared staging too</h2>
                     <p>
                         Testers read mail in the browser: no third-party catcher to sign up for, no inbox credentials to
-                        pass around. Read state is per person, so two testers never clear each other's mail.
+                        pass around. The mail stays in your own database, so no third party holds copies of your users'
+                        emails. Read state is per person, so two testers never clear each other's mail.
                     </p>
                     <a class="mr-more" :href="withBase('/staging')">Staging and QA →</a>
                 </div>
