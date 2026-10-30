@@ -2,6 +2,7 @@
 
 namespace Workbench\App\Support;
 
+use Illuminate\Support\Facades\File;
 use ZipArchive;
 
 /**
@@ -375,7 +376,7 @@ class Fixtures
         $zip = new ZipArchive;
 
         if ($zip->open($path, ZipArchive::OVERWRITE) !== true) {
-            @unlink($path);
+            File::delete($path);
 
             return null;
         }
@@ -396,7 +397,7 @@ class Fixtures
         $zip->close();
 
         $contents = file_get_contents($path);
-        @unlink($path);
+        File::delete($path);
 
         return $contents === false ? null : $contents;
     }

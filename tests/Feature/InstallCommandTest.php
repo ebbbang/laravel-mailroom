@@ -3,6 +3,7 @@
 namespace Ebbbang\Mailroom\Tests\Feature;
 
 use Ebbbang\Mailroom\MailroomServiceProvider;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Orchestra\Testbench\Concerns\InteractsWithPublishedFiles;
@@ -266,7 +267,7 @@ class InstallCommandTest extends Orchestra
 
         $this->envExisted
             ? file_put_contents($this->envPath, (string) $this->envBackup)
-            : @unlink($this->envPath);
+            : File::delete($this->envPath);
 
         $this->envPath = null;
         $this->envBackup = null;

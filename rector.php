@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
-use Rector\EarlyReturn\Rector\If_\ChangeOrIfContinueToMultiContinueRector;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRector;
 use RectorLaravel\Set\LaravelLevelSetList;
 use RectorLaravel\Set\LaravelSetList;
@@ -67,12 +66,4 @@ return RectorConfig::configure()
          * strings even when they represent ints.
          */
         SafeDeclareStrictTypesRector::class,
-
-        /*
-         * Splits `if ($a || $b) continue;` into separate guards and wants a
-         * blank line between them, which Pint then strips -- the two tools
-         * fight forever and `lint:check` can never come back clean. The
-         * combined condition also reads better here.
-         */
-        ChangeOrIfContinueToMultiContinueRector::class,
     ]);

@@ -7,6 +7,7 @@ use Ebbbang\Mailroom\Support\CidInliner;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
 use Ebbbang\Mailroom\Tests\TestCase;
 use Illuminate\Mail\Mailables\Attachment;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -52,7 +53,7 @@ class AttachmentsTest extends TestCase
                 (new OrderShipped)->attach($path, ['as' => 'invoice.txt', 'mime' => 'text/plain'])
             );
         } finally {
-            @unlink($path);
+            File::delete($path);
         }
 
         $attachment = MailroomMessage::sole()->attachments()->sole();
