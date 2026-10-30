@@ -145,13 +145,13 @@ If you add a UI state, add a scenario for it. The seeder is the only way a revie
 
 ## What CI checks
 
-Eleven combinations, so a change that only works on your PHP version will be caught:
+Eight combinations, so a change that only works on your PHP version will be caught:
 
 | | |
 |---|---|
 | PHP | 8.2, 8.3, 8.4, 8.5 |
-| Laravel | 11, 12, 13 |
-| Excluded | PHP 8.5 × Laravel 11, PHP 8.2 × Laravel 13, neither being a supported pairing |
+| Laravel | 12, 13 |
+| Excluded | PHP 8.2 × Laravel 13, which Laravel 13 does not support |
 | Plus | one `--prefer-lowest` run on PHP 8.2 × Laravel 12 |
 
 Testbench majors track Laravel majors and cap the usable PHPUnit version, so the workflow pins both together. Constraining the framework alone lets testbench drag in a newer Laravel than the cell intends.

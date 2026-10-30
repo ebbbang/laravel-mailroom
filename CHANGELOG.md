@@ -11,9 +11,24 @@ in the installation docs.
 <!-- #region releases -->
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-30
+
+### Added
+
+- **Guidelines for Laravel Boost.** Run `php artisan boost:install` or
+  `boost:update` and your AI agent learns how to send mail through Mailroom,
+  open the mailbox to an audience outside `local`, read captured messages in
+  code, and delete them without leaving files behind.
+
 ### Changed
 
 - The mailbox's tab icon is drawn the same as the mark in its sidebar.
+
+### Removed
+
+- **Laravel 11.** It reached end of life in March, and Composer now refuses to
+  install any 11.x release because of unpatched security advisories. Mailroom
+  needs Laravel 12 or 13. On Laravel 11, stay on `^0.10`.
 
 ## [0.10.0] - 2026-10-19
 
@@ -372,7 +387,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.7.0...v0.8.0

@@ -182,7 +182,7 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 
 ## Conventions
 
-- **Target the floor, not the ceiling.** `rector.php` pins `php82: true` and `UP_TO_LARAVEL_110` because the matrix still covers PHP 8.2 and Laravel 11. Do not reach for newer APIs.
+- **Target the floor, not the ceiling.** `rector.php` pins `php82: true` and `UP_TO_LARAVEL_120` because the matrix still covers PHP 8.2 and Laravel 12. Do not reach for newer APIs.
 - **No `declare(strict_types=1)`.** `SafeDeclareStrictTypesRector` is skipped deliberately, to match Laravel's own packages and to avoid changing coercion for `env()`-sourced config.
 - Tests use PHPUnit attributes (`#[Test]`), extend `Ebbbang\Mailroom\Tests\TestCase`, and get `RefreshDatabase`, `Storage::fake('local')`, sqlite `:memory:` and `mail.default = mailroom` from it. Never rely on `testbench.yaml` in the suite; it configures the workbench demo only.
 - Table names and the connection are config-driven via `getTable()` / `getConnectionName()` overrides, not properties.
@@ -199,7 +199,7 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 - **Assert on the markup, not the page.** The stylesheet is inlined, so every page carries every class name in the package. `assertDontSee('mr-unread-dot')` fails with no dot on screen. Scope to the element (`<nav class="mr-list">`) or assert on something only the markup has, like `aria-label="Unread"`.
 - Add a `CHANGELOG.md` entry under `## [Unreleased]` for anything people using the package will notice, using only Keep a Changelog's headings in its order (Added, Changed, Deprecated, Removed, Fixed, Security). Tagging publishes that section verbatim as the GitHub release notes, which are read by someone deciding whether to upgrade, so changes they would never see stay out: the docs site, CI, tooling, the demo workbench and repository settings.
 - If you add a UI state, add a scenario to `workbench/app/Console/Commands/SeedMailboxCommand.php`. The seeder aims at one message per branch of the UI, and it is the only way a reviewer sees your change without composing mail by hand.
-- CI is eleven cells (PHP 8.2–8.5 × Laravel 11–13, plus one `--prefer-lowest`). The lowest-dependency run uses phpunit directly because paratest pins narrow PHPUnit ranges.
+- CI is eight cells (PHP 8.2–8.5 × Laravel 12–13 less PHP 8.2 × Laravel 13, plus one `--prefer-lowest`). The lowest-dependency run uses phpunit directly because paratest pins narrow PHPUnit ranges.
 
 ## Releasing
 
@@ -209,6 +209,6 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 - **`git archive HEAD | wc -c`** before tagging, to confirm no development file leaked into the dist past `.gitattributes`.
 - On a **minor**, bump the `Pin with ^0.x` note in `docs/installation.md` and the `SECURITY.md` supported-versions table. A patch leaves both alone. The version in the docs site's nav is read from the newest changelog heading, so it needs nothing.
 - **Never rewrite a published changelog entry**, including its section order, because the GitHub release notes were generated from that text. Correct forward in a later entry instead.
-- Push, wait for CI (the eleven cells, plus the lint and coverage jobs), *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
+- Push, wait for CI (the eight cells, plus the lint and coverage jobs), *then* tag. A tag push does not run `tests.yml`, which triggers only on branch pushes and pull requests.
 - `.github/workflows/release.yml` turns the tag into a GitHub Release using that version's changelog section, and fails the job rather than publishing empty notes if the section is missing.
 - **When `HEAD` is ahead of what you are tagging, name the commit:** `git tag v0.3.2 cfbbc74`. A bare tag would publish the wrong tree under that version.

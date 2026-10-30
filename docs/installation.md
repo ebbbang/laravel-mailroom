@@ -43,15 +43,15 @@ php artisan mailroom:install --no-config --no-migrate
 ```
 
 > [!IMPORTANT]
-> **Pin with `^0.10` while this is 0.x.** Composer treats `^0.10` as `0.10.*` only, so moving to a 0.11 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.11` while this is 0.x.** Composer treats `^0.11` as `0.11.*` only, so moving to a 0.12 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 
 | Requirement | Version |
 |---|---|
 | PHP | 8.2+ |
-| Laravel | 12, 13 (11 best-effort) |
+| Laravel | 12, 13 |
 
-The test matrix covers PHP 8.2–8.5 against Laravel 11, 12 and 13.
+The test matrix covers PHP 8.2–8.5 against Laravel 12 and 13. Laravel 13 needs PHP 8.3 or later.
 
-**On Laravel 11** the code works, but the branch reached end of life on 12 March 2026 and every stable `11.x` release is now flagged by unpatched security advisories. Composer blocks those by default, so an install there resolves to the `11.x-dev` branch rather than a tagged release. It is tested and supported on a best-effort basis; Laravel 12 or 13 is the real recommendation.
+**On Laravel 11**, require `ebbbang/laravel-mailroom:^0.10`, the last release that supports it.

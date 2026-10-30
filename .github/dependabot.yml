@@ -23,7 +23,7 @@ updates:
       prefix: "deps"
 
   # Dev dependencies only in practice: the runtime requirements are wide
-  # ranges (^11 || ^12 || ^13) that Dependabot should not be narrowing.
+  # ranges (^12 || ^13) that Dependabot should not be narrowing.
   - package-ecosystem: composer
     directory: "/"
     schedule:

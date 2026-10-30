@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRector;
+use RectorLaravel\Rector\ClassMethod\ScopeNamedClassMethodToScopeAttributedClassMethodRector;
 use RectorLaravel\Set\LaravelLevelSetList;
 use RectorLaravel\Set\LaravelSetList;
 
@@ -42,13 +43,13 @@ return RectorConfig::configure()
     )
 
     /*
-     * Deliberately UP_TO_LARAVEL_110 and not 130: level sets migrate code
+     * Deliberately UP_TO_LARAVEL_120 and not 130: level sets migrate code
      * *to* the named version, and this package still has to run on Laravel
-     * 11. Targeting 13 here would rewrite us onto APIs that do not exist on
+     * 12. Targeting 13 here would rewrite us onto APIs that do not exist on
      * the oldest version in our test matrix.
      */
     ->withSets([
-        LaravelLevelSetList::UP_TO_LARAVEL_110,
+        LaravelLevelSetList::UP_TO_LARAVEL_120,
         LaravelSetList::LARAVEL_CODE_QUALITY,
         LaravelSetList::LARAVEL_COLLECTION,
         LaravelSetList::LARAVEL_IF_HELPERS,
@@ -66,4 +67,11 @@ return RectorConfig::configure()
          * strings even when they represent ints.
          */
         SafeDeclareStrictTypesRector::class,
+
+        /*
+         * Rewrites scopeX() methods onto the #[Scope] attribute, which Laravel
+         * added in 12.4. The floor is ^12.0, and on anything older the
+         * attribute is ignored and every scope stops resolving.
+         */
+        ScopeNamedClassMethodToScopeAttributedClassMethodRector::class,
     ]);
