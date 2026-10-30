@@ -129,7 +129,7 @@ const features = [
                     <dt>PHP</dt>
                     <dd>8.2 to 8.5</dd>
                     <dt>Laravel</dt>
-                    <dd>12 and 13 (11 best-effort)</dd>
+                    <dd>12 and 13 (11 on v0.10)</dd>
                     <dt>Storage</dt>
                     <dd>Your database and a disk, or a connection of its own</dd>
                     <dt>License</dt>

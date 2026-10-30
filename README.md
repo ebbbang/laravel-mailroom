@@ -29,7 +29,7 @@ composer require --dev ebbbang/laravel-mailroom
 php artisan mailroom:install
 ```
 
-Open `/mailroom` and your next email will be there. Requires PHP 8.2+ and Laravel 12 or 13.
+Open `/mailroom` and your next email will be there. Requires PHP 8.2+ and Laravel 12 or 13 (11 on v0.10).
 
 ## Documentation
 
