@@ -10,7 +10,7 @@ MAILROOM_SPAM_DRIVER=postmark
 
 The scoring is done by [Postmark's SpamCheck API](https://spamcheck.postmarkapp.com/), which is free and needs no account. Mailroom scores nothing itself: SpamAssassin's weights come from a corpus it was trained against, and a number invented here would look like theirs while meaning much less.
 
-<img src="./images/spam-check.png" width="828" alt="The Spam Check pane: a score of 6.3 in red, and a table of the rules that fired with the points each cost">
+<img src="./images/spam-check.png" width="828" alt="The Spam Check pane: a score of 6.3 in red, a table of the rules that fired with the points each cost, and a note that SPF, DKIM, DMARC and sending reputation are not part of the score">
 
 ## What leaves your application
 

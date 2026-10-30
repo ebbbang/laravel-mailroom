@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'vitepress';
+import llmstxt, { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms';
 
 const repository = 'https://github.com/ebbbang/laravel-mailroom';
 const site = 'https://ebbbang.github.io/laravel-mailroom/';
@@ -96,6 +97,41 @@ function opening(file: string): string | undefined {
 // whole.
 const longestDescription = 160;
 
+// The contents of llms.txt: the sidebar, with each page's opening paragraph as
+// its description. The plugin reads descriptions from front matter only, which
+// the pages cannot carry because GitHub shows it at the top of the file.
+const llmsContents = () =>
+    sidebar
+        .map((group) => {
+            const links = group.items.map((item) => {
+                const description = opening(`${item.link.slice(1)}.md`);
+
+                return `- [${item.text}](/laravel-mailroom${item.link}.md)${description ? `: ${description}` : ''}`;
+            });
+
+            return `### ${group.text}\n\n${links.join('\n')}`;
+        })
+        .join('\n\n');
+
+/*
+ * The Markdown copies for AI tools have their HTML stripped, which takes every
+ * screenshot with it, since the pages need <img> to set a width. This puts each
+ * one's alt text after it in an <llm-only> block, which the llms plugin keeps
+ * in those copies and removes from the page. It runs ahead of that plugin and
+ * only on the build, so the files themselves, and GitHub, are untouched.
+ */
+const screenshotsAsText = {
+    name: 'mailroom:screenshots-as-text',
+    enforce: 'pre' as const,
+    transform(code: string, id: string) {
+        if (!id.endsWith('.md')) {
+            return;
+        }
+
+        return code.replace(/^<img [^>]*alt="([^"]+)"[^>]*>$/gm, '$&\n\n<llm-only>\n\nScreenshot: $1.\n\n</llm-only>');
+    },
+};
+
 export default defineConfig({
     title: 'Laravel Mailroom',
     description: 'A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it.',
@@ -108,6 +144,19 @@ export default defineConfig({
     srcExclude: ['README.md'],
 
     sitemap: { hostname: site },
+
+    // llms.txt, llms-full.txt and a Markdown copy of every page, for AI tools.
+    vite: {
+        plugins: [screenshotsAsText, llmstxt({ customTemplateVariables: { toc: llmsContents() } })],
+    },
+
+    // A button under each page's heading to copy it as Markdown or open it in
+    // ChatGPT or Claude.
+    markdown: {
+        config(md) {
+            md.use(copyOrDownloadAsMarkdownButtons);
+        },
+    },
 
     // What every page shares. The image lives in docs/public so its address
     // never changes: apps cache a preview by the image's URL, so a new card

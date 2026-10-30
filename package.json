@@ -13,6 +13,7 @@
         "prettier-plugin-blade": "^3.3.3",
         "prettier-plugin-tailwindcss": "^0.8.1",
         "sharp": "^0.35.5",
-        "vitepress": "^1.6.4"
+        "vitepress": "^1.6.4",
+        "vitepress-plugin-llms": "^1.14.0"
     }
 }

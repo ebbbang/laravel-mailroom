@@ -18,7 +18,7 @@ Open a message, click Forward, and send it to yourself. The field starts on the 
 > [!NOTE]
 > Either way only the address you chose receives anything, and the stored copy is never modified.
 
-<img src="./images/forward-dialog.png" width="528" alt="The Forward dialog, its address field filled in, with Cancel and Send">
+<img src="./images/forward-dialog.png" width="528" alt="The Forward dialog: a Send a copy to field holding the recipient's address, a note that changing it rewrites the To header and keeps the original in X-Mailroom-Original-To, the mailer it sends through, and Cancel and Send buttons">
 
 Because sending takes a deliberate click, your SMTP bill covers the handful of messages someone actually checked rather than everything the application sent.
 
@@ -33,7 +33,7 @@ The mailbox becomes able to send, so six things bound it:
 - **You can bound where mail may go.** `MAILROOM_FORWARD_ALLOWED` takes a comma-separated list of whole addresses, or `@domain` to permit everyone there. Empty means anywhere, which is the default.
 - **And how often.** `MAILROOM_FORWARD_RATE_LIMIT` caps forwards per minute, counted per signed-in user and otherwise per IP. Ten by default; `null` removes the ceiling.
 
-<img src="./images/forward-confirm.png" width="528" alt="The second step: a note that the copy leaves the application for a real mailbox, and the button reading Send to the address">
+<img src="./images/forward-confirm.png" width="528" alt="The Forward dialog after the first click: a warning that the copy leaves the application for a real mailbox, and the Send button now naming the address it will deliver to">
 
 On a staging box several people share, those last two are what turn a send button into a bounded one:
 

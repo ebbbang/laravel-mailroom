@@ -6,13 +6,13 @@ The sidebar holds the mailboxes and people, then comes the message list, then th
 
 Each message opens on a compact header: the subject and a toolbar, then the sender, who it went to, and when. The line naming the recipients opens a panel with every address (To, Cc, Bcc, Reply-To), the size, the mailer and the tags, so the header stays the same height whether a message carries two addresses or seven, and the email itself starts near the top of the pane.
 
-<img src="./images/mailbox-recipients.png" width="828" alt="A message header with the recipients panel open, listing From, To, Cc, Bcc, Reply-To, the date, the mailer, the size and the tags">
+<img src="./images/mailbox-recipients.png" width="828" alt="A message header with the recipients panel open, listing From, To, Cc, Bcc, Reply-To, when it was sent, the mailer, the size, and the tags and metadata">
 
 No build step, no npm, no published assets. The styles are inlined, so it works offline and behind a strict CSP.
 
 ## Mailboxes and people
 
-<img src="./images/mailbox-sidebar.png" width="232" alt="The sidebar: Inbox, Unread and Spam checked with their counts, then People with a search box and the most frequent addresses">
+<img src="./images/mailbox-sidebar.png" width="232" alt="The sidebar: Inbox, Unread and Spam checked with their counts, People with a search box and the ten most frequent addresses, Mailers, the keyboard hints, the theme switcher and Clear all">
 
 The sidebar filters the list:
 
@@ -48,7 +48,7 @@ An iframe carries its own viewport, so the message's own media queries fire at t
 
 The mailbox itself adapts too. On a tablet the sidebar narrows to a rail of icons and avatars. On a phone the list and the message are separate screens, with a link back to the list, and the message toolbar spells out its buttons, since there is no hover to show a tooltip.
 
-<img src="./images/mailbox-phone.png" width="390" alt="An open message on a phone, with a link back to the list and a toolbar that spells out each button">
+<img src="./images/mailbox-phone.png" width="390" alt="An open message on a phone: a link back to the Inbox, a toolbar labelled .eml, .html, Forward, Mark unread and Delete, and the message body below">
 
 ## Read and unread
 
@@ -65,11 +65,11 @@ Every message can be exported as:
 
 ## Attachment previews
 
-<img src="./images/mailbox-attachments.png" width="828" alt="The Attachments tab: a card per file with its type and size, and a Preview or Download button">
+<img src="./images/mailbox-attachments.png" width="828" alt="The Attachments tab: a card per file with a thumbnail or a type icon, its name, MIME type and size, and a Preview button">
 
 Click an attachment to open it in a lightbox. Arrow keys move between attachments, `Esc` closes, clicking outside dismisses, and the open preview stays in the URL (`#preview-2`) so it survives a refresh and can be pasted to someone else.
 
-<img src="./images/mailbox-preview.png" width="1440" alt="An attachment open in the preview lightbox, with its name, type and size, previous and next buttons, download and close">
+<img src="./images/mailbox-preview.png" width="1440" alt="An attachment open in the preview lightbox over the dimmed mailbox, with its name, type and size, its position in the list, previous and next buttons, download and close">
 
 | Previewed inline | Download only |
 |---|---|

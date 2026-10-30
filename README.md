@@ -13,7 +13,7 @@ A Laravel mail driver that stores outgoing mail in your database, plus a mailbox
 
 **Documentation: [ebbbang.github.io/laravel-mailroom](https://ebbbang.github.io/laravel-mailroom/)**
 
-![The Mailroom mailbox: a sidebar of mailboxes and people, the message list, and an open message](https://raw.githubusercontent.com/ebbbang/laravel-mailroom/main/docs/images/mailbox-light.png)
+![The Mailroom mailbox: a sidebar of mailboxes, people and mailers, the message list, and an open message showing its rendered HTML](https://raw.githubusercontent.com/ebbbang/laravel-mailroom/main/docs/images/mailbox-light.png)
 
 ## Installation
 

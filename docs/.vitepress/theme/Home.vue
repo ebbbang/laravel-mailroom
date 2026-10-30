@@ -73,8 +73,8 @@ const features = [
         </section>
 
         <section class="mr-shot" aria-label="The mailbox">
-            <img class="mr-light-only" :src="light" alt="The Mailroom mailbox: a sidebar of mailboxes and people, the message list, and an open message" width="1440" height="900" />
-            <img class="mr-dark-only" :src="dark" alt="The Mailroom mailbox in dark mode: a sidebar of mailboxes and people, the message list, and an open message" width="1440" height="900" />
+            <img class="mr-light-only" :src="light" alt="The Mailroom mailbox: a sidebar of mailboxes, people and mailers, the message list, and an open message showing its rendered HTML" width="1440" height="900" />
+            <img class="mr-dark-only" :src="dark" alt="The Mailroom mailbox in dark mode: a sidebar of mailboxes, people and mailers, the message list, and an open message showing its rendered HTML" width="1440" height="900" />
         </section>
 
         <section class="mr-band">
