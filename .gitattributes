@@ -23,6 +23,7 @@
 /CODE_OF_CONDUCT.md export-ignore
 /CONTRIBUTING.md    export-ignore
 /SECURITY.md        export-ignore
+/context7.json      export-ignore
 
 # Normalise line endings, and treat these as text regardless of content
 # sniffing so diffs stay readable.

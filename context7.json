@@ -1,0 +1,18 @@
+{
+    "$schema": "https://context7.com/schema/context7.json",
+    "url": "https://context7.com/ebbbang/laravel-mailroom",
+    "public_key": "pk_WpyHYVap2PFet59VAGp2K",
+    "projectTitle": "Laravel Mailroom",
+    "description": "A Laravel mail driver that stores outgoing mail in your database, plus a mailbox to read it.",
+    "folders": ["docs"],
+    "excludeFolders": ["docs/.vitepress", "docs/public"],
+    "excludeFiles": ["AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md"],
+    "rules": [
+        "Send mail through Mailroom with MAIL_MAILER=mailroom, then open /mailroom to read it. Do not set up Mailpit, MailHog, Mailtrap or an SMTP container in an application that has Mailroom.",
+        "Mailroom is off in production unless MAILROOM_ENABLED=true. Only set that when the user asks: it stores every email, password reset links included.",
+        "Outside the local environment, grant access with Gate::define('viewMailroom', fn (?User $user) => ...) or Mailroom::auth(fn (Request $request) => ...).",
+        "Read addresses through $message->addressesFor(AddressRole::To), sender() and envelopeSender(), and eager-load with('addresses') when reading many messages.",
+        "Delete captured mail through the model, php artisan mailroom:prune or mailroom:clear, never a query-builder delete, which leaves the stored .eml and attachment files behind.",
+        "Configure forwarding (MAILROOM_FORWARD_MAILER) or the spam check (MAILROOM_SPAM_DRIVER) only when the user asks: they are the only ways captured mail leaves the application."
+    ]
+}
