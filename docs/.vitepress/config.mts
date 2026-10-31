@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { defineConfig } from 'vitepress';
+import { defineConfig, type HeadConfig } from 'vitepress';
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms';
 
 const repository = 'https://github.com/ebbbang/laravel-mailroom';
@@ -173,6 +173,9 @@ export default defineConfig({
         ['meta', { property: 'og:image:height', content: '630' }],
         ['meta', { property: 'og:image:alt', content: 'Laravel Mailroom: keep every email your app sends, and read it in a real mailbox.' }],
         ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+        // Proves ownership to Google Search Console. Bing imports the site
+        // from there, so it needs no tag of its own.
+        ['meta', { name: 'google-site-verification', content: 'Ye8TE1rCHn8VWxaEIXtqj20iZk-CqQkfrFJFQ79aT1Y' }],
     ],
 
     transformPageData(pageData) {
@@ -195,12 +198,35 @@ export default defineConfig({
     transformHead({ pageData, title, description }) {
         const url = site + pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '');
 
-        return [
+        const head: HeadConfig[] = [
             ['link', { rel: 'canonical', href: url }],
             ['meta', { property: 'og:url', content: url }],
             ['meta', { property: 'og:title', content: title }],
             ['meta', { property: 'og:description', content: description }],
         ];
+
+        // What the package is, in schema.org terms, for search engines and
+        // AI crawlers that read structured data rather than the page. Only
+        // the landing page carries it, since it describes the package.
+        if (pageData.relativePath === 'index.md') {
+            const software = {
+                '@context': 'https://schema.org',
+                '@type': 'SoftwareSourceCode',
+                name: 'Laravel Mailroom',
+                description,
+                url: site,
+                codeRepository: repository,
+                programmingLanguage: 'PHP',
+                runtimePlatform: 'Laravel',
+                license: 'https://opensource.org/licenses/MIT',
+                ...(version ? { version } : {}),
+                author: { '@type': 'Person', name: 'Ebrahim Bangdiwala', url: 'https://github.com/ebbbang' },
+            };
+
+            head.push(['script', { type: 'application/ld+json' }, JSON.stringify(software)]);
+        }
+
+        return head;
     },
 
     /*
