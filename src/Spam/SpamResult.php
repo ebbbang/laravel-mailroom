@@ -8,6 +8,8 @@ namespace Ebbbang\Mailroom\Spam;
  * The score is SpamAssassin's own, not ours. Nothing here weights, rescales or
  * second-guesses it, which is the only honest way to report a number computed
  * somewhere else from a rule set we do not ship.
+ *
+ * @internal
  */
 class SpamResult
 {

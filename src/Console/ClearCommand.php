@@ -9,6 +9,9 @@ use Ebbbang\Mailroom\Storage\RawMessageStore;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 
+/**
+ * @internal
+ */
 class ClearCommand extends Command
 {
     use ConfirmableTrait;

@@ -106,11 +106,17 @@ class MailroomAttachment extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @internal
+     */
     public function preview(): AttachmentPreview
     {
         return $this->resolvedPreview ??= AttachmentPreview::for($this);
     }
 
+    /**
+     * @internal
+     */
     public function previewKind(): PreviewKind
     {
         return $this->preview()->kind;
@@ -120,6 +126,8 @@ class MailroomAttachment extends Model
      * Whether the mailbox can show this attachment rather than only offer it
      * as a download. Needs a recognised kind, bytes on disk, and the feature
      * left enabled.
+     *
+     * @internal
      */
     public function isPreviewable(): bool
     {
@@ -130,6 +138,8 @@ class MailroomAttachment extends Model
 
     /**
      * The extension shown in the "no preview for .docx" state.
+     *
+     * @internal
      */
     public function extensionLabel(): string
     {
@@ -141,6 +151,8 @@ class MailroomAttachment extends Model
     /**
      * A data: URI for this part, used to inline embedded images into the
      * standalone .html export so it renders without the original mailbox.
+     *
+     * @internal
      */
     public function toDataUri(): ?string
     {
@@ -151,11 +163,17 @@ class MailroomAttachment extends Model
         return 'data:'.($this->mime_type ?: 'application/octet-stream').';base64,'.base64_encode($contents);
     }
 
+    /**
+     * @internal
+     */
     public function displayName(): string
     {
         return $this->filename ?: 'untitled';
     }
 
+    /**
+     * @internal
+     */
     public function humanSize(): string
     {
         return MailroomMessage::formatBytes($this->size);

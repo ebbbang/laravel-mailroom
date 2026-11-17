@@ -92,6 +92,9 @@ class MailroomMessage extends Model
         return $this->hasMany(MailroomAttachment::class, 'mailroom_message_id');
     }
 
+    /**
+     * @internal
+     */
     public function reads(): HasMany
     {
         return $this->hasMany(MailroomRead::class, 'mailroom_message_id');
@@ -115,8 +118,16 @@ class MailroomMessage extends Model
     |--------------------------------------------------------------------------
     | Queries
     |--------------------------------------------------------------------------
+    |
+    | These serve the mailbox's list and change with it. Being scopes, they
+    | are callable from outside as ->search(), ->inBox() and the rest, which
+    | is why each one is marked.
+    |
     */
 
+    /**
+     * @internal
+     */
     protected function scopeSearch(Builder $query, ?string $term): Builder
     {
         if (blank($term)) {
@@ -139,6 +150,8 @@ class MailroomMessage extends Model
     /**
      * The messages a mailbox holds. Unread needs a reader; Mailbox::resolve()
      * never picks it without one.
+     *
+     * @internal
      */
     protected function scopeInBox(Builder $query, Mailbox $box, ?string $reader): Builder
     {
@@ -153,6 +166,8 @@ class MailroomMessage extends Model
      * A mailbox's order. Spam checked sorts by score, worst first, which is
      * the reason it exists: the message worth looking at is the one at the
      * top. Ties, and every other mailbox, run newest first.
+     *
+     * @internal
      */
     protected function scopeOrderedFor(Builder $query, Mailbox $box): Builder
     {
@@ -161,6 +176,9 @@ class MailroomMessage extends Model
             ->orderByDesc('id');
     }
 
+    /**
+     * @internal
+     */
     protected function scopeForMailer(Builder $query, ?string $mailer): Builder
     {
         return blank($mailer) ? $query : $query->where('mailer', $mailer);
@@ -168,6 +186,8 @@ class MailroomMessage extends Model
 
     /**
      * Messages an address sent, received, or was copied on.
+     *
+     * @internal
      */
     protected function scopeInvolving(Builder $query, ?string $address): Builder
     {
@@ -256,6 +276,8 @@ class MailroomMessage extends Model
      * running ephemeral or per-replica storage, the database row outlives
      * the blob it points at. Worth saying out loud rather than quietly
      * hiding the download button.
+     *
+     * @internal
      */
     public function rawIsMissing(): bool
     {
@@ -264,6 +286,8 @@ class MailroomMessage extends Model
 
     /**
      * Whether any blob belonging to this message has gone missing.
+     *
+     * @internal
      */
     public function hasMissingFiles(): bool
     {
@@ -293,6 +317,9 @@ class MailroomMessage extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * @internal
+     */
     public function displaySubject(): string
     {
         return blank($this->subject) ? '(no subject)' : $this->subject;
@@ -301,6 +328,8 @@ class MailroomMessage extends Model
     /**
      * A one-line snippet for the message list, preferring the text body and
      * falling back to a tag-stripped version of the HTML.
+     *
+     * @internal
      */
     public function preview(int $limit = 120): string
     {
@@ -333,6 +362,9 @@ class MailroomMessage extends Model
         return (string) preg_replace('/<[^>]*+>/', ' ', (string) $html);
     }
 
+    /**
+     * @internal
+     */
     public function humanSize(): string
     {
         return static::formatBytes($this->size);
@@ -346,6 +378,8 @@ class MailroomMessage extends Model
      * the To header rather than only redirecting the envelope -- so this only
      * fires when a caller supplies an envelope of its own. The UI surfaces it
      * because in that case the visible recipients are not the real ones.
+     *
+     * @internal
      */
     public function envelopeDivergesFromHeaders(): bool
     {
@@ -358,6 +392,9 @@ class MailroomMessage extends Model
         return $headerAddresses !== $envelopeAddresses;
     }
 
+    /**
+     * @internal
+     */
     public static function formatBytes(int $bytes): string
     {
         if ($bytes < 1024) {

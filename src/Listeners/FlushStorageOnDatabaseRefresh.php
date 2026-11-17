@@ -18,6 +18,8 @@ use Illuminate\Database\Events\DatabaseRefreshed;
  *
  * Laravel dispatches DatabaseRefreshed from both `migrate:fresh` and
  * `migrate:refresh`, so one listener covers both.
+ *
+ * @internal
  */
 class FlushStorageOnDatabaseRefresh
 {

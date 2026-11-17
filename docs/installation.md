@@ -55,3 +55,20 @@ php artisan mailroom:install --no-config --no-migrate
 The test matrix covers PHP 8.2–8.5 against Laravel 12 and 13. Laravel 13 needs PHP 8.3 or later.
 
 **On Laravel 11**, require `ebbbang/laravel-mailroom:^0.10`, the last release that supports it.
+
+## What a version covers
+
+Versions follow [Semantic Versioning](https://semver.org), and while Mailroom is below 1.0 a minor release may contain breaking changes, which the [changelog](./changelog.md) calls out. The public API, the part a version number speaks for, is:
+
+- **`Mailroom`:** `auth()`, `check()`, `enabled()` and `flushState()`.
+- **The [`MessageStored`](./advanced.md#events) event**, with its `message` and `sentMessage`.
+- **The models:**
+  - `MailroomMessage`'s columns, its `addresses` and `attachments` relations, and `addressesFor()`, `sender()`, `envelopeSender()`, `fileAttachments()`, `inlineAttachments()`, `raw()`, `rawStream()`, `hasRaw()` and `hasSpamResult()`
+  - `MailroomAddress`'s columns and `display()`
+  - `MailroomAttachment`'s columns and `contents()`, `readStream()`, `isInline()`, `hasContents()`, `wasSkipped()` and `isMissing()`
+- **`AddressRole`'s cases**, and the collection `addressesFor()` returns, with `ofRole()`, `display()`, `emails()` and `includes()`.
+- **The `Authorize` middleware, `MailroomDisabledException`, and the service provider.**
+- **Every setting and environment variable** on the [configuration page](./configuration.md), the Artisan commands and their options, and the tables.
+- **The `mailroom.index` and `mailroom.show` route names**, for linking to the mailbox.
+
+Everything else can change in any release: classes and methods marked `@internal`, the views, and the other route names.

@@ -26,6 +26,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *  - Only image, svg, pdf, audio and video reach this route at all. Anything
  *    text-shaped, .html included, is escaped into Blade server-side and never
  *    served with a content type.
+ *
+ * @internal
  */
 class AttachmentPreviewController
 {

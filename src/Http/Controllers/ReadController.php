@@ -19,6 +19,8 @@ use Illuminate\Http\Request;
  * quietly doing nothing. The mailbox never renders these controls when nobody
  * is signed in, so arriving here without a reader means something else is going
  * on, and a silent success would hide it.
+ *
+ * @internal
  */
 class ReadController
 {

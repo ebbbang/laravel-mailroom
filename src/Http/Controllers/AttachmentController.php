@@ -6,6 +6,9 @@ use Ebbbang\Mailroom\Models\MailroomMessage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @internal
+ */
 class AttachmentController
 {
     public function __invoke(MailroomMessage $message, int $attachment): StreamedResponse

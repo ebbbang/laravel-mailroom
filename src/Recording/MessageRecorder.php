@@ -24,6 +24,8 @@ use Symfony\Component\Mime\RawMessage;
 /**
  * Turns an outgoing Symfony message into a persisted MailroomMessage plus
  * its blobs on disk.
+ *
+ * @internal
  */
 class MessageRecorder
 {

@@ -20,11 +20,15 @@ class Mailroom
      * every form that acts on it and every redirect back to it has to carry
      * these, or the reader loses their place. They are listed once, here: a
      * new filter is added to this list, never to a call site.
+     *
+     * @internal
      */
     public const LIST_STATE = ['search', 'mailer', 'box', 'person', 'page'];
 
     /**
-     * The callback that decides who may open the mailbox.
+     * The callback that decides who may open the mailbox. Set it with auth().
+     *
+     * @internal
      */
     public static ?Closure $authUsing = null;
 
@@ -77,6 +81,8 @@ class Mailroom
      * route() call as an array.
      *
      * @return array<string, string>
+     *
+     * @internal
      */
     public static function listState(Request $request): array
     {
@@ -92,6 +98,8 @@ class Mailroom
      * Without a configured mailer the feature is inert: the route is never
      * registered and the button never rendered, so nothing can leave the
      * mailbox until someone sets one up deliberately.
+     *
+     * @internal
      */
     public static function canForward(): bool
     {
@@ -107,6 +115,8 @@ class Mailroom
      * mail from their domain. So outside local development a forward needs a
      * genuine authenticated user, unless the consumer switches that off with
      * their eyes open.
+     *
+     * @internal
      */
     public static function canForwardFrom(Request $request): bool
     {
@@ -131,6 +141,8 @@ class Mailroom
      * Without a driver the feature is inert: the route is never registered, so
      * nothing can leave, while the pane still explains what it would do and how
      * to switch it on.
+     *
+     * @internal
      */
     public static function canSpamCheck(): bool
     {
@@ -144,6 +156,8 @@ class Mailroom
      * different privileges, exactly as reading and forwarding are. A permissive
      * auth callback grants the first, and outside local development this asks
      * for a genuine authenticated user before the second.
+     *
+     * @internal
      */
     public static function canSpamCheckFrom(Request $request): bool
     {
@@ -175,6 +189,8 @@ class Mailroom
      * an application using HasUuids or HasUlids returns a string here. This is
      * the one place that decides, so nothing else has to know how identity is
      * shaped.
+     *
+     * @internal
      */
     public static function readerFor(Request $request): ?string
     {

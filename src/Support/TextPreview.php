@@ -21,6 +21,8 @@ use Ebbbang\Mailroom\Models\MailroomMessage;
  *     fields: array<string, string>|null,
  *     notes: array<int, string>,
  * }
+ *
+ * @internal
  */
 class TextPreview
 {

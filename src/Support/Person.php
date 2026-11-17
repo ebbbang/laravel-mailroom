@@ -5,6 +5,8 @@ namespace Ebbbang\Mailroom\Support;
 /**
  * One address as the People sidebar sees it: how many messages it is on,
  * and in which roles.
+ *
+ * @internal
  */
 final readonly class Person
 {

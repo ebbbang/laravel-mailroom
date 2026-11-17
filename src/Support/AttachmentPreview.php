@@ -19,6 +19,8 @@ use Ebbbang\Mailroom\Models\MailroomAttachment;
  * never dictate what we send. An attachment claiming "text/html" therefore
  * cannot get itself rendered as HTML on this application's origin; it lands
  * in Code and is shown as escaped source instead.
+ *
+ * @internal
  */
 final readonly class AttachmentPreview
 {

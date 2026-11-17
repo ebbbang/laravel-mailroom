@@ -11,6 +11,13 @@ in the installation docs.
 <!-- #region releases -->
 ## [Unreleased]
 
+### Changed
+
+- **The public API is written down.** The installation docs list what a
+  version number covers, and every class and method outside it is marked
+  `@internal`, so your IDE flags code that leans on something free to change
+  in any release.
+
 ## [0.11.0] - 2026-10-30
 
 ### Added

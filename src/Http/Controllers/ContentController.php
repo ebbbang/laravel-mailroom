@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * allow-same-origin, which puts it in an opaque origin that cannot script,
  * cannot reach the parent document, and cannot touch session cookies. The
  * CSP below is the second layer in case the frame markup is ever loosened.
+ *
+ * @internal
  */
 class ContentController
 {

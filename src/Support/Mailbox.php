@@ -5,6 +5,8 @@ namespace Ebbbang\Mailroom\Support;
 /**
  * The sidebar's mailboxes. The value is what the `box` query parameter
  * carries.
+ *
+ * @internal
  */
 enum Mailbox: string
 {

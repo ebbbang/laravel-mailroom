@@ -4,6 +4,9 @@ namespace Ebbbang\Mailroom\Recording;
 
 use Ebbbang\Mailroom\Support\AddressRole;
 
+/**
+ * @internal
+ */
 final readonly class AddressPayload
 {
     /**

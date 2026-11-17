@@ -10,6 +10,8 @@ namespace Ebbbang\Mailroom\Support;
  * are read and escaped into Blade server-side, so their bytes are never
  * served with a content type at all -- which removes an entire class of
  * problem for anything text-shaped.
+ *
+ * @internal
  */
 enum PreviewKind: string
 {

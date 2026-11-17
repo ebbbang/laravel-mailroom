@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
  *
  * The tone comes from the address rather than the name, so one person keeps
  * one colour everywhere they appear, whatever name a given message gave them.
+ *
+ * @internal
  */
 final readonly class Avatar
 {

@@ -28,6 +28,8 @@ enum AddressRole: string
      * Reply-To is a routing instruction rather than a party to the message,
      * and the envelope repeats addresses the headers already name, so
      * counting either would inflate every person's totals.
+     *
+     * @internal
      */
     public function isPerson(): bool
     {
@@ -41,12 +43,17 @@ enum AddressRole: string
      * SMTP's MAIL FROM and RCPT TO carry bare addresses. Symfony builds the
      * envelope from the header Address objects, names and all, so a name on
      * an envelope row would be one the delivery never had.
+     *
+     * @internal
      */
     public function isEnvelope(): bool
     {
         return $this === self::EnvelopeFrom || $this === self::EnvelopeTo;
     }
 
+    /**
+     * @internal
+     */
     public function isHeaderRecipient(): bool
     {
         return match ($this) {
@@ -57,6 +64,8 @@ enum AddressRole: string
 
     /**
      * @return array<int, self>
+     *
+     * @internal
      */
     public static function people(): array
     {
@@ -65,6 +74,8 @@ enum AddressRole: string
 
     /**
      * @return array<int, self>
+     *
+     * @internal
      */
     public static function headerRecipients(): array
     {

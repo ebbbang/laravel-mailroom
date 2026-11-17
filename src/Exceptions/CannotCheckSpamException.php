@@ -4,6 +4,9 @@ namespace Ebbbang\Mailroom\Exceptions;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 class CannotCheckSpamException extends RuntimeException
 {
     public static function noDriverConfigured(): self

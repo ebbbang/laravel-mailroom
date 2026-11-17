@@ -16,6 +16,8 @@ use function Laravel\Prompts\confirm;
  *
  * Every prompt has a matching flag, so the whole command can run unattended
  * in CI or a Dockerfile without a TTY.
+ *
+ * @internal
  */
 class InstallCommand extends Command
 {

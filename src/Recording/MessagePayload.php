@@ -7,6 +7,8 @@ use DateTimeInterface;
 /**
  * Everything worth knowing about one outgoing message, extracted from the
  * Symfony objects and normalized into plain values ready for persistence.
+ *
+ * @internal
  */
 final readonly class MessagePayload
 {

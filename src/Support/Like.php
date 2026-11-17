@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * It ignores case. MySQL, SQL Server and SQLite's LIKE already do under
  * their default collations; PostgreSQL's does not, so there it is ILIKE.
+ *
+ * @internal
  */
 final class Like
 {

@@ -11,6 +11,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Throwable;
 
+/**
+ * @internal
+ */
 class ForwardController
 {
     public function __invoke(Request $request, MailroomMessage $message, MessageForwarder $forwarder): RedirectResponse

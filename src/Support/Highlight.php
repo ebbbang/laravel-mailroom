@@ -10,6 +10,8 @@ use Illuminate\Support\HtmlString;
  * The text is captured mail, which is attacker-controlled, so every piece is
  * escaped before it is joined with the markup. The term is quoted rather than
  * read as a pattern, so a search for ".*" finds a dot and a star.
+ *
+ * @internal
  */
 final class Highlight
 {

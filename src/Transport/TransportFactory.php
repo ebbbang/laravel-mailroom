@@ -7,6 +7,9 @@ use Ebbbang\Mailroom\Recording\MessageRecorder;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 
+/**
+ * @internal
+ */
 class TransportFactory
 {
     public function __construct(protected Container $container) {}

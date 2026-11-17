@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Date;
  * @property int $mailroom_message_id
  * @property string $reader_id
  * @property Carbon $read_at
+ *
+ * @internal
  */
 class MailroomRead extends Model
 {

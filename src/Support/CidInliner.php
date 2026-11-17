@@ -10,6 +10,8 @@ use Ebbbang\Mailroom\Models\MailroomMessage;
  * Embedded images (from $message->embed()) live as separate MIME parts and
  * are referenced as <img src="cid:...">. Without this the preview and the
  * exported .html would both show broken images.
+ *
+ * @internal
  */
 class CidInliner
 {

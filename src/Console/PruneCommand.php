@@ -6,6 +6,9 @@ use Ebbbang\Mailroom\Models\MailroomMessage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
+/**
+ * @internal
+ */
 class PruneCommand extends Command
 {
     protected $signature = 'mailroom:prune

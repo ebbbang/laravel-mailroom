@@ -17,6 +17,8 @@ namespace Ebbbang\Mailroom\Forwarding;
  *      first line of one would leave its remainder behind as a syntax error.
  *   3. Keep whatever line ending the message already uses. Mixing CRLF and LF
  *      inside a header block breaks parsers that are stricter than ours.
+ *
+ * @internal
  */
 class RawHeaderRewriter
 {

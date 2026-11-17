@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
  *
  * Keeping every blob for a message under one directory means deleting a
  * message is a single deleteDirectory() call and can never orphan a part.
+ *
+ * @internal
  */
 class RawMessageStore
 {

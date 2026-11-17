@@ -19,6 +19,8 @@ use Symfony\Component\Mime\RawMessage;
  * message, so it replays the stored bytes rather than rebuilding an
  * approximation from the database. What Gmail renders is then what your
  * application actually produced, down to the MIME structure.
+ *
+ * @internal
  */
 class MessageForwarder
 {

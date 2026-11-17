@@ -21,6 +21,8 @@ use Symfony\Component\Mime\RawMessage;
  * Terminal: the message is recorded and the send completes there, so captured
  * mail stays in the mailbox. That is what lets a staging environment use real
  * customer addresses in its fixtures.
+ *
+ * @internal
  */
 class MailroomTransport implements Stringable, TransportInterface
 {

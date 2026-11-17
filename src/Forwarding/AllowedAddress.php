@@ -15,6 +15,8 @@ use Illuminate\Contracts\Validation\ValidationRule;
  * Enforced as a validation rule rather than inside MessageForwarder so a
  * refusal lands beside the field that caused it, with the rejected address
  * still there to correct.
+ *
+ * @internal
  */
 class AllowedAddress implements ValidationRule
 {

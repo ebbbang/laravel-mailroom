@@ -8,6 +8,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @internal
+ */
 class ExportController
 {
     public function __invoke(MailroomMessage $message, string $format, CidInliner $inliner): Response|StreamedResponse

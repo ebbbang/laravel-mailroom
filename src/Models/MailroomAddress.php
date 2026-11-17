@@ -87,6 +87,8 @@ class MailroomAddress extends Model
      * carried the name searched for, while the person's list shows them all.
      *
      * @return Collection<int, Person>
+     *
+     * @internal
      */
     public static function people(int $limit, ?string $search = null): Collection
     {
@@ -122,6 +124,9 @@ class MailroomAddress extends Model
             ));
     }
 
+    /**
+     * @internal
+     */
     public static function peopleCount(?string $search = null): int
     {
         return static::query()
@@ -133,6 +138,8 @@ class MailroomAddress extends Model
 
     /**
      * Rows whose address or display name contains the term, ignoring case.
+     *
+     * @internal
      */
     protected function scopeMatching(Builder $query, ?string $search): Builder
     {

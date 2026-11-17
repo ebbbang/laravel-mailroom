@@ -5,6 +5,8 @@ namespace Ebbbang\Mailroom\Recording;
 /**
  * One attachment or inline part extracted from a message, before it is
  * written to disk.
+ *
+ * @internal
  */
 final readonly class AttachmentPayload
 {

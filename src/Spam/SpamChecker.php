@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Http;
  * rule set instead would mean inventing weights that SpamAssassin derives from
  * a trained corpus, and the number would look like theirs while meaning far
  * less.
+ *
+ * @internal
  */
 class SpamChecker
 {

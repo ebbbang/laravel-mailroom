@@ -14,13 +14,15 @@ use Throwable;
 /**
  * Check one message, once, because somebody asked.
  *
- * This is the only place Mailroom sends captured mail anywhere, so it happens
- * on a deliberate click and nowhere else. Opening a message, polling for new
- * mail and listing the mailbox all leave the message where it is.
+ * This is the only place Mailroom hands captured mail to a third party, so it
+ * happens on a deliberate click and nowhere else. Opening a message, polling
+ * for new mail and listing the mailbox all leave the message where it is.
  *
  * Checking again overwrites the stored result: the point of a second check is
  * usually that the template changed, and two scores for one message would only
  * raise the question of which is current.
+ *
+ * @internal
  */
 class SpamCheckController
 {

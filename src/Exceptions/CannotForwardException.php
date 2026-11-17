@@ -4,6 +4,9 @@ namespace Ebbbang\Mailroom\Exceptions;
 
 use RuntimeException;
 
+/**
+ * @internal
+ */
 class CannotForwardException extends RuntimeException
 {
     public static function noMailerConfigured(): self
