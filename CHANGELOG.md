@@ -11,6 +11,8 @@ in the installation docs.
 <!-- #region releases -->
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-17
+
 **Contains breaking changes.** If you published the views, see Removed.
 
 ### Changed
@@ -412,7 +414,8 @@ First release.
 - Attachment downloads are always `application/octet-stream` with
   `Content-Disposition: attachment`.
 
-[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ebbbang/laravel-mailroom/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ebbbang/laravel-mailroom/compare/v0.8.0...v0.9.0

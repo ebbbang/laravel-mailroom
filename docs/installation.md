@@ -43,7 +43,7 @@ php artisan mailroom:install --no-config --no-migrate
 ```
 
 > [!IMPORTANT]
-> **Pin with `^0.11` while this is 0.x.** Composer treats `^0.11` as `0.11.*` only, so moving to a 0.12 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
+> **Pin with `^0.12` while this is 0.x.** Composer treats `^0.12` as `0.12.*` only, so moving to a 0.13 release needs a deliberate bump. Breaking changes may land in minor versions until 1.0.
 
 ## Requirements
 

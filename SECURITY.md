@@ -6,7 +6,8 @@ While the package is below 1.0, only the latest minor receives fixes.
 
 | Version | Supported |
 |---------|-----------|
-| 0.11.x  | yes       |
+| 0.12.x  | yes       |
+| 0.11.x  | no        |
 | 0.10.x  | no        |
 | 0.9.x   | no        |
 | 0.8.x   | no        |
