@@ -11,12 +11,22 @@ in the installation docs.
 <!-- #region releases -->
 ## [Unreleased]
 
+**Contains breaking changes.** If you published the views, see Removed.
+
 ### Changed
 
 - **The public API is written down.** The installation docs list what a
   version number covers, and every class and method outside it is marked
   `@internal`, so your IDE flags code that leans on something free to change
   in any release.
+
+### Removed
+
+- **The `mailroom-views` publish tag.** A published copy of every view is one
+  that each release either breaks or never reaches. To change a view, keep
+  only that one at its path under `resources/views/vendor/mailroom`, which
+  Laravel still uses in place of the package's, and delete the rest of the
+  copy so the others update. Views are not part of the public API.
 
 ## [0.11.0] - 2026-10-30
 

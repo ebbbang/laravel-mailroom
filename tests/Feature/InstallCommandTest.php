@@ -218,17 +218,19 @@ class InstallCommandTest extends Orchestra
     }
 
     #[Test]
-    public function the_migrations_are_not_publishable(): void
+    public function only_the_config_is_publishable(): void
     {
-        $groups = ServiceProvider::publishableGroups();
+        $groups = array_values(array_filter(
+            ServiceProvider::publishableGroups(),
+            fn (string $group): bool => str_starts_with($group, 'mailroom'),
+        ));
 
-        $this->assertContains('mailroom-config', $groups);
-        $this->assertContains('mailroom-views', $groups);
-
-        // Publishing them would put a copy in database/migrations, which runs
-        // regardless of mailroom.enabled and so hands a production deploy the
-        // tables that gate exists to withhold.
-        $this->assertNotContains('mailroom-migrations', $groups);
+        // Publishing the migrations would put a copy in database/migrations,
+        // which runs regardless of mailroom.enabled and so hands a production
+        // deploy the tables that gate exists to withhold. Publishing the views
+        // would freeze a copy of the whole UI that every later release either
+        // breaks or silently fails to reach.
+        $this->assertSame(['mailroom-config'], $groups);
     }
 
     /**

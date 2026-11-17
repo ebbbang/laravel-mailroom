@@ -209,11 +209,12 @@ class MailroomServiceProvider extends ServiceProvider
         // would buy is schema edits, and those belong in your own ALTER
         // migration where they neither collide nor leak into production.
 
-        // Styles are inlined into the layout rather than published, so there
-        // is no build step for consumers and no stale-asset failure mode.
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/mailroom'),
-        ], 'mailroom-views');
+        // The views are not publishable either. A published copy of the whole
+        // UI is one that every later release either breaks or silently fails
+        // to reach, and the views change with the UI rather than holding to
+        // the package's stability promise. loadViewsFrom already looks in
+        // resources/views/vendor/mailroom first, so overriding a single view
+        // stays possible without copying the rest.
     }
 
     protected function registerCommands(): void

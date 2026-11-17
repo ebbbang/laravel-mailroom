@@ -187,6 +187,7 @@ The transport is built from the container that resolved `mail.manager`, not `$th
 ## Conventions
 
 - **Target the floor, not the ceiling.** `rector.php` pins `php82: true` and `UP_TO_LARAVEL_120` because the matrix still covers PHP 8.2 and Laravel 12. Do not reach for newer APIs.
+- **The public API is a list, and everything off it is `@internal`.** The list is "What a version covers" in `docs/installation.md`. A new class, public method or scope starts `@internal`, scopes included, since Eloquent exposes them as `->search()` and the like; making one public means adding it to that list in the same change, and it is then held to semver. Only the config is publishable: published migrations would bypass the enabled gate, and published views freeze a copy of the UI that releases then break or never reach.
 - **No `declare(strict_types=1)`.** `SafeDeclareStrictTypesRector` is skipped deliberately, to match Laravel's own packages and to avoid changing coercion for `env()`-sourced config.
 - Tests use PHPUnit attributes (`#[Test]`), extend `Ebbbang\Mailroom\Tests\TestCase`, and get `RefreshDatabase`, `Storage::fake('local')`, sqlite `:memory:` and `mail.default = mailroom` from it. Never rely on `testbench.yaml` in the suite; it configures the workbench demo only.
 - Table names and the connection are config-driven via `getTable()` / `getConnectionName()` overrides, not properties.

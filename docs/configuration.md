@@ -2,17 +2,13 @@
 
 Every setting and environment variable Mailroom reads. The defaults come from the package, so all of it works without publishing anything.
 
-Publish only what you mean to change. The config, to `config/mailroom.php`:
+Publish the config only if you mean to change it, to `config/mailroom.php`:
 
 ```bash
 php artisan vendor:publish --tag=mailroom-config
 ```
 
-The views, to `resources/views/vendor/mailroom`:
-
-```bash
-php artisan vendor:publish --tag=mailroom-views
-```
+**The views are not publishable.** To change one, put your own copy at the same path under `resources/views/vendor/mailroom`, and Laravel uses it in place of the package's. The views change with the mailbox from release to release and are [not part of the public API](./installation.md#what-a-version-covers), so override only what you need and check it after upgrading.
 
 **The migrations are deliberately not publishable.** They are loaded from the package only while Mailroom is enabled, which is what stops a production deploy from gaining the tables. A published copy would sit in `database/migrations` and run regardless, quietly removing that guarantee. Table names and the connection are config-driven already, and schema changes belong in your own `ALTER` migration.
 
