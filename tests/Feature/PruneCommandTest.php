@@ -66,6 +66,29 @@ class PruneCommandTest extends TestCase
     }
 
     #[Test]
+    public function the_retention_period_reads_the_new_variable_and_the_deprecated_one(): void
+    {
+        $retention = function (array $variables): mixed {
+            foreach ($variables as $name => $value) {
+                putenv("{$name}={$value}");
+            }
+
+            try {
+                return (require __DIR__.'/../../config/mailroom.php')['prune']['retention_days'];
+            } finally {
+                foreach (array_keys($variables) as $name) {
+                    putenv($name);
+                }
+            }
+        };
+
+        $this->assertSame(7, $retention([]));
+        $this->assertSame('3', $retention(['MAILROOM_PRUNE_RETENTION_DAYS' => '3']));
+        $this->assertSame('4', $retention(['MAILROOM_RETENTION_DAYS' => '4']));
+        $this->assertSame('3', $retention(['MAILROOM_PRUNE_RETENTION_DAYS' => '3', 'MAILROOM_RETENTION_DAYS' => '4']));
+    }
+
+    #[Test]
     public function it_accepts_an_hours_cutoff(): void
     {
         $recent = $this->captureAged(0);

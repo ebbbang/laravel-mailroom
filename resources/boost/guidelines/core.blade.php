@@ -56,17 +56,17 @@ When reading many messages, eager-load the addresses: `MailroomMessage::query()-
 
 Delete through the model or the commands, never with a query-builder delete. The raw `.eml` and attachment files are removed by model events, so `MailroomMessage::query()->delete()` leaves them orphaned on the disk.
 
-- `php artisan mailroom:prune` deletes messages older than `MAILROOM_RETENTION_DAYS` (7). `--days`, `--hours` and `--pretend` are available.
+- `php artisan mailroom:prune` deletes messages older than `MAILROOM_PRUNE_RETENTION_DAYS` (7). `--days`, `--hours` and `--pretend` are available.
 - `php artisan mailroom:clear` deletes everything, files included.
 
 ### Configuration
 
-Every setting has an environment variable, so `config/mailroom.php` only needs publishing to change something. The ones most often needed:
+The settings most often needed have environment variables, so `config/mailroom.php` rarely needs publishing:
 
 - `MAILROOM_DISK`: where raw messages and attachments are stored. On Laravel Cloud, with queue workers in separate containers, or anywhere the filesystem is not shared, set it to object storage.
 - `MAILROOM_PATH`: the mailbox's URL path (`mailroom`).
 - `MAILROOM_FORWARD_MAILER`: a real mailer to forward captured messages through. Forwarding is off until it is set, and it must not be a `mailroom` mailer.
 - `MAILROOM_SPAM_DRIVER=postmark`: scores a message with SpamAssassin through Postmark's API, only when someone clicks Spam Check.
-- `MAILROOM_RETENTION_DAYS` with `MAILROOM_PRUNE_SCHEDULE` (`daily`, or a cron expression): keeps captured mail no longer than needed.
+- `MAILROOM_PRUNE_RETENTION_DAYS` with `MAILROOM_PRUNE_SCHEDULE` (`daily`, or a cron expression): keeps captured mail no longer than needed.
 
 Captured mail stays in the application's own database and storage. Forwarding and the spam check are the only ways it leaves, the spam check to a third party, so configure either only when the user asks for it.

@@ -13,7 +13,7 @@ use Symfony\Component\Mailer\SentMessage;
 class MessageStored
 {
     public function __construct(
-        public MailroomMessage $message,
-        public SentMessage $sentMessage,
+        public readonly MailroomMessage $message,
+        public readonly SentMessage $sentMessage,
     ) {}
 }

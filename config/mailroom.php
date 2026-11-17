@@ -186,10 +186,13 @@ return [
     | "daily") to have the package register the prune command on the scheduler
     | for you. Null leaves scheduling entirely up to you.
     |
+    | MAILROOM_RETENTION_DAYS is the deprecated name for
+    | MAILROOM_PRUNE_RETENTION_DAYS, still read when the new one is unset.
+    |
     */
 
     'prune' => [
-        'retention_days' => env('MAILROOM_RETENTION_DAYS', 7),
+        'retention_days' => env('MAILROOM_PRUNE_RETENTION_DAYS', env('MAILROOM_RETENTION_DAYS', 7)),
         'schedule' => env('MAILROOM_PRUNE_SCHEDULE'),
     ],
 

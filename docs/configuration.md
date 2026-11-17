@@ -66,7 +66,7 @@ Every environment variable Mailroom reads:
 | `MAILROOM_SPAM_REQUIRE_AUTH` | `spam.require_authenticated_user` | `true` |
 | `MAILROOM_SPAM_RATE_LIMIT` | `spam.rate_limit` | `10` |
 | `MAILROOM_SPAM_TIMEOUT` | `spam.timeout` | `15` |
-| `MAILROOM_RETENTION_DAYS` | `prune.retention_days` | `7` |
+| `MAILROOM_PRUNE_RETENTION_DAYS` | `prune.retention_days` | `7` |
 | `MAILROOM_PRUNE_SCHEDULE` | `prune.schedule` | `null` |
 | `MAILROOM_PREVIEW` | `preview.enabled` | `true` |
 

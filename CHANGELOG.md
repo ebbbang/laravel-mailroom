@@ -19,6 +19,14 @@ in the installation docs.
   version number covers, and every class and method outside it is marked
   `@internal`, so your IDE flags code that leans on something free to change
   in any release.
+- `MessageStored`'s `message` and `sentMessage` are read-only, so one listener
+  cannot swap the message out from under the listeners after it.
+
+### Deprecated
+
+- `MAILROOM_RETENTION_DAYS` is now `MAILROOM_PRUNE_RETENTION_DAYS`, matching
+  `MAILROOM_PRUNE_SCHEDULE`. The old name is still read when the new one is
+  unset.
 
 ### Removed
 

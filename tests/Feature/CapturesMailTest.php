@@ -7,6 +7,7 @@ use Ebbbang\Mailroom\Models\MailroomMessage;
 use Ebbbang\Mailroom\Support\AddressRole;
 use Ebbbang\Mailroom\Tests\Fixtures\OrderShipped;
 use Ebbbang\Mailroom\Tests\TestCase;
+use Error;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
@@ -176,6 +177,19 @@ class CapturesMailTest extends TestCase
         Mail::to('rachel@example.test')->send(new OrderShipped);
 
         Event::assertDispatched(MessageStored::class, fn (MessageStored $event): bool => $event->message->subject === 'Order A-1001 shipped');
+    }
+
+    #[Test]
+    public function a_listener_cannot_swap_the_message_out_from_under_the_listeners_after_it(): void
+    {
+        Event::listen(function (MessageStored $event): void {
+            $this->expectException(Error::class);
+            $this->expectExceptionMessage('Cannot modify readonly property');
+
+            $event->message = new MailroomMessage;
+        });
+
+        Mail::to('rachel@example.test')->send(new OrderShipped);
     }
 
     #[Test]
